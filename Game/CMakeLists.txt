@@ -1,0 +1,12 @@
+project(Game)
+
+add_executable(Game
+    src/Main.cpp
+)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-fsanitize=address,undefined -g)
+  add_link_options(-fsanitize=address,undefined)
+endif()
+
+target_compile_features(Game PRIVATE cxx_std_20)
