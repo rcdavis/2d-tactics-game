@@ -21,4 +21,5 @@ target_include_directories(Engine PUBLIC
 
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
+    SDL3::SDL3-static
 )
