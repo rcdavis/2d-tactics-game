@@ -1,6 +1,7 @@
 project(Engine)
 
 add_library(Engine STATIC
+    src/SDL3/Window.cpp
     src/Utils/Log.cpp
 )
 
