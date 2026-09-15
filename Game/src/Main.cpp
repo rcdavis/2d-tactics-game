@@ -1,6 +1,8 @@
-#include <iostream>
+#include "Utils/Log.h"
 
 int main() {
-	std::cout << "Hello, 2D Tactics Game!" << std::endl;
+	Log::Init("2DT");
+
+	LOG_INFO("Hello, 2D Tactics Game!");
 	return 0;
 }
