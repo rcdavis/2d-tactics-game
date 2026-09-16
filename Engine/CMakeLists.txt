@@ -1,6 +1,8 @@
 project(Engine)
 
 add_library(Engine STATIC
+    src/SDL3/Platform.cpp
+    src/SDL3/Window.cpp
     src/Utils/Log.cpp
 )
 
@@ -21,4 +23,5 @@ target_include_directories(Engine PUBLIC
 
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
+    SDL3::SDL3-static
 )

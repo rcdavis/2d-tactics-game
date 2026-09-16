@@ -1,8 +1,11 @@
 #include "Utils/Log.h"
+#include "Game.h"
 
 int main() {
 	Log::Init("2DT");
 
-	LOG_INFO("Hello, 2D Tactics Game!");
+	Game game;
+	game.Run();
+
 	return 0;
 }
