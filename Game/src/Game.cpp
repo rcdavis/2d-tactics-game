@@ -1,7 +1,8 @@
 #include "Game.h"
 
-#include "SDL3/SDL_events.h"
 #include "Utils/Log.h"
+
+#include "PlatformEvent.h"
 
 Game::~Game() {
 	Shutdown();
@@ -12,7 +13,7 @@ bool Game::Init() {
 		.title = "2D Tactics Game",
 		.width = 800,
 		.height = 600,
-		.isResizable = true,
+		.isResizable = false,
 		.isFullscreen = false,
 	};
 
@@ -38,10 +39,10 @@ void Game::Run() {
 		return;
 	}
 
-	SDL_Event event {};
+	PlatformEvent event {};
 	while (mIsRunning) {
-		while (SDL_PollEvent(&event)) {
-			if (event.type == SDL_EVENT_QUIT) {
+		while (mPlatform.PollEvent(event)) {
+			if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
 				break;
 			}
