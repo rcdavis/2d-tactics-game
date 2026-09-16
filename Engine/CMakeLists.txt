@@ -1,6 +1,7 @@
 project(Engine)
 
 add_library(Engine STATIC
+    glad/src/glad.c
     src/SDL3/Platform.cpp
     src/SDL3/Window.cpp
     src/Utils/Log.cpp
@@ -19,6 +20,10 @@ endif()
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_include_directories(Engine PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
 )
 
 target_compile_features(Engine PRIVATE cxx_std_20)
