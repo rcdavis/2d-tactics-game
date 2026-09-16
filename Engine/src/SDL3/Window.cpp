@@ -9,12 +9,10 @@ Window::~Window() {
 
 bool Window::Init(const WindowDesc& desc) {
 	SDL_WindowFlags windowFlags = SDL_WINDOW_OPENGL;
-	if (desc.isResizable) {
+	if (desc.isResizable)
 		windowFlags |= SDL_WINDOW_RESIZABLE;
-	}
-	if (desc.isFullscreen) {
+	if (desc.isFullscreen)
 		windowFlags |= SDL_WINDOW_FULLSCREEN;
-	}
 
     mHandle = SDL_CreateWindow(desc.title, desc.width, desc.height, windowFlags);
     if (!mHandle) {
