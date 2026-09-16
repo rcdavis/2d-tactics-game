@@ -2,8 +2,8 @@ project(Engine)
 
 add_library(Engine STATIC
     glad/src/glad.c
-    src/SDL3/Platform.cpp
-    src/SDL3/Window.cpp
+    src/SDL/Platform.cpp
+    src/SDL/SDLWindow.cpp
     src/Utils/Log.cpp
 )
 

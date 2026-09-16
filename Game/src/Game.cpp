@@ -3,6 +3,7 @@
 #include "Utils/Log.h"
 
 #include "PlatformEvent.h"
+#include "IWindow.h"
 
 Game::~Game() {
 	Shutdown();

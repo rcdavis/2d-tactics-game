@@ -1,0 +1,5 @@
+If:
+  PathMatch: .*/IWindow\.h
+
+CompileFlags:
+  Add: [-xc++]

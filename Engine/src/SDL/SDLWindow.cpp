@@ -1,13 +1,13 @@
-#include "Window.h"
+#include "SDL/SDLWindow.h"
 
 #include "SDL3/SDL_video.h"
 #include "Utils/Log.h"
 
-Window::~Window() {
+SDLWindow::~SDLWindow() {
 	Destroy();
 }
 
-bool Window::Init(const WindowCreateInfo& info) {
+bool SDLWindow::Init(const WindowCreateInfo& info) {
 	SDL_WindowFlags windowFlags = SDL_WINDOW_OPENGL;
 	if (info.isResizable)
 		windowFlags |= SDL_WINDOW_RESIZABLE;
@@ -26,9 +26,9 @@ bool Window::Init(const WindowCreateInfo& info) {
 	return true;
 }
 
-void Window::Destroy() {
+void SDLWindow::Destroy() {
 	if (mHandle) {
-		SDL_DestroyWindow(static_cast<SDL_Window*>(mHandle));
+		SDL_DestroyWindow(mHandle);
 		mHandle = nullptr;
 	}
 

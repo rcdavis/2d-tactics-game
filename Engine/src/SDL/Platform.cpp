@@ -6,6 +6,7 @@
 #include "Utils/Log.h"
 
 #include "PlatformEvent.h"
+#include "SDL/SDLWindow.h"
 
 bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -13,8 +14,11 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
-	if (!window.Init(info)) {
+	window = new SDLWindow();
+	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");
+		delete window;
+		window = nullptr;
 		return false;
 	}
 
@@ -22,7 +26,10 @@ bool Platform::Init(const WindowCreateInfo& info) {
 }
 
 void Platform::Destroy() {
-	window.Destroy();
+	if (window) {
+		delete window;
+		window = nullptr;
+	}
 
 	SDL_Quit();
 }

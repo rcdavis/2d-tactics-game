@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Window.h"
-
+class IWindow;
 struct PlatformEvent;
+struct WindowCreateInfo;
 
 struct Platform {
-	Window window;
+	IWindow* window = nullptr;
 
 	bool Init(const WindowCreateInfo& info);
 
