@@ -1,0 +1,16 @@
+#pragma once
+
+#include "IRenderDevice.h"
+
+#include "SDL3/SDL_video.h"
+
+class GLRenderDevice : public IRenderDevice {
+public:
+	virtual ~GLRenderDevice();
+	virtual bool Init(IWindow* window) override;
+	virtual void Shutdown() override;
+	virtual void Present() override;
+
+private:
+	SDL_GLContext mContext = nullptr;
+};

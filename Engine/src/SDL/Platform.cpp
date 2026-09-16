@@ -7,6 +7,7 @@
 
 #include "PlatformEvent.h"
 #include "SDL/SDLWindow.h"
+#include "OpenGL/GLRenderDevice.h"
 
 bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -23,10 +24,23 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
+	renderDevice = new GLRenderDevice();
+	if (!renderDevice->Init(window)) {
+		LOG_ERROR("Failed to initialize render device");
+		delete renderDevice;
+		renderDevice = nullptr;
+		return false;
+	}
+
 	return true;
 }
 
 void Platform::Destroy() {
+	if (renderDevice) {
+		delete renderDevice;
+		renderDevice = nullptr;
+	}
+
 	if (window) {
 		delete window;
 		window = nullptr;
