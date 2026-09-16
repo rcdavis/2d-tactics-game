@@ -14,6 +14,7 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
+	// TODO: Support other graphics APIs besides OpenGL and SDL
 	window = new SDLWindow();
 	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");
