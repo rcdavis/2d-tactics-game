@@ -2,6 +2,7 @@ project(Engine)
 
 add_library(Engine STATIC
     glad/src/glad.c
+    src/OpenGL/GLRenderDevice.cpp
     src/SDL/Platform.cpp
     src/SDL/SDLWindow.cpp
     src/Utils/Log.cpp
