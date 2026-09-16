@@ -32,6 +32,12 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
+	if (info.useVSync) {
+		SDL_GL_SetSwapInterval(1);
+	} else {
+		SDL_GL_SetSwapInterval(0);
+	}
+
 	return true;
 }
 
