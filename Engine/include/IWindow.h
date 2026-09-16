@@ -9,6 +9,7 @@ struct WindowCreateInfo {
 	GraphicsAPI graphicsAPI = GraphicsAPI::OpenGL;
 	bool isResizable = false;
 	bool isFullscreen = false;
+	bool useVSync = false;
 };
 
 class IWindow {

@@ -9,17 +9,20 @@ SDLWindow::~SDLWindow() {
 
 bool SDLWindow::Init(const WindowCreateInfo& info) {
 	SDL_WindowFlags windowFlags = 0;
-	if (info.isResizable)
-		windowFlags |= SDL_WINDOW_RESIZABLE;
-	if (info.isFullscreen)
-		windowFlags |= SDL_WINDOW_FULLSCREEN;
-
 	if (info.graphicsAPI == GraphicsAPI::OpenGL) {
 		windowFlags |= SDL_WINDOW_OPENGL;
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	} else {
+		LOG_ERROR("Unsupported graphics API. Only supporting OpenGL for now.");
+		return false;
 	}
+
+	if (info.isResizable)
+		windowFlags |= SDL_WINDOW_RESIZABLE;
+	if (info.isFullscreen)
+		windowFlags |= SDL_WINDOW_FULLSCREEN;
 
 	mHandle = SDL_CreateWindow(info.title, info.width, info.height, windowFlags);
 	if (!mHandle) {
@@ -29,6 +32,8 @@ bool SDLWindow::Init(const WindowCreateInfo& info) {
 
 	mWidth = info.width;
 	mHeight = info.height;
+
+	// TODO: Support usage of VSync
 
 	return true;
 }

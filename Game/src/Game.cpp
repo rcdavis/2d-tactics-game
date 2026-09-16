@@ -17,6 +17,7 @@ bool Game::Init() {
 		.graphicsAPI = GraphicsAPI::OpenGL,
 		.isResizable = false,
 		.isFullscreen = false,
+		.useVSync = true,
 	};
 
 	if (!mPlatform.Init(windowCreateInfo)) {
