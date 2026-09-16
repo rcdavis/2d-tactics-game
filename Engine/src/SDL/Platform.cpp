@@ -6,15 +6,20 @@
 #include "Utils/Log.h"
 
 #include "PlatformEvent.h"
+#include "SDL/SDLWindow.h"
 
-bool Platform::Init(const WindowDesc& desc) {
+bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		LOG_ERROR("Failed to initialize SDL3: {}", SDL_GetError());
 		return false;
 	}
 
-	if (!window.Init(desc)) {
+	// TODO: Support other graphics APIs besides OpenGL and SDL
+	window = new SDLWindow();
+	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");
+		delete window;
+		window = nullptr;
 		return false;
 	}
 
@@ -22,7 +27,10 @@ bool Platform::Init(const WindowDesc& desc) {
 }
 
 void Platform::Destroy() {
-	window.Destroy();
+	if (window) {
+		delete window;
+		window = nullptr;
+	}
 
 	SDL_Quit();
 }

@@ -1,0 +1,5 @@
+If:
+  PathMatch: .*/(IWindow|GraphicsAPI)\.h
+
+CompileFlags:
+  Add: [-xc++]

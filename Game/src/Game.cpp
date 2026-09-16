@@ -3,21 +3,24 @@
 #include "Utils/Log.h"
 
 #include "PlatformEvent.h"
+#include "IWindow.h"
 
 Game::~Game() {
 	Shutdown();
 }
 
 bool Game::Init() {
-	constexpr WindowDesc windowDesc {
+	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
 		.width = 800,
 		.height = 600,
+		.graphicsAPI = GraphicsAPI::OpenGL,
 		.isResizable = false,
 		.isFullscreen = false,
+		.useVSync = true,
 	};
 
-	if (!mPlatform.Init(windowDesc)) {
+	if (!mPlatform.Init(windowCreateInfo)) {
 		LOG_ERROR("Failed to initialize platform");
 		return false;
 	}
