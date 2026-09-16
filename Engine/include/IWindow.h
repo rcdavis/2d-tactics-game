@@ -1,11 +1,12 @@
 #pragma once
 
-#include <cstdint>
+#include "GraphicsAPI.h"
 
 struct WindowCreateInfo {
 	const char* title = nullptr;
 	uint16_t width = 0;
 	uint16_t height = 0;
+	GraphicsAPI graphicsAPI = GraphicsAPI::OpenGL;
 	bool isResizable = false;
 	bool isFullscreen = false;
 };
