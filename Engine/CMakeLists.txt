@@ -21,7 +21,12 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_features(Engine PRIVATE cxx_std_20)
+
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
+)
+
+target_link_libraries(Engine PRIVATE
     SDL3::SDL3-static
 )

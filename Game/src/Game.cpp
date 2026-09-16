@@ -30,6 +30,8 @@ bool Game::Init() {
 }
 
 void Game::Shutdown() {
+	LOG_INFO("Shutting down game");
+
 	mPlatform.Destroy();
 }
 
@@ -48,6 +50,4 @@ void Game::Run() {
 			}
 		}
 	}
-
-	Shutdown();
 }
