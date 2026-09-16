@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-struct WindowDesc {
+struct WindowCreateInfo {
 	const char* title = nullptr;
 	uint16_t width = 0;
 	uint16_t height = 0;
@@ -15,7 +15,7 @@ public:
 	Window() = default;
 	~Window();
 
-	bool Init(const WindowDesc& desc);
+	bool Init(const WindowCreateInfo& info);
 	void Destroy();
 
 	uint16_t GetWidth() const { return mWidth; }

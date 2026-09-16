@@ -7,7 +7,7 @@ struct PlatformEvent;
 struct Platform {
 	Window window;
 
-	bool Init(const WindowDesc& desc);
+	bool Init(const WindowCreateInfo& info);
 
 	void Destroy();
 

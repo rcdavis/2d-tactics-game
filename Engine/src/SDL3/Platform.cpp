@@ -7,13 +7,13 @@
 
 #include "PlatformEvent.h"
 
-bool Platform::Init(const WindowDesc& desc) {
+bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		LOG_ERROR("Failed to initialize SDL3: {}", SDL_GetError());
 		return false;
 	}
 
-	if (!window.Init(desc)) {
+	if (!window.Init(info)) {
 		LOG_ERROR("Failed to initialize window");
 		return false;
 	}

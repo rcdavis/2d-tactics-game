@@ -7,21 +7,21 @@ Window::~Window() {
 	Destroy();
 }
 
-bool Window::Init(const WindowDesc& desc) {
+bool Window::Init(const WindowCreateInfo& info) {
 	SDL_WindowFlags windowFlags = SDL_WINDOW_OPENGL;
-	if (desc.isResizable)
+	if (info.isResizable)
 		windowFlags |= SDL_WINDOW_RESIZABLE;
-	if (desc.isFullscreen)
+	if (info.isFullscreen)
 		windowFlags |= SDL_WINDOW_FULLSCREEN;
 
-	mHandle = SDL_CreateWindow(desc.title, desc.width, desc.height, windowFlags);
+	mHandle = SDL_CreateWindow(info.title, info.width, info.height, windowFlags);
 	if (!mHandle) {
 		LOG_ERROR("Failed to create SDL3 window: {}", SDL_GetError());
 		return false;
 	}
 
-	mWidth = desc.width;
-	mHeight = desc.height;
+	mWidth = info.width;
+	mHeight = info.height;
 
 	return true;
 }

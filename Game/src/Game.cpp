@@ -9,7 +9,7 @@ Game::~Game() {
 }
 
 bool Game::Init() {
-	constexpr WindowDesc windowDesc {
+	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
 		.width = 800,
 		.height = 600,
@@ -17,7 +17,7 @@ bool Game::Init() {
 		.isFullscreen = false,
 	};
 
-	if (!mPlatform.Init(windowDesc)) {
+	if (!mPlatform.Init(windowCreateInfo)) {
 		LOG_ERROR("Failed to initialize platform");
 		return false;
 	}
