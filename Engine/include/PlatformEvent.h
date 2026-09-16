@@ -8,5 +8,5 @@ struct PlatformEvent {
 		Count
 	};
 
-    Type type = Type::Count;
+	Type type = Type::Count;
 };

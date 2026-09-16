@@ -4,7 +4,7 @@
 #include "Utils/Log.h"
 
 Window::~Window() {
-    Destroy();
+	Destroy();
 }
 
 bool Window::Init(const WindowDesc& desc) {
@@ -14,24 +14,24 @@ bool Window::Init(const WindowDesc& desc) {
 	if (desc.isFullscreen)
 		windowFlags |= SDL_WINDOW_FULLSCREEN;
 
-    mHandle = SDL_CreateWindow(desc.title, desc.width, desc.height, windowFlags);
-    if (!mHandle) {
-        LOG_ERROR("Failed to create SDL3 window: {}", SDL_GetError());
-        return false;
-    }
+	mHandle = SDL_CreateWindow(desc.title, desc.width, desc.height, windowFlags);
+	if (!mHandle) {
+		LOG_ERROR("Failed to create SDL3 window: {}", SDL_GetError());
+		return false;
+	}
 
 	mWidth = desc.width;
-    mHeight = desc.height;
+	mHeight = desc.height;
 
-    return true;
+	return true;
 }
 
 void Window::Destroy() {
-    if (mHandle) {
-        SDL_DestroyWindow(static_cast<SDL_Window*>(mHandle));
-        mHandle = nullptr;
-    }
+	if (mHandle) {
+		SDL_DestroyWindow(static_cast<SDL_Window*>(mHandle));
+		mHandle = nullptr;
+	}
 
-    mWidth = 0;
-    mHeight = 0;
+	mWidth = 0;
+	mHeight = 0;
 }
