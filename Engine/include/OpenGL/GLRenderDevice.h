@@ -13,4 +13,5 @@ public:
 
 private:
 	SDL_GLContext mContext = nullptr;
+	SDL_Window* mWindow = nullptr;
 };

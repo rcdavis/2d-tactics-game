@@ -12,10 +12,15 @@ GLRenderDevice::~GLRenderDevice() {
 }
 
 bool GLRenderDevice::Init(IWindow* window) {
-	SDL_Window* sdlWindow = static_cast<SDL_Window*>(window->GetHandle());
-	mContext = SDL_GL_CreateContext(sdlWindow);
+	mWindow = static_cast<SDL_Window*>(window->GetHandle());
+	mContext = SDL_GL_CreateContext(mWindow);
 	if (!mContext) {
 		LOG_ERROR("Failed to create OpenGL context: {}", SDL_GetError());
+		return false;
+	}
+
+	if (!SDL_GL_MakeCurrent(mWindow, mContext)) {
+		LOG_ERROR("Failed to make OpenGL context current: {}", SDL_GetError());
 		return false;
 	}
 
@@ -32,8 +37,10 @@ void GLRenderDevice::Shutdown() {
 		SDL_GL_DestroyContext(mContext);
 		mContext = nullptr;
 	}
+
+	mWindow = nullptr;
 }
 
 void GLRenderDevice::Present() {
-	// Present code here
+	SDL_GL_SwapWindow(mWindow);
 }
