@@ -3,6 +3,10 @@
 #include "SDL3/SDL_video.h"
 #include "Utils/Log.h"
 
+IWindow* IWindow::Create() {
+	return new SDLWindow();
+}
+
 SDLWindow::~SDLWindow() {
 	Destroy();
 }

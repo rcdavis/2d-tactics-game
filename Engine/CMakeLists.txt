@@ -3,10 +3,18 @@ project(Engine)
 add_library(Engine STATIC
     glad/src/gl.c
     src/OpenGL/GLRenderDevice.cpp
-    src/SDL/Platform.cpp
-    src/SDL/SDLWindow.cpp
     src/Utils/Log.cpp
+    src/IRenderDevice.cpp
 )
+
+if(USE_SDL3_BACKEND)
+    target_compile_definitions(Engine PUBLIC USE_SDL3_BACKEND)
+
+    target_sources(Engine PRIVATE
+        src/SDL/Platform.cpp
+        src/SDL/SDLWindow.cpp
+    )
+endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(Engine PUBLIC
