@@ -4,6 +4,7 @@ add_library(Engine STATIC
     glad/src/gl.c
     src/OpenGL/GLRenderDevice.cpp
     src/Utils/Log.cpp
+    src/IRenderDevice.cpp
 )
 
 if(USE_SDL3_BACKEND)

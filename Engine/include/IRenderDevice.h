@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GraphicsAPI.h"
+
 class IWindow;
 
 class IRenderDevice {
@@ -11,4 +13,7 @@ public:
 	virtual void EnableVsync(bool enable) = 0;
 
 	virtual void Present() = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	static IRenderDevice* Create(GraphicsAPI api);
 };

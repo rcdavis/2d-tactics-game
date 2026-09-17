@@ -6,8 +6,8 @@
 #include "Utils/Log.h"
 
 #include "IWindow.h"
+#include "IRenderDevice.h"
 #include "PlatformEvent.h"
-#include "OpenGL/GLRenderDevice.h"
 
 bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -23,7 +23,7 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
-	renderDevice = new GLRenderDevice();
+	renderDevice = IRenderDevice::Create(info.graphicsAPI);
 	if (!renderDevice->Init(window)) {
 		LOG_ERROR("Failed to initialize render device");
 		delete renderDevice;
