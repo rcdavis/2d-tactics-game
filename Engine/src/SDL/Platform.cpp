@@ -5,8 +5,8 @@
 #include "SDL3/SDL_events.h"
 #include "Utils/Log.h"
 
+#include "IWindow.h"
 #include "PlatformEvent.h"
-#include "SDL/SDLWindow.h"
 #include "OpenGL/GLRenderDevice.h"
 
 bool Platform::Init(const WindowCreateInfo& info) {
@@ -15,8 +15,7 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
-	// TODO: Add support for more than OpenGL and SDL
-	window = new SDLWindow();
+	window = IWindow::Create();
 	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");
 		delete window;

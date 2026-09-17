@@ -22,4 +22,7 @@ public:
 	virtual void* GetHandle() const = 0;
 	virtual uint16_t GetWidth() const = 0;
 	virtual uint16_t GetHeight() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	static IWindow* Create();
 };
