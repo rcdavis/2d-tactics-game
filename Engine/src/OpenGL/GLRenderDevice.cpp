@@ -1,7 +1,6 @@
 #include "OpenGL/GLRenderDevice.h"
 
 #include "IWindow.h"
-#include "SDL3/SDL_video.h"
 #include "SDL3/SDL_error.h"
 #include "Utils/Log.h"
 
@@ -41,6 +40,14 @@ void GLRenderDevice::Shutdown() {
 	mWindow = nullptr;
 }
 
+void GLRenderDevice::EnableVsync(bool enable) {
+	if (!SDL_GL_SetSwapInterval(enable ? 1 : 0)) {
+		LOG_ERROR("Failed to set Vsync: {}", SDL_GetError());
+	}
+}
+
 void GLRenderDevice::Present() {
-	SDL_GL_SwapWindow(mWindow);
+	if (!SDL_GL_SwapWindow(mWindow)) {
+		LOG_ERROR("Failed to swap window: {}", SDL_GetError());
+	}
 }

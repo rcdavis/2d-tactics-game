@@ -9,6 +9,9 @@ public:
 	virtual ~GLRenderDevice();
 	virtual bool Init(IWindow* window) override;
 	virtual void Shutdown() override;
+
+	virtual void EnableVsync(bool enable) override;
+
 	virtual void Present() override;
 
 private:

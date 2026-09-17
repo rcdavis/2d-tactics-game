@@ -15,7 +15,7 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
-	// TODO: Support other graphics APIs besides OpenGL and SDL
+	// TODO: Add support for more than OpenGL and SDL
 	window = new SDLWindow();
 	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");
@@ -32,7 +32,7 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
-	SDL_GL_SetSwapInterval(info.useVSync ? 1 : 0);
+	renderDevice->EnableVsync(info.useVSync);
 
 	return true;
 }

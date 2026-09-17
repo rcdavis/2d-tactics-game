@@ -33,8 +33,6 @@ bool SDLWindow::Init(const WindowCreateInfo& info) {
 	mWidth = info.width;
 	mHeight = info.height;
 
-	// TODO: Support usage of VSync
-
 	return true;
 }
 
