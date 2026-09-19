@@ -44,3 +44,11 @@ FetchContent_Declare(
     GIT_TAG release-3.4.16
 )
 FetchContent_MakeAvailable(SDL3)
+
+FetchContent_Declare(
+    CLI11
+    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+    GIT_TAG v2.7.2
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(CLI11)
