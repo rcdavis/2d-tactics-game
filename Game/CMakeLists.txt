@@ -26,6 +26,21 @@ endforeach()
 add_custom_target(CopyTextures ALL DEPENDS ${COPIED_TEXTURES})
 add_dependencies(Game CopyTextures)
 
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
+    COMMAND $<TARGET_FILE:AssetBuilder>
+        --input ${CMAKE_SOURCE_DIR}/res
+        --output ${CMAKE_BINARY_DIR}/Game/res
+        --generated ${CMAKE_BINARY_DIR}/generated
+    COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
+    DEPENDS ${TEXTURE_FILES}
+    COMMENT "Building Assets..."
+    VERBATIM
+)
+
+add_custom_target(BuildAssets ALL DEPENDS ${CMAKE_BINARY_DIR}/Game/build_assets.stamp)
+add_dependencies(Game BuildAssets)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_options(-fsanitize=address,undefined -g)
   add_link_options(-fsanitize=address,undefined)
