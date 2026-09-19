@@ -5,6 +5,7 @@ add_library(Engine STATIC
     src/OpenGL/GLRenderDevice.cpp
     src/Utils/Log.cpp
     src/IRenderDevice.cpp
+    src/TextureSystem.cpp
 )
 
 if(USE_SDL3_BACKEND)
