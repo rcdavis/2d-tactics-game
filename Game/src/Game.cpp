@@ -4,6 +4,7 @@
 
 #include "PlatformEvent.h"
 #include "IWindow.h"
+#include "TextureSystem.h"
 
 Game::~Game() {
 	Shutdown();
@@ -25,6 +26,11 @@ bool Game::Init() {
 		return false;
 	}
 
+	if (!TextureSystem::Init()) {
+		LOG_ERROR("Failed to initialize texture system");
+		return false;
+	}
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -34,6 +40,8 @@ bool Game::Init() {
 
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
+
+	TextureSystem::Shutdown();
 
 	mPlatform.Destroy();
 }
