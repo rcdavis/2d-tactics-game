@@ -14,6 +14,7 @@ if(USE_SDL3_BACKEND)
     target_sources(Engine PRIVATE
         src/SDL/Platform.cpp
         src/SDL/SDLWindow.cpp
+        stb/src/stb_image.c
     )
 endif()
 
@@ -30,6 +31,7 @@ endif()
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/stb/include
 )
 
 target_include_directories(Engine PRIVATE
