@@ -5,33 +5,36 @@
 
 #include "Utils/Log.h"
 
+#include <vector>
 #include <cassert>
 
 namespace TextureSystem {
-	static ITexture* s_textures[(uint8_t)Res::Textures::Id::Count] {};
+	static std::vector<ITexture*> s_textures;
 
-	bool Init(IRenderDevice* renderDevice) {
-		for (uint8_t i = 0; i < (uint8_t)Res::Textures::Id::Count; ++i) {
-			const char* path = Res::Textures::GetPath((Res::Textures::Id)i);
-			s_textures[i] = renderDevice->CreateTexture();
-			if (!s_textures[i]->Init(path)) {
-				LOG_ERROR("Failed to create texture for file \"{}\"", path);
+	bool Init(IRenderDevice* renderDevice, std::span<const char* const> texturePaths) {
+		s_textures.reserve(std::size(texturePaths));
+		for (size_t i = 0; i < std::size(texturePaths); ++i) {
+			ITexture* texture = renderDevice->CreateTexture();
+			if (!texture->Init(texturePaths[i])) {
+				LOG_ERROR("Failed to create texture for file \"{}\"", texturePaths[i]);
+				delete texture;
 				return false;
 			}
+			s_textures.push_back(texture);
 		}
 
 		return true;
 	}
 
 	void Shutdown() {
-		for (uint8_t i = 0; i < (uint8_t)Res::Textures::Id::Count; ++i) {
+		for (size_t i = 0; i < std::size(s_textures); ++i) {
 			delete s_textures[i];
-			s_textures[i] = nullptr;
 		}
+		s_textures.clear();
 	}
 
-	void Bind(Res::Textures::Id id, uint32_t slot) {
-		assert(id < Res::Textures::Id::Count && "Invalid texture ID");
-		s_textures[(uint8_t)id]->Bind(slot);
+	void Bind(uint8_t id, uint32_t slot) {
+		assert(id < std::size(s_textures) && "Invalid texture ID");
+		s_textures[id]->Bind(slot);
 	}
 }

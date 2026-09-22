@@ -48,6 +48,7 @@ endif()
 
 target_include_directories(Game PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}/generated
 )
 
 target_compile_features(Game PRIVATE cxx_std_20)

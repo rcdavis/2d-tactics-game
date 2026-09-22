@@ -5,6 +5,7 @@
 #include "PlatformEvent.h"
 #include "IWindow.h"
 #include "TextureSystem.h"
+#include "TextureIds.h"
 
 Game::~Game() {
 	Shutdown();
@@ -26,7 +27,7 @@ bool Game::Init() {
 		return false;
 	}
 
-	if (!TextureSystem::Init(mPlatform.renderDevice)) {
+	if (!TextureSystem::Init(mPlatform.renderDevice, Res::Textures::Paths)) {
 		LOG_ERROR("Failed to initialize texture system");
 		return false;
 	}

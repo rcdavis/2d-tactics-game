@@ -32,7 +32,6 @@ endif()
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_BINARY_DIR}/generated
 )
 
 target_include_directories(Engine PRIVATE
