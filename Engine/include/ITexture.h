@@ -9,7 +9,7 @@ public:
 	virtual bool Init(const char* filePath) = 0;
 	virtual void Destroy() = 0;
 
-	virtual void Bind() = 0;
+	virtual void Bind(uint32_t slot = 0) = 0;
 	virtual void Unbind() = 0;
 
 	virtual uint16_t GetWidth() const = 0;

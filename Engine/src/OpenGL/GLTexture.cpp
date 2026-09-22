@@ -21,12 +21,12 @@ void GLTexture::Destroy() {
 	mHeight = 0;
 }
 
-void GLTexture::Bind() {
-	glBindTexture(GL_TEXTURE_2D, mId);
+void GLTexture::Bind(uint32_t slot) {
+	glBindTextureUnit(slot, mId);
 }
 
 void GLTexture::Unbind() {
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTextureUnit(0, 0);
 }
 
 uint16_t GLTexture::GetWidth() const {
