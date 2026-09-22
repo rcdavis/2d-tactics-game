@@ -29,25 +29,25 @@ bool GLTexture::Init(const char* filepath) {
 	mWidth = width;
 	mHeight = height;
 
-	mInternalFormat = 0;
-	mDataFormat = 0;
+	GLenum internalFormat = 0;
+	GLenum dataFormat = 0;
 
 	if (channels == 4) {
-		mInternalFormat = GL_RGBA8;
-		mDataFormat = GL_RGBA;
+		internalFormat = GL_RGBA8;
+		dataFormat = GL_RGBA;
 	} else if (channels == 3) {
-		mInternalFormat = GL_RGB8;
-		mDataFormat = GL_RGB;
+		internalFormat = GL_RGB8;
+		dataFormat = GL_RGB;
 	}
 
-	if (mInternalFormat == 0 || mDataFormat == 0) {
+	if (internalFormat == 0 || dataFormat == 0) {
 		LOG_ERROR("Unsupported image format for \"{0}\"", filepath);
 		return false;
 	}
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &mId);
-	glTextureStorage2D(mId, 1, mInternalFormat, mWidth, mHeight);
-	glTextureSubImage2D(mId, 0, 0, 0, mWidth, mHeight, mDataFormat, GL_UNSIGNED_BYTE, data.get());
+	glTextureStorage2D(mId, 1, internalFormat, mWidth, mHeight);
+	glTextureSubImage2D(mId, 0, 0, 0, mWidth, mHeight, dataFormat, GL_UNSIGNED_BYTE, data.get());
 	glGenerateTextureMipmap(mId);
 
 	glTextureParameteri(mId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
