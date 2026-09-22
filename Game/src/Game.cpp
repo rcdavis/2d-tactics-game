@@ -5,6 +5,7 @@
 #include "PlatformEvent.h"
 #include "IWindow.h"
 #include "TextureSystem.h"
+#include "TextureIds.h"
 
 Game::~Game() {
 	Shutdown();
@@ -26,10 +27,19 @@ bool Game::Init() {
 		return false;
 	}
 
-	if (!TextureSystem::Init()) {
+	if (!TextureSystem::Init(mPlatform.renderDevice)) {
 		LOG_ERROR("Failed to initialize texture system");
 		return false;
 	}
+
+	for (const char* path : Res::Textures::Paths) {
+		if (TextureSystem::Load(path) == InvalidTextureHandle) {
+			LOG_ERROR("Failed to load texture: {}", path);
+			return false;
+		}
+	}
+
+	mTileSetHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
 
 	mIsRunning = true;
 
@@ -44,6 +54,9 @@ void Game::Shutdown() {
 	TextureSystem::Shutdown();
 
 	mPlatform.Destroy();
+
+	mTileSetHandle = InvalidTextureHandle;
+	mIsRunning = false;
 }
 
 void Game::Run() {
