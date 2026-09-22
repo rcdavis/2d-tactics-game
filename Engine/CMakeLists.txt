@@ -31,11 +31,11 @@ endif()
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/stb/include
 )
 
 target_include_directories(Engine PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/stb/include
 )
 
 target_compile_features(Engine PRIVATE cxx_std_20)
