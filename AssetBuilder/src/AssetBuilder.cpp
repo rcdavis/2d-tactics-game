@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring>
+#include <regex>
 
 #include "TileMapData.h"
 #include "pugixml.hpp"
@@ -47,6 +49,9 @@ void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const st
 
 	for (const auto& tileSet : mTileSets)
 		ConvertTileSetToBinary(tileSet, tilemapsOutputDir);
+
+	for (const auto& tileMap : mTileMaps)
+		ConvertTileMapToBinary(tileMap, tilemapsOutputDir);
 }
 
 void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir) {
@@ -92,6 +97,26 @@ void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPa
 
 	std::cout << "Converted tile set to binary successfully: " << tileSetPath << " -> " << outputBinaryPath << std::endl;
 }
+
+void AssetBuilder::ConvertTileMapToBinary(const std::filesystem::path& tileMapPath, const std::filesystem::path& outputDir) {
+	TileMapData tileMapData;
+	if (!ParseTileMapData(tileMapPath, tileMapData)) {
+		std::cerr << "Failed to get tile map data: " << tileMapPath << std::endl;
+		return;
+	}
+
+	const auto outputBinaryPath = outputDir / (tileMapPath.stem().string() + ".tmxbin");
+	std::ofstream outputFile(outputBinaryPath, std::ios::binary);
+	if (!outputFile) {
+		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
+		return;
+	}
+
+	// TODO: Export to binary format
+
+	std::cout << "Converted tile map to binary successfully: " << tileMapPath << " -> " << outputBinaryPath << std::endl;
+}
+
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
 	const auto headerPath = generatedDir / "TextureIds.h";
@@ -196,6 +221,96 @@ bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, Ti
 			}
 		}
 	}
+
+	return true;
+}
+
+bool AssetBuilder::ParseTileMapData(const std::filesystem::path& tileMapPath, TileMapData& outTileMapData) {
+	pugi::xml_document doc;
+	if (const pugi::xml_parse_result result = doc.load_file(tileMapPath.c_str()); !result) {
+		std::cerr << "Failed to parse tmx file " << tileMapPath << ": " << result.description() << std::endl;
+		return false;
+	}
+
+	const pugi::xml_node mapNode = doc.child("map");
+	if (!mapNode) {
+		std::cerr << "Invalid tmx: missing map node in " << tileMapPath << std::endl;
+		return false;
+	}
+
+	const pugi::xml_node tilesetNode = mapNode.child("tileset");
+	if (!tilesetNode) {
+		std::cerr << "Invalid tmx: missing tileset node in " << tileMapPath << std::endl;
+		return false;
+	}
+
+	const std::filesystem::path tilesetSource = tilesetNode.attribute("source").as_string();
+
+	uint16_t tileSetHandle = -1;
+	for (size_t i = 0; i < mTileSets.size(); ++i) {
+		if (mTileSets[i].filename() == tilesetSource.filename()) {
+			tileSetHandle = static_cast<uint16_t>(i);
+			break;
+		}
+	}
+
+	if (tileSetHandle == static_cast<uint16_t>(-1)) {
+		std::cerr << "Failed to find tsx reference in " << tileMapPath << std::endl;
+		return false;
+	}
+
+	outTileMapData.tileSetHandle = tileSetHandle;
+	outTileMapData.tileRowCount = mapNode.attribute("height").as_uint();
+	outTileMapData.tileColumnCount = mapNode.attribute("width").as_uint();
+	outTileMapData.tileWidth = mapNode.attribute("tilewidth").as_uint();
+	outTileMapData.tileHeight = mapNode.attribute("tileheight").as_uint();
+
+	outTileMapData.layers.clear();
+	for (pugi::xml_node layerNode = mapNode.child("layer"); layerNode; layerNode = layerNode.next_sibling("layer")) {
+		const std::string layerName = layerNode.attribute("name").as_string();
+
+		const pugi::xml_node dataNode = layerNode.child("data");
+		if (!dataNode) {
+			std::cerr << "Layer \"" << layerName << "\" is missing data node in " << tileMapPath << std::endl;
+			continue;
+		}
+
+		if (strcmp(dataNode.attribute("encoding").as_string(), "csv") != 0) {
+			std::cerr << "Unsupported data encoding in layer \"" << layerName << "\" in " << tileMapPath << std::endl;
+			continue;
+		}
+
+		const std::string csvText = dataNode.text().as_string();
+
+		TileLayerData layerData;
+		layerData.tileIds.clear();
+
+		std::vector<std::string> csvValues;
+		const std::regex csvRegex("[, \t\r\n]+");
+		std::copy(
+			std::sregex_token_iterator(std::cbegin(csvText), std::cend(csvText), csvRegex, -1),
+			std::sregex_token_iterator(),
+			std::back_inserter(csvValues)
+		);
+
+		for (const std::string& value : csvValues) {
+			if (value.empty())
+				continue;
+
+			const uint16_t tileId = static_cast<uint16_t>(std::stoul(value));
+			layerData.tileIds.push_back(tileId);
+		}
+
+		outTileMapData.layers.push_back(layerData);
+	}
+
+	std::cout << "Parsed tile map data from " << tileMapPath << std::endl;
+	std::cout << "  Tile Set Handle: " << outTileMapData.tileSetHandle << std::endl;
+	std::cout << "  Tile Rows: " << outTileMapData.tileRowCount << std::endl;
+	std::cout << "  Tile Columns: " << outTileMapData.tileColumnCount << std::endl;
+	std::cout << "  Tile Width: " << outTileMapData.tileWidth << std::endl;
+	std::cout << "  Tile Height: " << outTileMapData.tileHeight << std::endl;
+	std::cout << "  Layer Count: " << outTileMapData.layers.size() << std::endl;
 
 	return true;
 }

@@ -16,10 +16,12 @@ private:
 	void BuildTileMaps(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir);
 
 	void ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir);
+	void ConvertTileMapToBinary(const std::filesystem::path& tileMapPath, const std::filesystem::path& outputDir);
 
 	void CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
 
 	bool ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData);
+	bool ParseTileMapData(const std::filesystem::path& tileMapPath, TileMapData& outTileMapData);
 
 private:
 	std::vector<std::filesystem::path> mTextures;
