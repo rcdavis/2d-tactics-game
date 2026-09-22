@@ -63,7 +63,34 @@ void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPa
 		return;
 	}
 
-	std::cout << "Converting tile set to binary: " << tileSetPath << " -> " << outputBinaryPath << std::endl;
+	uint16_t imageHandle = -1;
+	for (size_t i = 0; i < std::size(mTextures); ++i) {
+		if (mTextures[i].filename() == tileSetData.imagePath.filename()) {
+			imageHandle = static_cast<uint16_t>(i);
+			break;
+		}
+	}
+
+	if (imageHandle == static_cast<uint16_t>(-1)) {
+		std::cerr << "Failed to find image handle for tile set: " << tileSetPath << std::endl;
+		return;
+	}
+
+	const TileSetBinaryHeader header {
+		.imageHandle = imageHandle,
+		.imageWidth = tileSetData.imageWidth,
+		.imageHeight = tileSetData.imageHeight,
+		.tileWidth = tileSetData.tileWidth,
+		.tileHeight = tileSetData.tileHeight,
+		.tileCount = tileSetData.tileCount,
+		.columnCount = tileSetData.columnCount
+	};
+
+	outputFile.write((const char*)&header, sizeof(TileSetBinaryHeader));
+	outputFile.write((const char*)std::data(tileSetData.terrains),
+		std::size(tileSetData.terrains) * sizeof(TileTerrainData));
+
+	std::cout << "Converted tile set to binary successfully: " << tileSetPath << " -> " << outputBinaryPath << std::endl;
 }
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -169,15 +196,6 @@ bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, Ti
 			}
 		}
 	}
-
-	std::cout << "Parsed tileset data for " << tileSetPath << std::endl;
-	std::cout << "  Image path: " << outTileSetData.imagePath << std::endl;
-	std::cout << "  Image width: " << outTileSetData.imageWidth << std::endl;
-	std::cout << "  Image height: " << outTileSetData.imageHeight << std::endl;
-	std::cout << "  Tile width: " << outTileSetData.tileWidth << std::endl;
-	std::cout << "  Tile height: " << outTileSetData.tileHeight << std::endl;
-	std::cout << "  Tile count: " << outTileSetData.tileCount << std::endl;
-	std::cout << "  Column count: " << outTileSetData.columnCount << std::endl;
 
 	return true;
 }
