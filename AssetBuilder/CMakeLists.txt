@@ -13,4 +13,5 @@ target_compile_features(AssetBuilder PRIVATE cxx_std_20)
 
 target_link_libraries(AssetBuilder PRIVATE
     CLI11::CLI11
+    pugixml
 )

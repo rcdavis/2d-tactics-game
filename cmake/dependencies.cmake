@@ -52,3 +52,11 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(CLI11)
+
+FetchContent_Declare(
+    pugixml
+    GIT_REPOSITORY https://github.com/zeux/pugixml.git
+    GIT_TAG v1.16
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(pugixml)
