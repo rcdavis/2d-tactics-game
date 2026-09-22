@@ -8,6 +8,7 @@ void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std:
 	std::filesystem::create_directories(generatedDir);
 
 	BuildTextures(inputDir, generatedDir);
+	BuildTileMaps(inputDir, outputDir, generatedDir);
 }
 
 void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -22,6 +23,38 @@ void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const st
 	}
 
 	CreateTextureIdHeader(inputDir, generatedDir);
+}
+
+void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(inputDir / "tilemaps")) {
+		if (entry.is_regular_file()) {
+			const auto& path = entry.path();
+			if (path.extension() == ".tsx") {
+				mTileSets.push_back(path);
+				std::cout << "Found tile set: " << path << std::endl;
+			} else if (path.extension() == ".tmx") {
+				mTileMaps.push_back(path);
+				std::cout << "Found tile map: " << path << std::endl;
+			}
+		}
+	}
+
+	const auto tilemapsOutputDir = outputDir / "tilemaps";
+	std::filesystem::create_directories(tilemapsOutputDir);
+
+	for (const auto& tileSet : mTileSets)
+		ConvertTileSetToBinary(tileSet, tilemapsOutputDir);
+}
+
+void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir) {
+	const auto outputBinaryPath = outputDir / (tileSetPath.stem().string() + ".tsxbin");
+	std::ofstream outputFile(outputBinaryPath, std::ios::binary);
+	if (!outputFile) {
+		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
+		return;
+	}
+
+	std::cout << "Converting tile set to binary: " << tileSetPath << " -> " << outputBinaryPath << std::endl;
 }
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
