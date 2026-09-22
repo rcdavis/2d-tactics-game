@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 
+#include "TileMapData.h"
+#include "pugixml.hpp"
+
 void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
 	std::filesystem::create_directories(outputDir);
 	std::filesystem::create_directories(generatedDir);
@@ -47,6 +50,12 @@ void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const st
 }
 
 void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir) {
+	TileSetData tileSetData;
+	if (!ParseTileSetData(tileSetPath, tileSetData)) {
+		std::cerr << "Failed to get tile set data: " << tileSetPath << std::endl;
+		return;
+	}
+
 	const auto outputBinaryPath = outputDir / (tileSetPath.stem().string() + ".tsxbin");
 	std::ofstream outputFile(outputBinaryPath, std::ios::binary);
 	if (!outputFile) {
@@ -111,4 +120,64 @@ void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, 
 	file << "} // namespace Res::Textures\n";
 
 	std::cout << "Generated texture ID header at " << headerPath << std::endl;
+}
+
+bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData) {
+	pugi::xml_document doc;
+	if (const pugi::xml_parse_result result = doc.load_file(tileSetPath.c_str()); !result) {
+		std::cerr << "Failed to parse tsx file " << tileSetPath << ": " << result.description() << std::endl;
+		return false;
+	}
+
+	const pugi::xml_node tilesetNode = doc.child("tileset");
+	if (!tilesetNode) {
+		std::cerr << "Invalid tsx: missing tileset node in " << tileSetPath << std::endl;
+		return false;
+	}
+
+	const pugi::xml_node imageNode = tilesetNode.child("image");
+	if (!imageNode) {
+		std::cerr << "Invalid tsx: missing image node in " << tileSetPath << std::endl;
+		return false;
+	}
+
+	outTileSetData.imagePath = imageNode.attribute("source").as_string();
+	outTileSetData.imageWidth = imageNode.attribute("width").as_uint();
+	outTileSetData.imageHeight = imageNode.attribute("height").as_uint();
+
+	outTileSetData.tileWidth = tilesetNode.attribute("tilewidth").as_uint();
+	outTileSetData.tileHeight = tilesetNode.attribute("tileheight").as_uint();
+	outTileSetData.tileCount = tilesetNode.attribute("tilecount").as_uint();
+	outTileSetData.columnCount = tilesetNode.attribute("columns").as_uint();
+
+	outTileSetData.terrains.resize(outTileSetData.tileCount);
+	for (pugi::xml_node tileNode = tilesetNode.child("tile"); tileNode; tileNode = tileNode.next_sibling("tile")) {
+		const uint32_t tileId = tileNode.attribute("id").as_uint();
+		const pugi::xml_node propertiesNode = tileNode.child("properties");
+		if (!propertiesNode) {
+			std::cerr << "Tile " << tileId << " is missing properties node in " << tileSetPath << std::endl;
+			continue;
+		}
+
+		for (pugi::xml_node propertyNode = propertiesNode.child("property"); propertyNode; propertyNode = propertyNode.next_sibling("property")) {
+			const std::string propertyName = propertyNode.attribute("name").as_string();
+			const std::string propertyType = propertyNode.attribute("type").as_string();
+
+			if (propertyName == "movementCost" && propertyType == "int") {
+				const uint8_t movementCost = (uint8_t)propertyNode.attribute("value").as_uint(1);
+				outTileSetData.terrains[tileId].movementCost = movementCost;
+			}
+		}
+	}
+
+	std::cout << "Parsed tileset data for " << tileSetPath << std::endl;
+	std::cout << "  Image path: " << outTileSetData.imagePath << std::endl;
+	std::cout << "  Image width: " << outTileSetData.imageWidth << std::endl;
+	std::cout << "  Image height: " << outTileSetData.imageHeight << std::endl;
+	std::cout << "  Tile width: " << outTileSetData.tileWidth << std::endl;
+	std::cout << "  Tile height: " << outTileSetData.tileHeight << std::endl;
+	std::cout << "  Tile count: " << outTileSetData.tileCount << std::endl;
+	std::cout << "  Column count: " << outTileSetData.columnCount << std::endl;
+
+	return true;
 }

@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <vector>
 
+#include "TileMapData.h"
+
 class AssetBuilder {
 public:
 	AssetBuilder() = default;
@@ -16,6 +18,8 @@ private:
 	void ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir);
 
 	void CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
+
+	bool ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData);
 
 private:
 	std::vector<std::filesystem::path> mTextures;
