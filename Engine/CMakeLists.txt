@@ -3,6 +3,7 @@ project(Engine)
 add_library(Engine STATIC
     glad/src/gl.c
     src/OpenGL/GLRenderDevice.cpp
+    src/OpenGL/GLTexture.cpp
     src/Utils/Log.cpp
     src/IRenderDevice.cpp
     src/TextureSystem.cpp
@@ -14,6 +15,7 @@ if(USE_SDL3_BACKEND)
     target_sources(Engine PRIVATE
         src/SDL/Platform.cpp
         src/SDL/SDLWindow.cpp
+        stb/src/stb_image.c
     )
 endif()
 
@@ -34,6 +36,7 @@ target_include_directories(Engine PUBLIC
 
 target_include_directories(Engine PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/stb/include
 )
 
 target_compile_features(Engine PRIVATE cxx_std_20)

@@ -4,6 +4,8 @@
 #include "SDL3/SDL_error.h"
 #include "Utils/Log.h"
 
+#include "OpenGL/GLTexture.h"
+
 #include "glad/gl.h"
 
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -72,6 +74,10 @@ void GLRenderDevice::Present() {
 	if (!SDL_GL_SwapWindow(mWindow)) {
 		LOG_ERROR("Failed to swap window: {}", SDL_GetError());
 	}
+}
+
+ITexture* GLRenderDevice::CreateTexture() {
+	return new GLTexture();
 }
 
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
