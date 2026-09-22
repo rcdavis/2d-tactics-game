@@ -2,6 +2,8 @@
 
 #include "Platform.h"
 
+#include "TextureHandle.h"
+
 class Game {
 public:
 	Game() = default;
@@ -15,6 +17,8 @@ private:
 
 private:
 	Platform mPlatform;
+
+	TextureHandle mTileSetHandle = InvalidTextureHandle;
 
 	bool mIsRunning = false;
 };

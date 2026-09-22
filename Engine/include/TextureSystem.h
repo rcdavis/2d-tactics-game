@@ -1,14 +1,15 @@
 #pragma once
 
-#include <cstdint>
-#include <span>
+#include "TextureHandle.h"
 
 class IRenderDevice;
 
 namespace TextureSystem {
-	bool Init(IRenderDevice* renderDevice, std::span<const char* const> texturePaths);
+	bool Init(IRenderDevice* renderDevice);
 
 	void Shutdown();
 
-	void Bind(uint8_t id, uint32_t slot = 0);
+	TextureHandle Load(const char* const path);
+
+	void Bind(TextureHandle id, uint32_t slot = 0);
 }
