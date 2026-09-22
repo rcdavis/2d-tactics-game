@@ -3,6 +3,7 @@ project(Engine)
 add_library(Engine STATIC
     glad/src/gl.c
     src/OpenGL/GLRenderDevice.cpp
+    src/OpenGL/GLTexture.cpp
     src/Utils/Log.cpp
     src/IRenderDevice.cpp
     src/TextureSystem.cpp

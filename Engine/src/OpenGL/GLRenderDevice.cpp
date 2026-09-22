@@ -4,6 +4,8 @@
 #include "SDL3/SDL_error.h"
 #include "Utils/Log.h"
 
+#include "OpenGL/GLTexture.h"
+
 #include "glad/gl.h"
 
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -75,8 +77,7 @@ void GLRenderDevice::Present() {
 }
 
 ITexture* GLRenderDevice::CreateTexture() {
-	// Implement texture creation for OpenGL here
-	return nullptr;
+	return new GLTexture();
 }
 
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
