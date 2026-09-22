@@ -10,7 +10,7 @@ GLTexture::~GLTexture() {
     Destroy();
 }
 
-bool GLTexture::Init(const char* filepath) {
+bool GLTexture::Init(const char* const filepath) {
 	const auto stbiDeleter = [](stbi_uc* data) {
 		stbi_image_free(data);
 	};

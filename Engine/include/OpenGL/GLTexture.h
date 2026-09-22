@@ -7,7 +7,7 @@ public:
     GLTexture() = default;
     ~GLTexture() override;
 
-	bool Init(const char* filepath) override;
+	bool Init(const char* const filepath) override;
 	void Destroy() override;
 
 	void Bind(uint32_t slot = 0) override;
