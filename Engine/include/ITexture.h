@@ -10,7 +10,6 @@ public:
 	virtual void Destroy() = 0;
 
 	virtual void Bind(uint32_t slot = 0) = 0;
-	virtual void Unbind() = 0;
 
 	virtual uint16_t GetWidth() const = 0;
 	virtual uint16_t GetHeight() const = 0;

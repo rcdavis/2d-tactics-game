@@ -73,10 +73,6 @@ void GLTexture::Bind(uint32_t slot) {
 	glBindTextureUnit(slot, mId);
 }
 
-void GLTexture::Unbind() {
-	glBindTextureUnit(0, 0);
-}
-
 uint16_t GLTexture::GetWidth() const {
     return mWidth;
 }

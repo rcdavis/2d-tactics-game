@@ -11,7 +11,6 @@ public:
 	void Destroy() override;
 
 	void Bind(uint32_t slot = 0) override;
-	void Unbind() override;
 
 	uint16_t GetWidth() const override;
 	uint16_t GetHeight() const override;
