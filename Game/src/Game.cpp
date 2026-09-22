@@ -26,7 +26,7 @@ bool Game::Init() {
 		return false;
 	}
 
-	if (!TextureSystem::Init()) {
+	if (!TextureSystem::Init(mPlatform.renderDevice)) {
 		LOG_ERROR("Failed to initialize texture system");
 		return false;
 	}
