@@ -3,6 +3,7 @@
 #include "GraphicsAPI.h"
 
 class IWindow;
+class ITexture;
 
 class IRenderDevice {
 public:
@@ -13,6 +14,9 @@ public:
 	virtual void EnableVsync(bool enable) = 0;
 
 	virtual void Present() = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual ITexture* CreateTexture() = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IRenderDevice* Create(GraphicsAPI api);

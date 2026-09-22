@@ -74,6 +74,11 @@ void GLRenderDevice::Present() {
 	}
 }
 
+ITexture* GLRenderDevice::CreateTexture() {
+	// Implement texture creation for OpenGL here
+	return nullptr;
+}
+
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, const GLchar* message, const void* userParam
 ) {
