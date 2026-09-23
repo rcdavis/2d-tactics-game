@@ -7,6 +7,9 @@
 #include "TextureSystem.h"
 #include "TextureIds.h"
 
+// TODO: Remove in favor of the TileMap system
+#include "TileIds.h"
+
 Game::~Game() {
 	Shutdown();
 }
@@ -41,6 +44,12 @@ bool Game::Init() {
 
 	mTileSetHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
 
+	// TODO: Replace this with the TileMap system once it's integrated
+	if (!mTileSet.Init(Res::Tiles::Sets::GetPath(Res::Tiles::Sets::Id::Toen))) {
+		LOG_ERROR("Failed to initialize tile set");
+		return false;
+	}
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -50,6 +59,8 @@ bool Game::Init() {
 
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
+
+	mTileSet.Destroy();
 
 	TextureSystem::Shutdown();
 
