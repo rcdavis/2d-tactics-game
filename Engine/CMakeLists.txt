@@ -4,11 +4,11 @@ add_library(Engine STATIC
     glad/src/gl.c
     src/OpenGL/GLRenderDevice.cpp
     src/OpenGL/GLTexture.cpp
+    src/Renderer/IRenderDevice.cpp
+    src/Renderer/TextureSystem.cpp
     src/Tiles/TileMap.cpp
     src/Tiles/TileSystem.cpp
     src/Utils/Log.cpp
-    src/IRenderDevice.cpp
-    src/TextureSystem.cpp
 )
 
 if(USE_SDL3_BACKEND)

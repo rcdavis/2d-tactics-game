@@ -1,7 +1,7 @@
-#include "TextureSystem.h"
+#include "Renderer/TextureSystem.h"
 
-#include "IRenderDevice.h"
-#include "ITexture.h"
+#include "Renderer/IRenderDevice.h"
+#include "Renderer/ITexture.h"
 
 #include "Utils/Log.h"
 

@@ -4,7 +4,7 @@
 
 #include "PlatformEvent.h"
 #include "IWindow.h"
-#include "TextureSystem.h"
+#include "Renderer/TextureSystem.h"
 #include "TextureIds.h"
 #include "Tiles/TileSystem.h"
 
