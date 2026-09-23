@@ -253,7 +253,44 @@ void AssetBuilder::CreateTileIdHeader(const std::filesystem::path& inputDir, con
 	}
 	file << "\t};\n";
 
-	file << "} // namespace Res::Tiles::Sets\n";
+	file << "} // namespace Res::Tiles::Sets\n\n";
+
+	file << "namespace Res::Tiles::Maps {\n";
+
+	file << "\tenum class Id : uint8_t {\n";
+	for (const auto& tileMap : mTileMaps) {
+		file << "\t\t" << tileMap.stem().string() << ",\n";
+	}
+	file << "\t\tCount\n";
+	file << "\t};\n\n";
+
+	file << "\tinline constexpr const char* ToString(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& tileMap : mTileMaps) {
+		file << "\t\t\tcase Id::" << tileMap.stem().string() << ": return \"" << tileMap.stem().string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return \"Unknown\";\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr const char* GetPath(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& tileMap : mTileMaps) {
+		const auto relativePath = std::filesystem::relative(tileMap, resParentDir).replace_extension("tmxbin");
+		file << "\t\t\tcase Id::" << tileMap.stem().string() << ": return \"" << relativePath.generic_string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return nullptr;\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr std::array<const char*, " << std::size(mTileMaps) << "> Paths = {\n";
+	for (const auto& tileMap : mTileMaps) {
+		const auto relativePath = std::filesystem::relative(tileMap, resParentDir).replace_extension("tmxbin");
+		file << "\t\t\"" << relativePath.generic_string() << "\",\n";
+	}
+	file << "\t};\n";
+
+	file << "} // namespace Res::Tiles::Maps\n";
 
 	std::cout << "Generated tile ID header at " << headerPath << std::endl;
 }
