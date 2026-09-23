@@ -4,6 +4,7 @@ add_library(Engine STATIC
     glad/src/gl.c
     src/Renderer/OpenGL/GLRenderDevice.cpp
     src/Renderer/OpenGL/GLTexture.cpp
+    src/Renderer/Camera2D.cpp
     src/Renderer/IRenderDevice.cpp
     src/Renderer/Renderer2D.cpp
     src/Renderer/TextureSystem.cpp

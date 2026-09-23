@@ -2,6 +2,7 @@
 
 #include "Platform.h"
 
+#include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
 #include "Tiles/TileHandle.h"
 
@@ -18,6 +19,7 @@ private:
 
 private:
 	Platform mPlatform;
+	Camera2D mCamera;
 
 	TileSetHandle mTileSetHandle = InvalidTileSetHandle;
 	TileMapHandle mTileMapHandle = InvalidTileMapHandle;

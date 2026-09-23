@@ -65,6 +65,8 @@ bool Game::Init() {
 		}
 	}
 
+	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);
+
 	if (!Renderer2D::Init()) {
 		LOG_ERROR("Failed to initialize Renderer2D");
 		return false;
