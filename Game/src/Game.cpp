@@ -6,8 +6,8 @@
 #include "IWindow.h"
 #include "TextureSystem.h"
 #include "TextureIds.h"
+#include "Tiles/TileSystem.h"
 
-// TODO: Remove in favor of the TileMap system
 #include "TileIds.h"
 
 Game::~Game() {
@@ -42,17 +42,26 @@ bool Game::Init() {
 		}
 	}
 
-	mTileSetHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
+	mTileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
+	mTileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 
-	// TODO: Replace this with the TileMap system once it's integrated
-	if (!mTileSet.Init(Res::Tiles::Sets::GetPath(Res::Tiles::Sets::Id::Toen))) {
-		LOG_ERROR("Failed to initialize tile set");
+	if (!TileSystem::Init()) {
+		LOG_ERROR("Failed to initialize tile system");
 		return false;
 	}
 
-	if (!mTileMap.Init(Res::Tiles::Maps::GetPath(Res::Tiles::Maps::Id::Toen))) {
-		LOG_ERROR("Failed to initialize tile map");
-		return false;
+	for (const char* path : Res::Tiles::Sets::Paths) {
+		if (TileSystem::LoadTileSet(path) == InvalidTileSetHandle) {
+			LOG_ERROR("Failed to load tile set: {}", path);
+			return false;
+		}
+	}
+
+	for (const char* path : Res::Tiles::Maps::Paths) {
+		if (TileSystem::LoadTileMap(path) == InvalidTileMapHandle) {
+			LOG_ERROR("Failed to load tile map: {}", path);
+			return false;
+		}
 	}
 
 	mIsRunning = true;
@@ -65,14 +74,14 @@ bool Game::Init() {
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
 
-	mTileMap.Destroy();
-	mTileSet.Destroy();
-
+	TileSystem::Shutdown();
 	TextureSystem::Shutdown();
 
 	mPlatform.Destroy();
 
-	mTileSetHandle = InvalidTextureHandle;
+	mTileSetHandle = InvalidTileSetHandle;
+	mTileMapHandle = InvalidTileMapHandle;
+	mTextureHandle = InvalidTextureHandle;
 	mIsRunning = false;
 }
 
