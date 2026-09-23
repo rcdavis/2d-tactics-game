@@ -22,6 +22,7 @@ private:
 	Platform mPlatform;
 
 	TileSet mTileSet;
+	TileMap mTileMap;
 
 	TextureHandle mTileSetHandle = InvalidTextureHandle;
 

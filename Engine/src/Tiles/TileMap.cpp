@@ -16,10 +16,20 @@ namespace {
 		uint16_t tileCount = 0;
 		uint16_t columnCount = 0;
 	};
+
+	struct TileMapBinaryHeader {
+		char magic[4] = {'T', 'M', 'X', 'B'};
+		uint16_t version = 1;
+		uint16_t tileSetHandle = 0;
+		uint16_t tileRowCount = 0;
+		uint16_t tileColumnCount = 0;
+		uint16_t tileWidth = 0;
+		uint16_t tileHeight = 0;
+		uint16_t layerCount = 0;
+	};
 } // namespace
 
 bool TileSet::Init(const char* const filepath) {
-	// Implementation goes here
 	std::ifstream file(filepath, std::ios::binary);
 	if (!file) {
 		LOG_ERROR("Failed to open tile set file \"{}\"", filepath);
@@ -64,7 +74,38 @@ void TileSet::Destroy() {
 }
 
 bool TileMap::Init(const char* const filepath) {
-	// Implementation goes here
+	std::ifstream file(filepath, std::ios::binary);
+	if (!file) {
+		LOG_ERROR("Failed to open tile map file \"{}\"", filepath);
+		return false;
+	}
+
+	TileMapBinaryHeader header;
+	file.read(reinterpret_cast<char*>(&header), sizeof(TileMapBinaryHeader));
+
+	if (strncmp(header.magic, "TMXB", 4) != 0) {
+		LOG_ERROR("Invalid magic in tile map file \"{}\"", filepath);
+		return false;
+	}
+
+	if (header.version != 1) {
+		LOG_ERROR("Unsupported tile map binary version in \"{}\"", filepath);
+		return false;
+	}
+
+	tileSetHandle = static_cast<uint8_t>(header.tileSetHandle);
+	tileRowCount = header.tileRowCount;
+	tileColumnCount = header.tileColumnCount;
+	tileWidth = header.tileWidth;
+	tileHeight = header.tileHeight;
+	layerCount = header.layerCount;
+
+	layers = new TileLayer[layerCount];
+	for (uint8_t i = 0; i < layerCount; ++i) {
+		layers[i].tiles = new uint16_t[tileRowCount * tileColumnCount];
+		file.read(reinterpret_cast<char*>(layers[i].tiles), sizeof(uint16_t) * tileRowCount * tileColumnCount);
+	}
+
 	return true;
 }
 
