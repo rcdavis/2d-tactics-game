@@ -3,9 +3,7 @@
 #include "Platform.h"
 
 #include "TextureHandle.h"
-
-// TODO: Remove in favor of the TileMap system
-#include "Tiles/TileMap.h"
+#include "Tiles/TileHandle.h"
 
 class Game {
 public:
@@ -21,10 +19,10 @@ private:
 private:
 	Platform mPlatform;
 
-	TileSet mTileSet;
-	TileMap mTileMap;
+	TileSetHandle mTileSetHandle = InvalidTileSetHandle;
+	TileMapHandle mTileMapHandle = InvalidTileMapHandle;
 
-	TextureHandle mTileSetHandle = InvalidTextureHandle;
+	TextureHandle mTextureHandle = InvalidTextureHandle;
 
 	bool mIsRunning = false;
 };
