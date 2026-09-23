@@ -4,6 +4,9 @@
 
 #include "TextureHandle.h"
 
+// TODO: Remove in favor of the TileMap system
+#include "Tiles/TileMap.h"
+
 class Game {
 public:
 	Game() = default;
@@ -17,6 +20,9 @@ private:
 
 private:
 	Platform mPlatform;
+
+	TileSet mTileSet;
+	TileMap mTileMap;
 
 	TextureHandle mTileSetHandle = InvalidTextureHandle;
 
