@@ -33,6 +33,8 @@ struct TileMapData {
 };
 
 struct TileSetBinaryHeader {
+	char magic[4] = {'T', 'S', 'X', 'B'};
+	uint16_t version = 1;
 	uint16_t imageHandle = 0;
 	uint16_t imageWidth = 0;
 	uint16_t imageHeight = 0;

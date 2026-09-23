@@ -304,13 +304,5 @@ bool AssetBuilder::ParseTileMapData(const std::filesystem::path& tileMapPath, Ti
 		outTileMapData.layers.push_back(layerData);
 	}
 
-	std::cout << "Parsed tile map data from " << tileMapPath << std::endl;
-	std::cout << "  Tile Set Handle: " << outTileMapData.tileSetHandle << std::endl;
-	std::cout << "  Tile Rows: " << outTileMapData.tileRowCount << std::endl;
-	std::cout << "  Tile Columns: " << outTileMapData.tileColumnCount << std::endl;
-	std::cout << "  Tile Width: " << outTileMapData.tileWidth << std::endl;
-	std::cout << "  Tile Height: " << outTileMapData.tileHeight << std::endl;
-	std::cout << "  Layer Count: " << outTileMapData.layers.size() << std::endl;
-
 	return true;
 }
