@@ -25,7 +25,7 @@ struct TileLayerData {
 
 struct TileMapData {
 	std::vector<TileLayerData> layers;
-	uint16_t tileSetHandle = 0;
+	std::filesystem::path tileSetPath;
 	uint16_t tileRowCount = 0;
 	uint16_t tileColumnCount = 0;
 	uint16_t tileWidth = 0;
@@ -42,4 +42,15 @@ struct TileSetBinaryHeader {
 	uint16_t tileHeight = 0;
 	uint16_t tileCount = 0;
 	uint16_t columnCount = 0;
+};
+
+struct TileMapBinaryHeader {
+	char magic[4] = {'T', 'M', 'X', 'B'};
+	uint16_t version = 1;
+	uint16_t tileSetHandle = 0;
+	uint16_t tileRowCount = 0;
+	uint16_t tileColumnCount = 0;
+	uint16_t tileWidth = 0;
+	uint16_t tileHeight = 0;
+	uint16_t layerCount = 0;
 };

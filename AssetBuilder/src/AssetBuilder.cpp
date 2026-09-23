@@ -62,8 +62,8 @@ void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPa
 	}
 
 	const auto outputBinaryPath = outputDir / (tileSetPath.stem().string() + ".tsxbin");
-	std::ofstream outputFile(outputBinaryPath, std::ios::binary);
-	if (!outputFile) {
+	std::ofstream file(outputBinaryPath, std::ios::binary);
+	if (!file) {
 		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
 		return;
 	}
@@ -91,8 +91,8 @@ void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPa
 		.columnCount = tileSetData.columnCount
 	};
 
-	outputFile.write((const char*)&header, sizeof(TileSetBinaryHeader));
-	outputFile.write((const char*)std::data(tileSetData.terrains),
+	file.write((const char*)&header, sizeof(TileSetBinaryHeader));
+	file.write((const char*)std::data(tileSetData.terrains),
 		std::size(tileSetData.terrains) * sizeof(TileTerrainData));
 
 	std::cout << "Converted tile set to binary successfully: " << tileSetPath << " -> " << outputBinaryPath << std::endl;
@@ -106,17 +106,43 @@ void AssetBuilder::ConvertTileMapToBinary(const std::filesystem::path& tileMapPa
 	}
 
 	const auto outputBinaryPath = outputDir / (tileMapPath.stem().string() + ".tmxbin");
-	std::ofstream outputFile(outputBinaryPath, std::ios::binary);
-	if (!outputFile) {
+	std::ofstream file(outputBinaryPath, std::ios::binary);
+	if (!file) {
 		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
 		return;
 	}
 
-	// TODO: Export to binary format
+	uint16_t tileSetHandle = -1;
+	for (size_t i = 0; i < std::size(mTileSets); ++i) {
+		if (mTileSets[i].filename() == tileMapData.tileSetPath.filename()) {
+			tileSetHandle = static_cast<uint16_t>(i);
+			break;
+		}
+	}
+
+	if (tileSetHandle == static_cast<uint16_t>(-1)) {
+		std::cerr << "Failed to find tile set handle for tile set: " << tileMapData.tileSetPath << std::endl;
+		return;
+	}
+
+	const TileMapBinaryHeader header {
+		.tileSetHandle = tileSetHandle,
+		.tileRowCount = tileMapData.tileRowCount,
+		.tileColumnCount = tileMapData.tileColumnCount,
+		.tileWidth = tileMapData.tileWidth,
+		.tileHeight = tileMapData.tileHeight,
+		.layerCount = static_cast<uint16_t>(tileMapData.layers.size())
+	};
+
+	file.write((const char*)&header, sizeof(TileMapBinaryHeader));
+
+	for (const auto& layer : tileMapData.layers) {
+		file.write((const char*)std::data(layer.tileIds),
+			std::size(layer.tileIds) * sizeof(uint16_t));
+	}
 
 	std::cout << "Converted tile map to binary successfully: " << tileMapPath << " -> " << outputBinaryPath << std::endl;
 }
-
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
 	const auto headerPath = generatedDir / "TextureIds.h";
@@ -244,22 +270,7 @@ bool AssetBuilder::ParseTileMapData(const std::filesystem::path& tileMapPath, Ti
 		return false;
 	}
 
-	const std::filesystem::path tilesetSource = tilesetNode.attribute("source").as_string();
-
-	uint16_t tileSetHandle = -1;
-	for (size_t i = 0; i < mTileSets.size(); ++i) {
-		if (mTileSets[i].filename() == tilesetSource.filename()) {
-			tileSetHandle = static_cast<uint16_t>(i);
-			break;
-		}
-	}
-
-	if (tileSetHandle == static_cast<uint16_t>(-1)) {
-		std::cerr << "Failed to find tsx reference in " << tileMapPath << std::endl;
-		return false;
-	}
-
-	outTileMapData.tileSetHandle = tileSetHandle;
+	outTileMapData.tileSetPath = tilesetNode.attribute("source").as_string();
 	outTileMapData.tileRowCount = mapNode.attribute("height").as_uint();
 	outTileMapData.tileColumnCount = mapNode.attribute("width").as_uint();
 	outTileMapData.tileWidth = mapNode.attribute("tilewidth").as_uint();
