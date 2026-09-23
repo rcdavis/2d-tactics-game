@@ -26,6 +26,11 @@ endforeach()
 add_custom_target(CopyTextures ALL DEPENDS ${COPIED_TEXTURES})
 add_dependencies(Game CopyTextures)
 
+file(GLOB_RECURSE TILEMAP_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tsx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tmx"
+)
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
     COMMAND $<TARGET_FILE:AssetBuilder>
@@ -33,7 +38,7 @@ add_custom_command(
         --output ${CMAKE_BINARY_DIR}/Game/res
         --generated ${CMAKE_BINARY_DIR}/generated
     COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
-    DEPENDS ${TEXTURE_FILES} $<TARGET_FILE:AssetBuilder>
+    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} $<TARGET_FILE:AssetBuilder>
     COMMENT "Building Assets..."
     VERBATIM
 )
