@@ -45,6 +45,7 @@ target_compile_features(Engine PRIVATE cxx_std_20)
 
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
+    glm::glm
 )
 
 target_link_libraries(Engine PRIVATE
