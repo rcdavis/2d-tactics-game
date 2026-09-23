@@ -4,6 +4,7 @@
 
 #include "PlatformEvent.h"
 #include "IWindow.h"
+#include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "TextureIds.h"
 #include "Tiles/TileSystem.h"
@@ -64,6 +65,11 @@ bool Game::Init() {
 		}
 	}
 
+	if (!Renderer2D::Init()) {
+		LOG_ERROR("Failed to initialize Renderer2D");
+		return false;
+	}
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -74,6 +80,7 @@ bool Game::Init() {
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
 
+	Renderer2D::Shutdown();
 	TileSystem::Shutdown();
 	TextureSystem::Shutdown();
 

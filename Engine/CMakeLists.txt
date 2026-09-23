@@ -5,6 +5,7 @@ add_library(Engine STATIC
     src/Renderer/OpenGL/GLRenderDevice.cpp
     src/Renderer/OpenGL/GLTexture.cpp
     src/Renderer/IRenderDevice.cpp
+    src/Renderer/Renderer2D.cpp
     src/Renderer/TextureSystem.cpp
     src/Tiles/TileMap.cpp
     src/Tiles/TileSystem.cpp
