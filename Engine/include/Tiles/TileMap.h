@@ -9,8 +9,10 @@ struct TileTerrain {
 struct TileSet {
 	TileTerrain* terrains = nullptr;
 	uint16_t terrainCount = 0;
+
 	uint16_t tileWidth = 0;
 	uint16_t tileHeight = 0;
+
 	TextureHandle textureHandle = InvalidTextureHandle;
 	uint8_t columnCount = 0;
 
