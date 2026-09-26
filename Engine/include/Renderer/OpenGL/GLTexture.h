@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ITexture.h"
+#include "Renderer/ITexture.h"
 
 class GLTexture : public ITexture {
 public:

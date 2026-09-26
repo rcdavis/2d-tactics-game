@@ -1,10 +1,10 @@
-#include "OpenGL/GLRenderDevice.h"
+#include "Renderer/OpenGL/GLRenderDevice.h"
 
 #include "IWindow.h"
 #include "SDL3/SDL_error.h"
 #include "Utils/Log.h"
 
-#include "OpenGL/GLTexture.h"
+#include "Renderer/OpenGL/GLTexture.h"
 
 #include "glad/gl.h"
 

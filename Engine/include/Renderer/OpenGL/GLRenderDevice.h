@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IRenderDevice.h"
+#include "Renderer/IRenderDevice.h"
 
 #include "SDL3/SDL_video.h"
 

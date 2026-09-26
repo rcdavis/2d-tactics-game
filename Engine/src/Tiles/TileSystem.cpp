@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <filesystem>
+#include <cassert>
 
 #include "Tiles/TileMap.h"
 
@@ -59,5 +60,15 @@ namespace TileSystem {
 		s_tileMaps.push_back(tileMap);
 		s_tileMapPaths.push_back(path);
 		return static_cast<TileMapHandle>(s_tileMaps.size() - 1);
+	}
+
+	const TileSet* GetTileSet(TileSetHandle handle) {
+		assert(static_cast<size_t>(handle) < s_tileSets.size() && "Invalid TileSetHandle");
+		return &s_tileSets[handle];
+	}
+
+	const TileMap* GetTileMap(TileMapHandle handle) {
+		assert(static_cast<size_t>(handle) < s_tileMaps.size() && "Invalid TileMapHandle");
+		return &s_tileMaps[handle];
 	}
 } // namespace TileSystem

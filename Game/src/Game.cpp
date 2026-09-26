@@ -4,7 +4,8 @@
 
 #include "PlatformEvent.h"
 #include "IWindow.h"
-#include "TextureSystem.h"
+#include "Renderer/Renderer2D.h"
+#include "Renderer/TextureSystem.h"
 #include "TextureIds.h"
 #include "Tiles/TileSystem.h"
 
@@ -44,6 +45,7 @@ bool Game::Init() {
 
 	mTileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 	mTileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	mTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
 
 	if (!TileSystem::Init()) {
 		LOG_ERROR("Failed to initialize tile system");
@@ -64,6 +66,13 @@ bool Game::Init() {
 		}
 	}
 
+	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);
+
+	if (!Renderer2D::Init()) {
+		LOG_ERROR("Failed to initialize Renderer2D");
+		return false;
+	}
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -74,6 +83,7 @@ bool Game::Init() {
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
 
+	Renderer2D::Shutdown();
 	TileSystem::Shutdown();
 	TextureSystem::Shutdown();
 
@@ -99,5 +109,13 @@ void Game::Run() {
 				break;
 			}
 		}
+
+		Render();
 	}
+}
+
+void Game::Render() {
+	Renderer2D::BeginScene(mCamera);
+	// Add rendering code here
+	Renderer2D::EndScene();
 }
