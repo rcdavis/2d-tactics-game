@@ -17,6 +17,8 @@ private:
 	bool Init();
 	void Shutdown();
 
+	void Render();
+
 private:
 	Platform mPlatform;
 	Camera2D mCamera;

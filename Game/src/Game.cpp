@@ -108,5 +108,13 @@ void Game::Run() {
 				break;
 			}
 		}
+
+		Render();
 	}
+}
+
+void Game::Render() {
+	Renderer2D::BeginScene(mCamera);
+	// Add rendering code here
+	Renderer2D::EndScene();
 }
