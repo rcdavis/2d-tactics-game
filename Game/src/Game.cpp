@@ -45,6 +45,7 @@ bool Game::Init() {
 
 	mTileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 	mTileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	mTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
 
 	if (!TileSystem::Init()) {
 		LOG_ERROR("Failed to initialize tile system");

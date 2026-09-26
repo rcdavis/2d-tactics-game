@@ -52,6 +52,11 @@ namespace TextureSystem {
 		return static_cast<TextureHandle>(std::size(s_textures) - 1);
 	}
 
+	ITexture* GetTexture(TextureHandle id) {
+		assert(id < std::size(s_textures) && "Invalid texture ID");
+		return s_textures[id];
+	}
+
 	void Bind(TextureHandle id, uint32_t slot) {
 		assert(id < std::size(s_textures) && "Invalid texture ID");
 		s_textures[id]->Bind(slot);
