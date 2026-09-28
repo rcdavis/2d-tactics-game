@@ -6,8 +6,8 @@
 #include "Utils/Log.h"
 
 #include "IWindow.h"
-#include "IRenderDevice.h"
 #include "PlatformEvent.h"
+#include "Renderer/IRenderDevice.h"
 
 bool Platform::Init(const WindowCreateInfo& info) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {

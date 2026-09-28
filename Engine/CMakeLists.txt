@@ -2,13 +2,15 @@ project(Engine)
 
 add_library(Engine STATIC
     glad/src/gl.c
-    src/OpenGL/GLRenderDevice.cpp
-    src/OpenGL/GLTexture.cpp
+    src/Renderer/OpenGL/GLRenderDevice.cpp
+    src/Renderer/OpenGL/GLTexture.cpp
+    src/Renderer/Camera2D.cpp
+    src/Renderer/IRenderDevice.cpp
+    src/Renderer/Renderer2D.cpp
+    src/Renderer/TextureSystem.cpp
     src/Tiles/TileMap.cpp
     src/Tiles/TileSystem.cpp
     src/Utils/Log.cpp
-    src/IRenderDevice.cpp
-    src/TextureSystem.cpp
 )
 
 if(USE_SDL3_BACKEND)
@@ -45,6 +47,7 @@ target_compile_features(Engine PRIVATE cxx_std_20)
 
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
+    glm::glm
 )
 
 target_link_libraries(Engine PRIVATE

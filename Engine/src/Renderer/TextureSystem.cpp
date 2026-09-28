@@ -1,7 +1,7 @@
-#include "TextureSystem.h"
+#include "Renderer/TextureSystem.h"
 
-#include "IRenderDevice.h"
-#include "ITexture.h"
+#include "Renderer/IRenderDevice.h"
+#include "Renderer/ITexture.h"
 
 #include "Utils/Log.h"
 
@@ -50,6 +50,11 @@ namespace TextureSystem {
 		s_textures.push_back(texture);
 		s_texturePaths.push_back(path);
 		return static_cast<TextureHandle>(std::size(s_textures) - 1);
+	}
+
+	ITexture* GetTexture(TextureHandle id) {
+		assert(id < std::size(s_textures) && "Invalid texture ID");
+		return s_textures[id];
 	}
 
 	void Bind(TextureHandle id, uint32_t slot) {
