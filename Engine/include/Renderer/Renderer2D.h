@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tiles/TileHandle.h"
+
 struct Camera2D;
 
 namespace Renderer2D {
@@ -11,4 +13,6 @@ namespace Renderer2D {
 	void EndScene();
 
 	void Flush();
+
+	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle);
 }

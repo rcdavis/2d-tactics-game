@@ -5,7 +5,6 @@
 
 void Camera2D::SetProjection(float left, float right, float bottom, float top) {
 	proj = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
-	UpdateViewProj();
 }
 
 void Camera2D::UpdateViewProj() {

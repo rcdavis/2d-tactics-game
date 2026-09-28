@@ -2,6 +2,9 @@
 
 #include <fstream>
 
+#include "Renderer/TextureSystem.h"
+#include "Renderer/ITexture.h"
+
 #include "Utils/Log.h"
 
 namespace {
@@ -71,6 +74,24 @@ void TileSet::Destroy() {
 	tileHeight = 0;
 	textureHandle = InvalidTextureHandle;
 	columnCount = 0;
+}
+
+std::array<glm::vec2, 4> TileSet::GetTexCoords(uint16_t tileId) const {
+	const ITexture* const texture = TextureSystem::GetTexture(textureHandle);
+	const float textureWidth = (float)texture->GetWidth();
+	const float textureHeight = (float)texture->GetHeight();
+
+	const float texCoordU = (((tileId - 1) % columnCount) * tileWidth) / textureWidth;
+	const float texCoordV = (((tileId - 1) / columnCount) * tileHeight) / textureHeight;
+
+	const std::array<glm::vec2, 4> texCoords = {
+		glm::vec2 { texCoordU, 1.0f - texCoordV },
+		glm::vec2 { texCoordU + (tileWidth / textureWidth), 1.0f - texCoordV },
+		glm::vec2 { texCoordU + (tileWidth / textureWidth), 1.0f - (texCoordV + (tileHeight / textureHeight)) },
+		glm::vec2 { texCoordU, 1.0f - (texCoordV + (tileHeight / textureHeight)) }
+	};
+
+	return texCoords;
 }
 
 bool TileMap::Init(const char* const filepath) {

@@ -1,6 +1,10 @@
 #pragma once
 
+#include <array>
+
 #include "Renderer/TextureHandle.h"
+
+#include "glm/ext/vector_float2.hpp"
 
 struct TileTerrain {
 	uint8_t movementCost = 0;
@@ -18,6 +22,8 @@ struct TileSet {
 
 	bool Init(const char* const filepath);
 	void Destroy();
+
+	std::array<glm::vec2, 4> GetTexCoords(uint16_t tileId) const;
 };
 
 struct TileLayer {
