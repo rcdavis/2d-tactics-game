@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "Renderer/GraphicsAPI.h"
+
 enum ShaderDataType : uint8_t {
 	Float, Float2, Float3, Float4,
 	Mat3, Mat4,
@@ -69,4 +71,7 @@ public:
 	virtual void Unbind() const = 0;
 
 	virtual uint32_t GetCount() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	static IIndexBuffer* Create(GraphicsAPI api);
 };

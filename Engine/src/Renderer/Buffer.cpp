@@ -33,3 +33,8 @@ uint8_t BufferElement::GetComponentCount() const {
 		default:      return 0;
 	}
 }
+
+IIndexBuffer* IIndexBuffer::Create(GraphicsAPI api) {
+	// TODO: Add OpenGL Index buffer creation logic here
+	return nullptr;
+}
