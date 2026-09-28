@@ -8,5 +8,5 @@ void Camera2D::SetProjection(float left, float right, float bottom, float top) {
 }
 
 void Camera2D::UpdateViewProj() {
-	viewProj = proj * glm::translate(glm::mat4(1.0f), glm::vec3(-position, 1.0f));
+	viewProj = proj * glm::translate(glm::mat4(1.0f), glm::vec3(-position, 0.0f));
 }
