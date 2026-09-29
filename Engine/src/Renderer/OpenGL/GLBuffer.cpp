@@ -2,6 +2,22 @@
 
 #include "glad/gl.h"
 
+GLVertexBuffer::~GLVertexBuffer() {
+	// Destructor implementation
+}
+
+void GLVertexBuffer::Bind() const {
+	// Bind implementation
+}
+
+void GLVertexBuffer::Unbind() const {
+	// Unbind implementation
+}
+
+uint32_t GLVertexBuffer::GetCount() const {
+	return mCount;
+}
+
 GLIndexBuffer::~GLIndexBuffer() {
 	// Destructor implementation
 }

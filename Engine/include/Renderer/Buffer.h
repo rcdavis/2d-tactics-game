@@ -18,10 +18,10 @@ uint8_t ShaderDataTypeSize(ShaderDataType type);
 
 struct BufferElement {
 	std::string name;
-	uint32_t size;
-	uint32_t offset;
-	ShaderDataType type;
-	bool normalized;
+	uint32_t size = 0;
+	uint32_t offset = 0;
+	ShaderDataType type = ShaderDataType::Float;
+	bool normalized = false;
 
 	BufferElement(const std::string& name, ShaderDataType type, bool normalized = false)
 		: name(name), type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized) {}
@@ -61,6 +61,9 @@ public:
 	virtual void Unbind() const = 0;
 
 	virtual uint32_t GetCount() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	static IVertexBuffer* Create(GraphicsAPI api);
 };
 
 class IIndexBuffer {

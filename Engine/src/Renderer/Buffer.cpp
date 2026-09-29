@@ -1,5 +1,7 @@
 #include "Renderer/Buffer.h"
 
+#include "Renderer/OpenGL/GLBuffer.h"
+
 uint8_t ShaderDataTypeSize(ShaderDataType type) {
 	switch (type) {
 		case Float:   return 4;
@@ -34,7 +36,16 @@ uint8_t BufferElement::GetComponentCount() const {
 	}
 }
 
+IVertexBuffer* IVertexBuffer::Create(GraphicsAPI api) {
+	switch (api) {
+		case GraphicsAPI::OpenGL: return new GLVertexBuffer();
+		default: return nullptr;
+	}
+}
+
 IIndexBuffer* IIndexBuffer::Create(GraphicsAPI api) {
-	// TODO: Add OpenGL Index buffer creation logic here
-	return nullptr;
+	switch (api) {
+		case GraphicsAPI::OpenGL: return new GLIndexBuffer();
+		default: return nullptr;
+	}
 }
