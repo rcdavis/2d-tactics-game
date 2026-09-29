@@ -47,6 +47,11 @@ public:
 	const std::vector<BufferElement>& GetElements() const { return mElements; }
 	uint32_t GetStride() const { return mStride; }
 
+	auto begin() { return std::begin(mElements); }
+	auto begin() const { return std::begin(mElements); }
+	auto end() { return std::end(mElements); }
+	auto end() const { return std::end(mElements); }
+
 private:
 	void CalculateOffsetsAndStride() {
 		mStride = 0;

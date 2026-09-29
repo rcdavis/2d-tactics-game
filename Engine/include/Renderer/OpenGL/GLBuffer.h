@@ -15,6 +15,8 @@ public:
 
 	virtual const BufferLayout& GetLayout() const override;
 
+	uint32_t GetId() const { return mId; }
+
 private:
 	uint32_t mId = 0;
 	BufferLayout mLayout;
@@ -32,6 +34,8 @@ public:
 	virtual void Unbind() const override;
 
 	virtual uint32_t GetCount() const override;
+
+	uint32_t GetId() const { return mId; }
 
 private:
 	uint32_t mId = 0;
