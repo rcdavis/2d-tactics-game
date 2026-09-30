@@ -1,6 +1,7 @@
 #include "Renderer/Renderer2D.h"
 
 #include <array>
+#include <vector>
 #include <cstdint>
 
 #include "Platform.h"
@@ -8,6 +9,7 @@
 #include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
 #include "Renderer/IVertexArray.h"
+#include "Renderer/Buffer.h"
 
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
@@ -37,6 +39,7 @@ namespace Renderer2D {
 	static QuadVertex* s_QuadVertexBufferCurrent = nullptr;
 
 	static IVertexArray* s_QuadVertexArray = nullptr;
+	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
 	static uint32_t s_QuadIndexCount = 0;
 
@@ -55,6 +58,24 @@ namespace Renderer2D {
 			return false;
 		}
 
+		std::vector<uint16_t> indices(MaxIndices);
+		for (uint16_t i = 0, offset = 0; i < MaxIndices; i += 6, offset += 4) {
+			indices[i + 0] = offset + 0;
+			indices[i + 1] = offset + 1;
+			indices[i + 2] = offset + 2;
+
+			indices[i + 3] = offset + 2;
+			indices[i + 4] = offset + 3;
+			indices[i + 5] = offset + 0;
+		}
+
+		s_QuadIndexBuffer = IIndexBuffer::Create(platform.graphicsApi);
+		if (!s_QuadIndexBuffer->Init(BufferUsage::Static, std::data(indices), std::size(indices))) {
+			LOG_ERROR("Failed to initialize quad index buffer");
+			return false;
+		}
+		s_QuadVertexArray->SetIndexBuffer(s_QuadIndexBuffer);
+
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
 
@@ -69,6 +90,9 @@ namespace Renderer2D {
 		delete[] s_QuadVertexBufferData;
 		s_QuadVertexBufferData = nullptr;
 		s_QuadVertexBufferCurrent = nullptr;
+
+		delete s_QuadIndexBuffer;
+		s_QuadIndexBuffer = nullptr;
 
 		delete s_QuadVertexArray;
 		s_QuadVertexArray = nullptr;
