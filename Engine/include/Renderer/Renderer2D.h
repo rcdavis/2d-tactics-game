@@ -2,11 +2,11 @@
 
 #include "Tiles/TileHandle.h"
 
-struct Platform;
 struct Camera2D;
+class IRenderDevice;
 
 namespace Renderer2D {
-	bool Init(Platform& platform);
+	bool Init(IRenderDevice* renderDevice);
 
 	void Shutdown();
 

@@ -24,6 +24,9 @@ public:
 	virtual ITexture* CreateTexture() const = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IVertexArray* CreateVertexArray() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	virtual IVertexBuffer* CreateVertexBuffer() const = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]

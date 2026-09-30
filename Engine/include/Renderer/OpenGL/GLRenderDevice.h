@@ -20,6 +20,9 @@ public:
 	virtual ITexture* CreateTexture() const override;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IVertexArray* CreateVertexArray() const override;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	virtual IVertexBuffer* CreateVertexBuffer() const override;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
