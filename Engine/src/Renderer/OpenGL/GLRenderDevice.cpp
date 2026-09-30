@@ -76,7 +76,7 @@ void GLRenderDevice::Present() {
 	}
 }
 
-ITexture* GLRenderDevice::CreateTexture() {
+ITexture* GLRenderDevice::CreateTexture() const {
 	return new GLTexture();
 }
 

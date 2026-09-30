@@ -16,7 +16,7 @@ public:
 	virtual void Present() = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	virtual ITexture* CreateTexture() = 0;
+	virtual ITexture* CreateTexture() const = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IRenderDevice* Create(GraphicsAPI api);

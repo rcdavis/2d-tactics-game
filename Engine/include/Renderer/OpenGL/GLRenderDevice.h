@@ -15,7 +15,7 @@ public:
 	virtual void Present() override;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	virtual ITexture* CreateTexture() override;
+	virtual ITexture* CreateTexture() const override;
 
 private:
 	SDL_GLContext mContext = nullptr;

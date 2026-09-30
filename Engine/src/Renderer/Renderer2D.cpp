@@ -31,6 +31,8 @@ namespace Renderer2D {
 	static constexpr uint32_t MaxIndices = MaxQuads * 6;
 	static constexpr uint32_t MaxTextureSlots = 32;
 
+	static IRenderDevice* s_RenderDevice = nullptr;
+
 	static QuadVertex* s_QuadVertexBufferData = nullptr;
 	static QuadVertex* s_QuadVertexBufferCurrent = nullptr;
 
@@ -42,6 +44,8 @@ namespace Renderer2D {
 	static uint32_t s_TextureSlotIndex = 0;
 
 	bool Init(Platform& platform) {
+		s_RenderDevice = platform.renderDevice;
+
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
 
@@ -60,6 +64,8 @@ namespace Renderer2D {
 	}
 
 	void Shutdown() {
+		s_RenderDevice = nullptr;
+
 		delete[] s_QuadVertexBufferData;
 		s_QuadVertexBufferData = nullptr;
 		s_QuadVertexBufferCurrent = nullptr;
