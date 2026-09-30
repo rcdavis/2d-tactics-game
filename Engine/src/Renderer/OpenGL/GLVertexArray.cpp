@@ -43,10 +43,7 @@ void GLVertexArray::Destroy() {
 		mId = 0;
 	}
 
-	delete mVertexBuffer;
 	mVertexBuffer = nullptr;
-
-	delete mIndexBuffer;
 	mIndexBuffer = nullptr;
 }
 
@@ -58,17 +55,16 @@ void GLVertexArray::Unbind() const {
 	glBindVertexArray(0);
 }
 
-void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
-	delete mVertexBuffer;
+void GLVertexArray::SetVertexBuffer(const IVertexBuffer* vertexBuffer) {
 	mVertexBuffer = vertexBuffer;
 
-	const GLVertexBuffer* const glVertexBuffer = static_cast<GLVertexBuffer*>(vertexBuffer);
-	const auto& layout = vertexBuffer->GetLayout();
+	const GLVertexBuffer* const glVertexBuffer = static_cast<const GLVertexBuffer*>(vertexBuffer);
+	const BufferLayout& layout = vertexBuffer->GetLayout();
 	glVertexArrayVertexBuffer(mId, 0, glVertexBuffer->GetId(), 0, layout.GetStride());
 	glVertexArrayBindingDivisor(mId, 0, 0);
 
 	uint32_t attributeIndex = 0;
-	for (const auto& element : layout) {
+	for (const BufferElement& element : layout) {
 		switch (element.type) {
 		case ShaderDataType::Mat3:
 		case ShaderDataType::Mat4: {
@@ -121,10 +117,9 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 	}
 }
 
-void GLVertexArray::SetIndexBuffer(IIndexBuffer* indexBuffer) {
-	delete mIndexBuffer;
+void GLVertexArray::SetIndexBuffer(const IIndexBuffer* indexBuffer) {
 	mIndexBuffer = indexBuffer;
 
-	const GLIndexBuffer* const glIndexBuffer = static_cast<GLIndexBuffer*>(indexBuffer);
+	const GLIndexBuffer* const glIndexBuffer = static_cast<const GLIndexBuffer*>(indexBuffer);
 	glVertexArrayElementBuffer(mId, glIndexBuffer->GetId());
 }

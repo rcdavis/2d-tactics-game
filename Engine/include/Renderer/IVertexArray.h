@@ -15,8 +15,8 @@ public:
 	virtual void Bind() const = 0;
 	virtual void Unbind() const = 0;
 
-	virtual void SetVertexBuffer(IVertexBuffer* vertexBuffer) = 0;
-	virtual void SetIndexBuffer(IIndexBuffer* indexBuffer) = 0;
+	virtual void SetVertexBuffer(const IVertexBuffer* vertexBuffer) = 0;
+	virtual void SetIndexBuffer(const IIndexBuffer* indexBuffer) = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IVertexArray* Create(GraphicsAPI api);
