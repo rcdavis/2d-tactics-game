@@ -4,6 +4,7 @@
 
 class IWindow;
 class ITexture;
+class IVertexArray;
 
 class IRenderDevice {
 public:
@@ -12,6 +13,8 @@ public:
 	virtual void Shutdown() = 0;
 
 	virtual void EnableVsync(bool enable) = 0;
+
+	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) = 0;
 
 	virtual void Present() = 0;
 

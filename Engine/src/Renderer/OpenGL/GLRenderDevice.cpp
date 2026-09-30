@@ -5,6 +5,7 @@
 #include "Utils/Log.h"
 
 #include "Renderer/OpenGL/GLTexture.h"
+#include "Renderer/IVertexArray.h"
 
 #include "glad/gl.h"
 
@@ -68,6 +69,11 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	if (!SDL_GL_SetSwapInterval(enable ? 1 : 0)) {
 		LOG_ERROR("Failed to set Vsync: {}", SDL_GetError());
 	}
+}
+
+void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {
+	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
+	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, nullptr);
 }
 
 void GLRenderDevice::Present() {

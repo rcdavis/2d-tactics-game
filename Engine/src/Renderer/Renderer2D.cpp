@@ -8,6 +8,7 @@
 
 #include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
+#include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
 #include "Renderer/Buffer.h"
 
@@ -133,7 +134,11 @@ namespace Renderer2D {
 	}
 
 	void Flush() {
-		// Flush rendering commands here
+		if (s_QuadIndexCount == 0)
+			return;
+
+		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
+		s_QuadIndexCount = 0;
 	}
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {
