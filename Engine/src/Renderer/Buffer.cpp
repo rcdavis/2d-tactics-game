@@ -1,7 +1,5 @@
 #include "Renderer/Buffer.h"
 
-#include "Renderer/OpenGL/GLBuffer.h"
-
 uint8_t BufferElementTypeSize(BufferElementType type) {
 	switch (type) {
 		case BufferElementType::Float:   return 4;
@@ -33,19 +31,5 @@ uint8_t BufferElement::GetComponentCount() const {
 		case BufferElementType::Int4:    return 4;
 		case BufferElementType::Bool:    return 1;
 		default:      return 0;
-	}
-}
-
-IVertexBuffer* IVertexBuffer::Create(GraphicsAPI api) {
-	switch (api) {
-		case GraphicsAPI::OpenGL: return new GLVertexBuffer();
-		default: return nullptr;
-	}
-}
-
-IIndexBuffer* IIndexBuffer::Create(GraphicsAPI api) {
-	switch (api) {
-		case GraphicsAPI::OpenGL: return new GLIndexBuffer();
-		default: return nullptr;
 	}
 }
