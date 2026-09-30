@@ -39,6 +39,7 @@ namespace Renderer2D {
 	static QuadVertex* s_QuadVertexBufferCurrent = nullptr;
 
 	static IVertexArray* s_QuadVertexArray = nullptr;
+	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
 	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
 	static uint32_t s_QuadIndexCount = 0;
@@ -57,6 +58,19 @@ namespace Renderer2D {
 			LOG_ERROR("Failed to initialize quad vertex array");
 			return false;
 		}
+
+		s_QuadVertexBuffer = IVertexBuffer::Create(platform.graphicsApi);
+		if (!s_QuadVertexBuffer->Init(BufferUsage::Dynamic, BufferLayout {
+			{ BufferElementType::Float3, }, // Position
+			{ BufferElementType::Float4, }, // Color
+			{ BufferElementType::Float2, }, // TexCoord
+			{ BufferElementType::Int, } // TexIndex
+		}, s_QuadVertexBufferData, MaxVertices * sizeof(QuadVertex))
+		) {
+			LOG_ERROR("Failed to initialize quad vertex buffer");
+			return false;
+		}
+		s_QuadVertexArray->SetVertexBuffer(s_QuadVertexBuffer);
 
 		std::vector<uint16_t> indices(MaxIndices);
 		for (uint16_t i = 0, offset = 0; i < MaxIndices; i += 6, offset += 4) {
@@ -93,6 +107,9 @@ namespace Renderer2D {
 
 		delete s_QuadIndexBuffer;
 		s_QuadIndexBuffer = nullptr;
+
+		delete s_QuadVertexBuffer;
+		s_QuadVertexBuffer = nullptr;
 
 		delete s_QuadVertexArray;
 		s_QuadVertexArray = nullptr;
