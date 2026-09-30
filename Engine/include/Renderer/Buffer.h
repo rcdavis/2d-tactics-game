@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "Renderer/GraphicsAPI.h"
-
 enum class BufferElementType : uint8_t {
 	Float, Float2, Float3, Float4,
 	Mat3, Mat4,
@@ -74,9 +72,6 @@ public:
 	virtual void Unbind() const = 0;
 
 	virtual const BufferLayout& GetLayout() const = 0;
-
-	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	static IVertexBuffer* Create(GraphicsAPI api);
 };
 
 class IIndexBuffer {
@@ -90,7 +85,4 @@ public:
 	virtual void Unbind() const = 0;
 
 	virtual uint32_t GetCount() const = 0;
-
-	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	static IIndexBuffer* Create(GraphicsAPI api);
 };

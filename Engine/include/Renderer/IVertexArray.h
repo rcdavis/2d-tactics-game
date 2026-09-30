@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/GraphicsAPI.h"
+#include <cstdint>
 
 class IVertexBuffer;
 class IIndexBuffer;
@@ -19,7 +19,4 @@ public:
 	virtual void SetIndexBuffer(const IIndexBuffer* indexBuffer) = 0;
 
 	virtual uint32_t GetIndexCount() const = 0;
-
-	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	static IVertexArray* Create(GraphicsAPI api);
 };

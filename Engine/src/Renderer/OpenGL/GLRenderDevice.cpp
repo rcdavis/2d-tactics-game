@@ -5,6 +5,8 @@
 #include "Utils/Log.h"
 
 #include "Renderer/OpenGL/GLTexture.h"
+#include "Renderer/OpenGL/GLVertexArray.h"
+#include "Renderer/OpenGL/GLBuffer.h"
 #include "Renderer/IVertexArray.h"
 
 #include "glad/gl.h"
@@ -84,6 +86,18 @@ void GLRenderDevice::Present() {
 
 ITexture* GLRenderDevice::CreateTexture() const {
 	return new GLTexture();
+}
+
+IVertexArray* GLRenderDevice::CreateVertexArray() const {
+	return new GLVertexArray();
+}
+
+IVertexBuffer* GLRenderDevice::CreateVertexBuffer() const {
+	return new GLVertexBuffer();
+}
+
+IIndexBuffer* GLRenderDevice::CreateIndexBuffer() const {
+	return new GLIndexBuffer();
 }
 
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,

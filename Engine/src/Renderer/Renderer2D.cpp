@@ -4,8 +4,6 @@
 #include <vector>
 #include <cstdint>
 
-#include "Platform.h"
-
 #include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
 #include "Renderer/IRenderDevice.h"
@@ -48,19 +46,19 @@ namespace Renderer2D {
 	static std::array<TextureHandle, MaxTextureSlots> s_TextureSlots {};
 	static uint32_t s_TextureSlotIndex = 0;
 
-	bool Init(Platform& platform) {
-		s_RenderDevice = platform.renderDevice;
+	bool Init(IRenderDevice* renderDevice) {
+		s_RenderDevice = renderDevice;
 
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
 
-		s_QuadVertexArray = IVertexArray::Create(platform.graphicsApi);
+		s_QuadVertexArray = s_RenderDevice->CreateVertexArray();
 		if (!s_QuadVertexArray->Init()) {
 			LOG_ERROR("Failed to initialize quad vertex array");
 			return false;
 		}
 
-		s_QuadVertexBuffer = IVertexBuffer::Create(platform.graphicsApi);
+		s_QuadVertexBuffer = s_RenderDevice->CreateVertexBuffer();
 		if (!s_QuadVertexBuffer->Init(BufferUsage::Dynamic, BufferLayout {
 			{ BufferElementType::Float3, }, // Position
 			{ BufferElementType::Float4, }, // Color
@@ -84,7 +82,7 @@ namespace Renderer2D {
 			indices[i + 5] = offset + 0;
 		}
 
-		s_QuadIndexBuffer = IIndexBuffer::Create(platform.graphicsApi);
+		s_QuadIndexBuffer = s_RenderDevice->CreateIndexBuffer();
 		if (!s_QuadIndexBuffer->Init(BufferUsage::Static, std::data(indices), std::size(indices))) {
 			LOG_ERROR("Failed to initialize quad index buffer");
 			return false;
