@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <vector>
 
 #include "Renderer/GraphicsAPI.h"
@@ -23,14 +22,13 @@ enum class BufferUsage : uint8_t {
 uint8_t ShaderDataTypeSize(ShaderDataType type);
 
 struct BufferElement {
-	std::string name;
-	uint32_t size = 0;
-	uint32_t offset = 0;
+	uint16_t size = 0;
+	uint16_t offset = 0;
 	ShaderDataType type = ShaderDataType::Float;
 	bool normalized = false;
 
-	BufferElement(const std::string& name, ShaderDataType type, bool normalized = false)
-		: name(name), type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized) {}
+	BufferElement(ShaderDataType type, bool normalized = false)
+		: type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized) {}
 
 	uint8_t GetComponentCount() const;
 };
@@ -45,7 +43,7 @@ public:
 	}
 
 	const std::vector<BufferElement>& GetElements() const { return mElements; }
-	uint32_t GetStride() const { return mStride; }
+	uint16_t GetStride() const { return mStride; }
 
 	auto begin() { return std::begin(mElements); }
 	auto begin() const { return std::begin(mElements); }
@@ -62,7 +60,7 @@ private:
 	}
 
 	std::vector<BufferElement> mElements;
-	uint32_t mStride = 0;
+	uint16_t mStride = 0;
 };
 
 class IVertexBuffer {
