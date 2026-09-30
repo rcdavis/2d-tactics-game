@@ -13,6 +13,7 @@ public:
 
 private:
 	void BuildTextures(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
+	void BuildShaders(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
 	void BuildTileMaps(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir);
 
 	void ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir);
@@ -26,6 +27,7 @@ private:
 
 private:
 	std::vector<std::filesystem::path> mTextures;
+	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> mShaders;
 	std::vector<std::filesystem::path> mTileSets;
 	std::vector<std::filesystem::path> mTileMaps;
 };

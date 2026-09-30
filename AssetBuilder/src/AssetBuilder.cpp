@@ -13,6 +13,7 @@ void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std:
 	std::filesystem::create_directories(generatedDir);
 
 	BuildTextures(inputDir, generatedDir);
+	BuildShaders(inputDir, generatedDir);
 	BuildTileMaps(inputDir, outputDir, generatedDir);
 }
 
@@ -28,6 +29,21 @@ void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const st
 	}
 
 	CreateTextureIdHeader(inputDir, generatedDir);
+}
+
+void AssetBuilder::BuildShaders(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(inputDir / "shaders")) {
+		if (entry.is_regular_file()) {
+			const auto& path = entry.path();
+			if (path.extension() == ".vs") {
+				const auto fragmentPath = path.parent_path() / (path.stem().string() + ".fs");
+				if (std::filesystem::exists(fragmentPath)) {
+					mShaders.push_back({path, fragmentPath});
+					std::cout << "Found shader: " << path << " and " << fragmentPath << std::endl;
+				}
+			}
+		}
+	}
 }
 
 void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
