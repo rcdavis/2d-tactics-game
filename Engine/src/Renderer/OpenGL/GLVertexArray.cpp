@@ -6,21 +6,21 @@
 #include "glad/gl.h"
 
 namespace {
-	GLenum GetGLType(ShaderDataType type) {
+	GLenum GetGLType(BufferElementType type) {
 		switch (type) {
-			case ShaderDataType::Float:
-			case ShaderDataType::Float2:
-			case ShaderDataType::Float3:
-			case ShaderDataType::Float4:
-			case ShaderDataType::Mat3:
-			case ShaderDataType::Mat4:
+			case BufferElementType::Float:
+			case BufferElementType::Float2:
+			case BufferElementType::Float3:
+			case BufferElementType::Float4:
+			case BufferElementType::Mat3:
+			case BufferElementType::Mat4:
 				return GL_FLOAT;
-			case ShaderDataType::Int:
-			case ShaderDataType::Int2:
-			case ShaderDataType::Int3:
-			case ShaderDataType::Int4:
+			case BufferElementType::Int:
+			case BufferElementType::Int2:
+			case BufferElementType::Int3:
+			case BufferElementType::Int4:
 				return GL_INT;
-			case ShaderDataType::Bool:
+			case BufferElementType::Bool:
 				return GL_UNSIGNED_BYTE;
 			default: return GL_FLOAT;
 		}
@@ -66,8 +66,8 @@ void GLVertexArray::SetVertexBuffer(const IVertexBuffer* vertexBuffer) {
 	uint32_t attributeIndex = 0;
 	for (const BufferElement& element : layout) {
 		switch (element.type) {
-		case ShaderDataType::Mat3:
-		case ShaderDataType::Mat4: {
+		case BufferElementType::Mat3:
+		case BufferElementType::Mat4: {
 			const uint32_t componentCount = element.GetComponentCount();
 			for (uint32_t i = 0; i < componentCount; ++i) {
 				glEnableVertexArrayAttrib(mId, attributeIndex);
@@ -84,10 +84,10 @@ void GLVertexArray::SetVertexBuffer(const IVertexBuffer* vertexBuffer) {
 		}
 		break;
 
-		case ShaderDataType::Float:
-		case ShaderDataType::Float2:
-		case ShaderDataType::Float3:
-		case ShaderDataType::Float4: {
+		case BufferElementType::Float:
+		case BufferElementType::Float2:
+		case BufferElementType::Float3:
+		case BufferElementType::Float4: {
 			glEnableVertexArrayAttrib(mId, attributeIndex);
 			glVertexArrayAttribBinding(mId, attributeIndex, 0);
 			glVertexArrayAttribFormat(

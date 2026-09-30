@@ -5,7 +5,7 @@
 
 #include "Renderer/GraphicsAPI.h"
 
-enum class ShaderDataType : uint8_t {
+enum class BufferElementType : uint8_t {
 	Float, Float2, Float3, Float4,
 	Mat3, Mat4,
 	Int, Int2, Int3, Int4,
@@ -19,16 +19,16 @@ enum class BufferUsage : uint8_t {
 	Count
 };
 
-uint8_t ShaderDataTypeSize(ShaderDataType type);
+uint8_t BufferElementTypeSize(BufferElementType type);
 
 struct BufferElement {
 	uint16_t size = 0;
 	uint16_t offset = 0;
-	ShaderDataType type = ShaderDataType::Float;
+	BufferElementType type = BufferElementType::Float;
 	bool normalized = false;
 
-	BufferElement(ShaderDataType type, bool normalized = false)
-		: type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized) {}
+	BufferElement(BufferElementType type, bool normalized = false)
+		: type(type), size(BufferElementTypeSize(type)), offset(0), normalized(normalized) {}
 
 	uint8_t GetComponentCount() const;
 };
