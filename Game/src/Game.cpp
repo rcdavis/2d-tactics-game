@@ -6,6 +6,7 @@
 #include "IWindow.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
+#include "Renderer/ShaderSystem.h"
 #include "TextureIds.h"
 #include "Tiles/TileSystem.h"
 
@@ -33,6 +34,11 @@ bool Game::Init() {
 
 	if (!TextureSystem::Init(mPlatform.renderDevice)) {
 		LOG_ERROR("Failed to initialize texture system");
+		return false;
+	}
+
+	if (!ShaderSystem::Init(mPlatform.renderDevice)) {
+		LOG_ERROR("Failed to initialize shader system");
 		return false;
 	}
 
@@ -86,6 +92,7 @@ void Game::Shutdown() {
 	Renderer2D::Shutdown();
 	TileSystem::Shutdown();
 	TextureSystem::Shutdown();
+	ShaderSystem::Shutdown();
 
 	mPlatform.Destroy();
 

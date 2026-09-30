@@ -5,6 +5,7 @@
 #include "Utils/Log.h"
 
 #include "Renderer/OpenGL/GLTexture.h"
+#include "Renderer/OpenGL/GLShader.h"
 #include "Renderer/OpenGL/GLVertexArray.h"
 #include "Renderer/OpenGL/GLBuffer.h"
 #include "Renderer/IVertexArray.h"
@@ -86,6 +87,10 @@ void GLRenderDevice::Present() {
 
 ITexture* GLRenderDevice::CreateTexture() const {
 	return new GLTexture();
+}
+
+IShader* GLRenderDevice::CreateShader() const {
+	return new GLShader();
 }
 
 IVertexArray* GLRenderDevice::CreateVertexArray() const {
