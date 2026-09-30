@@ -5,6 +5,8 @@
 class IWindow;
 class ITexture;
 class IVertexArray;
+class IVertexBuffer;
+class IIndexBuffer;
 
 class IRenderDevice {
 public:
@@ -20,6 +22,12 @@ public:
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	virtual ITexture* CreateTexture() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IVertexBuffer* CreateVertexBuffer() const = 0;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IIndexBuffer* CreateIndexBuffer() const = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IRenderDevice* Create(GraphicsAPI api);

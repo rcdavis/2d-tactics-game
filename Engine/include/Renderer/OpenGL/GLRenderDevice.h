@@ -19,6 +19,12 @@ public:
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	virtual ITexture* CreateTexture() const override;
 
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IVertexBuffer* CreateVertexBuffer() const override;
+
+	[[nodiscard("Returned pointer will leak memory if not handled")]]
+	virtual IIndexBuffer* CreateIndexBuffer() const override;
+
 private:
 	SDL_GLContext mContext = nullptr;
 	SDL_Window* mWindow = nullptr;
