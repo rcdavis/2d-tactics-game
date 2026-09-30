@@ -12,10 +12,12 @@ public:
 
 	virtual void EnableVsync(bool enable) override;
 
+	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) override;
+
 	virtual void Present() override;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	virtual ITexture* CreateTexture() override;
+	virtual ITexture* CreateTexture() const override;
 
 private:
 	SDL_GLContext mContext = nullptr;

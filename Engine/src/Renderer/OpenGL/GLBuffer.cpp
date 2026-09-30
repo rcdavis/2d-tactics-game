@@ -5,9 +5,9 @@
 namespace {
 	GLenum GetGLUsage(BufferUsage usage) {
 		switch (usage) {
-			case BufferUsage::Static: return 0;
-			case BufferUsage::Dynamic: return GL_DYNAMIC_STORAGE_BIT;
-			default: return 0;
+			case BufferUsage::Static: return GL_STATIC_DRAW;
+			case BufferUsage::Dynamic: return GL_DYNAMIC_DRAW;
+			default: return GL_STATIC_DRAW;
 		}
 	}
 }

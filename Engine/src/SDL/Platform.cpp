@@ -15,6 +15,8 @@ bool Platform::Init(const WindowCreateInfo& info) {
 		return false;
 	}
 
+	graphicsApi = info.graphicsAPI;
+
 	window = IWindow::Create();
 	if (!window->Init(info)) {
 		LOG_ERROR("Failed to initialize window");

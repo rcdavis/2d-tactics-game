@@ -5,6 +5,7 @@
 #include "Utils/Log.h"
 
 #include "Renderer/OpenGL/GLTexture.h"
+#include "Renderer/IVertexArray.h"
 
 #include "glad/gl.h"
 
@@ -70,13 +71,18 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	}
 }
 
+void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {
+	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
+	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, nullptr);
+}
+
 void GLRenderDevice::Present() {
 	if (!SDL_GL_SwapWindow(mWindow)) {
 		LOG_ERROR("Failed to swap window: {}", SDL_GetError());
 	}
 }
 
-ITexture* GLRenderDevice::CreateTexture() {
+ITexture* GLRenderDevice::CreateTexture() const {
 	return new GLTexture();
 }
 

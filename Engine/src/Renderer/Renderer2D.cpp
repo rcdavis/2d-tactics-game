@@ -1,13 +1,21 @@
 #include "Renderer/Renderer2D.h"
 
 #include <array>
+#include <vector>
 #include <cstdint>
+
+#include "Platform.h"
 
 #include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
+#include "Renderer/IRenderDevice.h"
+#include "Renderer/IVertexArray.h"
+#include "Renderer/Buffer.h"
 
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
+
+#include "Utils/Log.h"
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -26,17 +34,62 @@ namespace Renderer2D {
 	static constexpr uint32_t MaxIndices = MaxQuads * 6;
 	static constexpr uint32_t MaxTextureSlots = 32;
 
+	static IRenderDevice* s_RenderDevice = nullptr;
+
 	static QuadVertex* s_QuadVertexBufferData = nullptr;
 	static QuadVertex* s_QuadVertexBufferCurrent = nullptr;
+
+	static IVertexArray* s_QuadVertexArray = nullptr;
+	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
+	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
 	static uint32_t s_QuadIndexCount = 0;
 
 	static std::array<TextureHandle, MaxTextureSlots> s_TextureSlots {};
 	static uint32_t s_TextureSlotIndex = 0;
 
-	bool Init() {
+	bool Init(Platform& platform) {
+		s_RenderDevice = platform.renderDevice;
+
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
+
+		s_QuadVertexArray = IVertexArray::Create(platform.graphicsApi);
+		if (!s_QuadVertexArray->Init()) {
+			LOG_ERROR("Failed to initialize quad vertex array");
+			return false;
+		}
+
+		s_QuadVertexBuffer = IVertexBuffer::Create(platform.graphicsApi);
+		if (!s_QuadVertexBuffer->Init(BufferUsage::Dynamic, BufferLayout {
+			{ BufferElementType::Float3, }, // Position
+			{ BufferElementType::Float4, }, // Color
+			{ BufferElementType::Float2, }, // TexCoord
+			{ BufferElementType::Int, } // TexIndex
+		}, s_QuadVertexBufferData, MaxVertices * sizeof(QuadVertex))
+		) {
+			LOG_ERROR("Failed to initialize quad vertex buffer");
+			return false;
+		}
+		s_QuadVertexArray->SetVertexBuffer(s_QuadVertexBuffer);
+
+		std::vector<uint16_t> indices(MaxIndices);
+		for (uint16_t i = 0, offset = 0; i < MaxIndices; i += 6, offset += 4) {
+			indices[i + 0] = offset + 0;
+			indices[i + 1] = offset + 1;
+			indices[i + 2] = offset + 2;
+
+			indices[i + 3] = offset + 2;
+			indices[i + 4] = offset + 3;
+			indices[i + 5] = offset + 0;
+		}
+
+		s_QuadIndexBuffer = IIndexBuffer::Create(platform.graphicsApi);
+		if (!s_QuadIndexBuffer->Init(BufferUsage::Static, std::data(indices), std::size(indices))) {
+			LOG_ERROR("Failed to initialize quad index buffer");
+			return false;
+		}
+		s_QuadVertexArray->SetIndexBuffer(s_QuadIndexBuffer);
 
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
@@ -47,9 +100,20 @@ namespace Renderer2D {
 	}
 
 	void Shutdown() {
+		s_RenderDevice = nullptr;
+
 		delete[] s_QuadVertexBufferData;
 		s_QuadVertexBufferData = nullptr;
 		s_QuadVertexBufferCurrent = nullptr;
+
+		delete s_QuadIndexBuffer;
+		s_QuadIndexBuffer = nullptr;
+
+		delete s_QuadVertexBuffer;
+		s_QuadVertexBuffer = nullptr;
+
+		delete s_QuadVertexArray;
+		s_QuadVertexArray = nullptr;
 
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
@@ -59,14 +123,22 @@ namespace Renderer2D {
 
 	void BeginScene(Camera2D& camera) {
 		camera.UpdateViewProj();
+
+		s_QuadVertexArray->Bind();
 	}
 
 	void EndScene() {
 		Flush();
+
+		s_QuadVertexArray->Unbind();
 	}
 
 	void Flush() {
-		// Flush rendering commands here
+		if (s_QuadIndexCount == 0)
+			return;
+
+		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
+		s_QuadIndexCount = 0;
 	}
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {
@@ -88,6 +160,7 @@ namespace Renderer2D {
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
+			const float zIndex = 0.1f * layerIndex;
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
@@ -102,10 +175,10 @@ namespace Renderer2D {
 					const float h = tileMap->tileHeight;
 
 					const std::array<glm::vec3, 4> vertPositions = {
-						glm::vec3 { x, y, 0.1f * layerIndex },
-						glm::vec3 { x + w, y, 0.1f * layerIndex },
-						glm::vec3 { x + w, y - h, 0.1f * layerIndex },
-						glm::vec3 { x, y - h, 0.1f * layerIndex }
+						glm::vec3 { x, y, zIndex },
+						glm::vec3 { x + w, y, zIndex },
+						glm::vec3 { x + w, y - h, zIndex },
+						glm::vec3 { x, y - h, zIndex }
 					};
 
 					const auto texCoords = tileSet->GetTexCoords(tileId);

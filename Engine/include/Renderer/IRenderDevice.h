@@ -4,6 +4,7 @@
 
 class IWindow;
 class ITexture;
+class IVertexArray;
 
 class IRenderDevice {
 public:
@@ -13,10 +14,12 @@ public:
 
 	virtual void EnableVsync(bool enable) = 0;
 
+	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) = 0;
+
 	virtual void Present() = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
-	virtual ITexture* CreateTexture() = 0;
+	virtual ITexture* CreateTexture() const = 0;
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IRenderDevice* Create(GraphicsAPI api);
