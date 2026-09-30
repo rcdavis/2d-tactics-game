@@ -11,6 +11,7 @@ add_library(Engine STATIC
     src/Renderer/Camera2D.cpp
     src/Renderer/IRenderDevice.cpp
     src/Renderer/Renderer2D.cpp
+    src/Renderer/ShaderSystem.cpp
     src/Renderer/TextureSystem.cpp
     src/Tiles/TileMap.cpp
     src/Tiles/TileSystem.cpp
