@@ -1,10 +1,9 @@
 #include "Renderer/OpenGL/GLVertexArray.h"
 
 #include "Renderer/Buffer.h"
-
 #include "Renderer/OpenGL/GLBuffer.h"
+
 #include "glad/gl.h"
-#include <cstdint>
 
 namespace {
 	GLenum GetGLType(ShaderDataType type) {
@@ -22,7 +21,7 @@ namespace {
 			case ShaderDataType::Int4:
 				return GL_INT;
 			case ShaderDataType::Bool:
-				return GL_BOOL;
+				return GL_UNSIGNED_BYTE;
 			default: return GL_FLOAT;
 		}
 	}
@@ -66,6 +65,7 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 	const GLVertexBuffer* const glVertexBuffer = static_cast<GLVertexBuffer*>(vertexBuffer);
 	const auto& layout = vertexBuffer->GetLayout();
 	glVertexArrayVertexBuffer(mId, 0, glVertexBuffer->GetId(), 0, layout.GetStride());
+	glVertexArrayBindingDivisor(mId, 0, 0);
 
 	uint32_t attributeIndex = 0;
 	for (const auto& element : layout) {
@@ -75,6 +75,7 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 			const uint32_t componentCount = element.GetComponentCount();
 			for (uint32_t i = 0; i < componentCount; ++i) {
 				glEnableVertexArrayAttrib(mId, attributeIndex);
+				glVertexArrayAttribBinding(mId, attributeIndex, 0);
 				glVertexArrayAttribFormat(
 					mId,
 					attributeIndex,
@@ -82,7 +83,6 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 					GetGLType(element.type),
 					element.normalized ? GL_TRUE : GL_FALSE,
 					element.offset + sizeof(float) * componentCount * i);
-				glVertexArrayAttribBinding(mId, attributeIndex, 1);
 				++attributeIndex;
 			}
 		}
@@ -93,6 +93,7 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 		case ShaderDataType::Float3:
 		case ShaderDataType::Float4: {
 			glEnableVertexArrayAttrib(mId, attributeIndex);
+			glVertexArrayAttribBinding(mId, attributeIndex, 0);
 			glVertexArrayAttribFormat(
 				mId,
 				attributeIndex,
@@ -106,6 +107,7 @@ void GLVertexArray::SetVertexBuffer(IVertexBuffer* vertexBuffer) {
 
 		default: {
 			glEnableVertexArrayAttrib(mId, attributeIndex);
+			glVertexArrayAttribBinding(mId, attributeIndex, 0);
 			glVertexArrayAttribIFormat(
 				mId,
 				attributeIndex,
