@@ -3,11 +3,16 @@
 #include <array>
 #include <cstdint>
 
+#include "Platform.h"
+
 #include "Renderer/Camera2D.h"
 #include "Renderer/TextureHandle.h"
+#include "Renderer/IVertexArray.h"
 
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
+
+#include "Utils/Log.h"
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -29,14 +34,22 @@ namespace Renderer2D {
 	static QuadVertex* s_QuadVertexBufferData = nullptr;
 	static QuadVertex* s_QuadVertexBufferCurrent = nullptr;
 
+	static IVertexArray* s_QuadVertexArray = nullptr;
+
 	static uint32_t s_QuadIndexCount = 0;
 
 	static std::array<TextureHandle, MaxTextureSlots> s_TextureSlots {};
 	static uint32_t s_TextureSlotIndex = 0;
 
-	bool Init() {
+	bool Init(Platform& platform) {
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
+
+		s_QuadVertexArray = IVertexArray::Create(platform.graphicsApi);
+		if (!s_QuadVertexArray->Init()) {
+			LOG_ERROR("Failed to initialize quad vertex array");
+			return false;
+		}
 
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
@@ -51,6 +64,9 @@ namespace Renderer2D {
 		s_QuadVertexBufferData = nullptr;
 		s_QuadVertexBufferCurrent = nullptr;
 
+		delete s_QuadVertexArray;
+		s_QuadVertexArray = nullptr;
+
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
 
@@ -59,10 +75,14 @@ namespace Renderer2D {
 
 	void BeginScene(Camera2D& camera) {
 		camera.UpdateViewProj();
+
+		s_QuadVertexArray->Bind();
 	}
 
 	void EndScene() {
 		Flush();
+
+		s_QuadVertexArray->Unbind();
 	}
 
 	void Flush() {
@@ -88,6 +108,7 @@ namespace Renderer2D {
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
+			const float zIndex = 0.1f * layerIndex;
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
@@ -102,10 +123,10 @@ namespace Renderer2D {
 					const float h = tileMap->tileHeight;
 
 					const std::array<glm::vec3, 4> vertPositions = {
-						glm::vec3 { x, y, 0.1f * layerIndex },
-						glm::vec3 { x + w, y, 0.1f * layerIndex },
-						glm::vec3 { x + w, y - h, 0.1f * layerIndex },
-						glm::vec3 { x, y - h, 0.1f * layerIndex }
+						glm::vec3 { x, y, zIndex },
+						glm::vec3 { x + w, y, zIndex },
+						glm::vec3 { x + w, y - h, zIndex },
+						glm::vec3 { x, y - h, zIndex }
 					};
 
 					const auto texCoords = tileSet->GetTexCoords(tileId);
