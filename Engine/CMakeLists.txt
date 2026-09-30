@@ -4,6 +4,7 @@ add_library(Engine STATIC
     glad/src/gl.c
     src/Renderer/OpenGL/GLBuffer.cpp
     src/Renderer/OpenGL/GLRenderDevice.cpp
+    src/Renderer/OpenGL/GLShader.cpp
     src/Renderer/OpenGL/GLTexture.cpp
     src/Renderer/OpenGL/GLVertexArray.cpp
     src/Renderer/Buffer.cpp
