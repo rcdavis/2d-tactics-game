@@ -123,3 +123,7 @@ void GLVertexArray::SetIndexBuffer(const IIndexBuffer* indexBuffer) {
 	const GLIndexBuffer* const glIndexBuffer = static_cast<const GLIndexBuffer*>(indexBuffer);
 	glVertexArrayElementBuffer(mId, glIndexBuffer->GetId());
 }
+
+uint32_t GLVertexArray::GetIndexCount() const {
+	return mIndexBuffer ? mIndexBuffer->GetCount() : 0;
+}

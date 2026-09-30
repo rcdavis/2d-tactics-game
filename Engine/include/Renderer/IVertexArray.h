@@ -18,6 +18,8 @@ public:
 	virtual void SetVertexBuffer(const IVertexBuffer* vertexBuffer) = 0;
 	virtual void SetIndexBuffer(const IIndexBuffer* indexBuffer) = 0;
 
+	virtual uint32_t GetIndexCount() const = 0;
+
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	static IVertexArray* Create(GraphicsAPI api);
 };

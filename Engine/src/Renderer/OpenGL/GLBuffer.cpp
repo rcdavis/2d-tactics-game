@@ -33,11 +33,11 @@ void GLVertexBuffer::Destroy() {
 }
 
 void GLVertexBuffer::Bind() const {
-	// Bind implementation
+	// Vertex Array with DSA makes this not needed
 }
 
 void GLVertexBuffer::Unbind() const {
-	// Unbind implementation
+	// Vertex Array with DSA makes this not needed
 }
 
 const BufferLayout& GLVertexBuffer::GetLayout() const {
@@ -67,11 +67,11 @@ void GLIndexBuffer::Destroy() {
 }
 
 void GLIndexBuffer::Bind() const {
-	// Bind implementation
+	// Vertex Array with DSA makes this not needed
 }
 
 void GLIndexBuffer::Unbind() const {
-	// Unbind implementation
+	// Vertex Array with DSA makes this not needed
 }
 
 uint32_t GLIndexBuffer::GetCount() const {

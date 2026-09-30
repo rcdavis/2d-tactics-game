@@ -16,6 +16,8 @@ public:
 	virtual void SetVertexBuffer(const IVertexBuffer* vertexBuffer) override;
 	virtual void SetIndexBuffer(const IIndexBuffer* indexBuffer) override;
 
+	virtual uint32_t GetIndexCount() const override;
+
 private:
 	const IVertexBuffer* mVertexBuffer = nullptr;
 	const IIndexBuffer* mIndexBuffer = nullptr;
