@@ -62,7 +62,7 @@ add_custom_command(
         --output ${CMAKE_BINARY_DIR}/Game/res
         --generated ${CMAKE_BINARY_DIR}/generated
     COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
-    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} $<TARGET_FILE:AssetBuilder>
+    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} ${SHADER_FILES} $<TARGET_FILE:AssetBuilder>
     COMMENT "Building Assets..."
     VERBATIM
 )
