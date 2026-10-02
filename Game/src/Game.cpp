@@ -135,7 +135,7 @@ void Game::Run() {
 }
 
 void Game::Render() {
-	mPlatform.renderDevice->Clear();
+	Renderer2D::Clear();
 
 	Renderer2D::BeginScene(mCamera);
 
@@ -144,5 +144,5 @@ void Game::Render() {
 
 	Renderer2D::EndScene();
 
-	mPlatform.renderDevice->Present();
+	Renderer2D::Present();
 }
