@@ -26,6 +26,30 @@ endforeach()
 add_custom_target(CopyTextures ALL DEPENDS ${COPIED_TEXTURES})
 add_dependencies(Game CopyTextures)
 
+# Copy shaders to the build directory
+file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/res/shaders/*.vs"
+    "${CMAKE_SOURCE_DIR}/res/shaders/*.fs"
+)
+set(COPIED_SHADERS "")
+
+foreach(SHADER_FILE ${SHADER_FILES})
+    get_filename_component(SHADER_NAME ${SHADER_FILE} NAME)
+    set(DEST_SHADER_FILE ${CMAKE_BINARY_DIR}/Game/res/shaders/${SHADER_NAME})
+
+    add_custom_command(
+        OUTPUT ${DEST_SHADER_FILE}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_FILE} ${DEST_SHADER_FILE}
+        DEPENDS ${SHADER_FILE}
+        COMMENT "Copying shader: ${SHADER_NAME}"
+    )
+
+    list(APPEND COPIED_SHADERS ${DEST_SHADER_FILE})
+endforeach()
+
+add_custom_target(CopyShaders ALL DEPENDS ${COPIED_SHADERS})
+add_dependencies(Game CopyShaders)
+
 file(GLOB_RECURSE TILEMAP_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tsx"
     "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tmx"
@@ -38,7 +62,7 @@ add_custom_command(
         --output ${CMAKE_BINARY_DIR}/Game/res
         --generated ${CMAKE_BINARY_DIR}/generated
     COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
-    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} $<TARGET_FILE:AssetBuilder>
+    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} ${SHADER_FILES} $<TARGET_FILE:AssetBuilder>
     COMMENT "Building Assets..."
     VERBATIM
 )

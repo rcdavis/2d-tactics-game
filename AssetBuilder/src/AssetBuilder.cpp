@@ -13,6 +13,7 @@ void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std:
 	std::filesystem::create_directories(generatedDir);
 
 	BuildTextures(inputDir, generatedDir);
+	BuildShaders(inputDir, generatedDir);
 	BuildTileMaps(inputDir, outputDir, generatedDir);
 }
 
@@ -28,6 +29,23 @@ void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const st
 	}
 
 	CreateTextureIdHeader(inputDir, generatedDir);
+}
+
+void AssetBuilder::BuildShaders(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(inputDir / "shaders")) {
+		if (entry.is_regular_file()) {
+			const auto& path = entry.path();
+			if (path.extension() == ".vs") {
+				const auto fragmentPath = path.parent_path() / (path.stem().string() + ".fs");
+				if (std::filesystem::exists(fragmentPath)) {
+					mShaders.push_back({path, fragmentPath});
+					std::cout << "Found shader: " << path << " and " << fragmentPath << std::endl;
+				}
+			}
+		}
+	}
+
+	CreateShaderIdHeader(inputDir, generatedDir);
 }
 
 void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
@@ -202,11 +220,106 @@ void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, 
 	std::cout << "Generated texture ID header at " << headerPath << std::endl;
 }
 
+void AssetBuilder::CreateShaderIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
+	const auto headerPath = generatedDir / "ShaderIds.h";
+	std::ofstream file(headerPath);
+	if (!file) {
+		std::cerr << "Failed to create shader ID header file: " << headerPath << std::endl;
+		return;
+	}
+
+	const auto resParentDir = inputDir / "..";
+
+	file << "////////////////////////////////////////////////////////////////////////\n";
+	file << "// This file is auto-generated. Do not modify directly.\n";
+	file << "////////////////////////////////////////////////////////////////////////\n";
+	file << "#pragma once\n\n";
+	file << "#include <cstdint>\n";
+	file << "#include <array>\n\n";
+
+	file << "namespace Res::Shaders::Vertex {\n";
+
+	file << "\tenum class Id : uint8_t {\n";
+	for (const auto& shader : mShaders) {
+		file << "\t\t" << shader.first.stem().string() << ",\n";
+	}
+	file << "\t\tCount\n";
+	file << "\t};\n\n";
+
+	file << "\tinline constexpr const char* ToString(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& shader : mShaders) {
+		file << "\t\t\tcase Id::" << shader.first.stem().string() << ": return \"" << shader.first.stem().string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return \"Unknown\";\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr const char* GetPath(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& shader : mShaders) {
+		const auto relativePath = std::filesystem::relative(shader.first, resParentDir);
+		file << "\t\t\tcase Id::" << shader.first.stem().string() << ": return \"" << relativePath.generic_string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return nullptr;\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr std::array<const char*, " << std::size(mShaders) << "> Paths = {\n";
+	for (const auto& shader : mShaders) {
+		const auto relativePath = std::filesystem::relative(shader.first, resParentDir);
+		file << "\t\t\"" << relativePath.generic_string() << "\",\n";
+	}
+	file << "\t};\n";
+
+	file << "} // namespace Res::Shaders::Vertex\n\n";
+
+	file << "namespace Res::Shaders::Fragment {\n";
+
+	file << "\tenum class Id : uint8_t {\n";
+	for (const auto& shader : mShaders) {
+		file << "\t\t" << shader.second.stem().string() << ",\n";
+	}
+	file << "\t\tCount\n";
+	file << "\t};\n\n";
+
+	file << "\tinline constexpr const char* ToString(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& shader : mShaders) {
+		file << "\t\t\tcase Id::" << shader.second.stem().string() << ": return \"" << shader.second.stem().string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return \"Unknown\";\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr const char* GetPath(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& shader : mShaders) {
+		const auto relativePath = std::filesystem::relative(shader.second, resParentDir);
+		file << "\t\t\tcase Id::" << shader.second.stem().string() << ": return \"" << relativePath.generic_string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return nullptr;\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr std::array<const char*, " << std::size(mShaders) << "> Paths = {\n";
+	for (const auto& shader : mShaders) {
+		const auto relativePath = std::filesystem::relative(shader.second, resParentDir);
+		file << "\t\t\"" << relativePath.generic_string() << "\",\n";
+	}
+	file << "\t};\n";
+
+	file << "} // namespace Res::Shaders::Fragment\n";
+
+	std::cout << "Generated shader ID header at " << headerPath << std::endl;
+}
+
+
 void AssetBuilder::CreateTileIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
 	const auto headerPath = generatedDir / "TileIds.h";
 	std::ofstream file(headerPath);
 	if (!file) {
-		std::cerr << "Failed to create tile map ID header file: " << headerPath << std::endl;
+		std::cerr << "Failed to create tile ID header file: " << headerPath << std::endl;
 		return;
 	}
 
