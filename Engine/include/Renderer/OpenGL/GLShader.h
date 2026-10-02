@@ -15,6 +15,8 @@ public:
 	virtual void Bind() override;
 	virtual void Unbind() override;
 
+	virtual void SetMat4(const char* const name, const glm::mat4& value) override;
+
 private:
 	uint32_t mId = 0;
 };

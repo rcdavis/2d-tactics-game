@@ -37,6 +37,8 @@ bool GLRenderDevice::Init(IWindow* window) {
 		return false;
 	}
 
+	glViewport(0, 0, window->GetWidth(), window->GetHeight());
+
 #ifdef DEBUG
 	GLint glMajorVer = 0, glMinorVer = 0;
 	glGetIntegerv(GL_MAJOR_VERSION, &glMajorVer);
@@ -72,6 +74,14 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	if (!SDL_GL_SetSwapInterval(enable ? 1 : 0)) {
 		LOG_ERROR("Failed to set Vsync: {}", SDL_GetError());
 	}
+}
+
+void GLRenderDevice::SetClearColor(float r, float g, float b, float a) {
+	glClearColor(r, g, b, a);
+}
+
+void GLRenderDevice::Clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {

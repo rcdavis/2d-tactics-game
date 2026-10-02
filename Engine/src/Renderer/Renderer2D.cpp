@@ -8,6 +8,8 @@
 #include "Renderer/TextureHandle.h"
 #include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
+#include "Renderer/IShader.h"
+#include "Renderer/ShaderSystem.h"
 #include "Renderer/Buffer.h"
 
 #include "Tiles/TileSystem.h"
@@ -15,9 +17,7 @@
 
 #include "Utils/Log.h"
 
-#include "glm/ext/vector_float2.hpp"
-#include "glm/ext/vector_float3.hpp"
-#include "glm/ext/vector_float4.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 namespace Renderer2D {
 	struct QuadVertex {
@@ -41,12 +41,27 @@ namespace Renderer2D {
 	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
 	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
+	static IShader* s_QuadShader = nullptr;
+
 	static uint32_t s_QuadIndexCount = 0;
 
 	static std::array<TextureHandle, MaxTextureSlots> s_TextureSlots {};
 	static uint32_t s_TextureSlotIndex = 0;
 
-	bool Init(IRenderDevice* renderDevice) {
+	static constexpr std::array<glm::vec4, 4> quadVertexPositions = {
+		glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f },
+		glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f },
+		glm::vec4 { 1.0f, 1.0f, 0.0f, 1.0f },
+		glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }
+	};
+
+	bool Init(IRenderDevice* renderDevice, ShaderHandle quadShaderHandle) {
+		s_QuadShader = ShaderSystem::GetShader(quadShaderHandle);
+		if (!s_QuadShader) {
+			LOG_ERROR("Failed to get quad shader");
+			return false;
+		}
+
 		s_RenderDevice = renderDevice;
 
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
@@ -98,6 +113,7 @@ namespace Renderer2D {
 	}
 
 	void Shutdown() {
+		s_QuadShader = nullptr;
 		s_RenderDevice = nullptr;
 
 		delete[] s_QuadVertexBufferData;
@@ -123,6 +139,8 @@ namespace Renderer2D {
 		camera.UpdateViewProj();
 
 		s_QuadVertexArray->Bind();
+		s_QuadShader->Bind();
+		s_QuadShader->SetMat4("u_ViewProjection", camera.viewProj);
 	}
 
 	void EndScene() {
@@ -135,8 +153,30 @@ namespace Renderer2D {
 		if (s_QuadIndexCount == 0)
 			return;
 
+		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
+			s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
+
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
+		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
 		s_QuadIndexCount = 0;
+	}
+
+	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color) {
+		if (s_QuadIndexCount >= MaxIndices)
+			Flush();
+
+		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+			glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+		for (size_t i = 0; i < 4; ++i) {
+			s_QuadVertexBufferCurrent->position = transform * quadVertexPositions[i];
+			s_QuadVertexBufferCurrent->color = color;
+			s_QuadVertexBufferCurrent->texCoord = { 0.0f, 0.0f };
+			s_QuadVertexBufferCurrent->texIndex = 0;
+			++s_QuadVertexBufferCurrent;
+		}
+
+		s_QuadIndexCount += 6;
 	}
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {

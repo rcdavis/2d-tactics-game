@@ -44,6 +44,10 @@ const BufferLayout& GLVertexBuffer::GetLayout() const {
 	return mLayout;
 }
 
+void GLVertexBuffer::SetData(const void* data, uint32_t size) {
+	glNamedBufferSubData(mId, 0, size, data);
+}
+
 GLIndexBuffer::~GLIndexBuffer() {
 	Destroy();
 }

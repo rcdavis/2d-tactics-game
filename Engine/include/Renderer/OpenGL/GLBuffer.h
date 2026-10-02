@@ -15,6 +15,8 @@ public:
 
 	virtual const BufferLayout& GetLayout() const override;
 
+	virtual void SetData(const void* data, uint32_t size) override;
+
 	uint32_t GetId() const { return mId; }
 
 private:

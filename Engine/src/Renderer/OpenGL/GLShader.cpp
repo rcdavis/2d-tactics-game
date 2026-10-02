@@ -7,6 +7,8 @@
 #include <fstream>
 #include <vector>
 
+#include "glm/gtc/type_ptr.hpp"
+
 namespace {
 	uint32_t CompileShader(GLenum type, const char* const filepath) {
 		std::ifstream file(filepath, std::ios::ate);
@@ -106,4 +108,9 @@ void GLShader::Bind() {
 
 void GLShader::Unbind() {
 	glUseProgram(0);
+}
+
+void GLShader::SetMat4(const char* const name, const glm::mat4& value) {
+	const GLint location = glGetUniformLocation(mId, name);
+	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
