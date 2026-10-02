@@ -90,6 +90,8 @@ bool Game::Init() {
 		return false;
 	}
 
+	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -133,10 +135,12 @@ void Game::Run() {
 }
 
 void Game::Render() {
+	mPlatform.renderDevice->Clear();
+
 	Renderer2D::BeginScene(mCamera);
 
 	Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-	Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 1.0f, 1.0f });
+	Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
 
 	Renderer2D::EndScene();
 

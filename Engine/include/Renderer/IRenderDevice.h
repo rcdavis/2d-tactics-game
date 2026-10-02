@@ -17,6 +17,9 @@ public:
 
 	virtual void EnableVsync(bool enable) = 0;
 
+	virtual void SetClearColor(float r, float g, float b, float a) = 0;
+	virtual void Clear() = 0;
+
 	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) = 0;
 
 	virtual void Present() = 0;

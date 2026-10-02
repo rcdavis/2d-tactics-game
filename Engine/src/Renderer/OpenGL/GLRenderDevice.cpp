@@ -76,6 +76,14 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	}
 }
 
+void GLRenderDevice::SetClearColor(float r, float g, float b, float a) {
+	glClearColor(r, g, b, a);
+}
+
+void GLRenderDevice::Clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {
 	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
 	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, nullptr);
