@@ -135,6 +135,10 @@ namespace Renderer2D {
 		s_QuadIndexCount = 0;
 	}
 
+	void Clear() {
+		s_RenderDevice->Clear();
+	}
+
 	void BeginScene(Camera2D& camera) {
 		camera.UpdateViewProj();
 
@@ -159,6 +163,10 @@ namespace Renderer2D {
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
 		s_QuadIndexCount = 0;
+	}
+
+	void Present() {
+		s_RenderDevice->Present();
 	}
 
 	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color) {

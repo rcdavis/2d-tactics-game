@@ -15,10 +15,14 @@ namespace Renderer2D {
 
 	void Shutdown();
 
+	void Clear();
+
 	void BeginScene(Camera2D& camera);
 	void EndScene();
 
 	void Flush();
+
+	void Present();
 
 	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 
