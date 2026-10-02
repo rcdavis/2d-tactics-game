@@ -49,10 +49,10 @@ namespace Renderer2D {
 	static uint32_t s_TextureSlotIndex = 0;
 
 	static constexpr std::array<glm::vec4, 4> quadVertexPositions = {
-		glm::vec4 { -0.5f, -0.5f, 0.0f, 1.0f },
-		glm::vec4 { 0.5f, -0.5f, 0.0f, 1.0f },
-		glm::vec4 { 0.5f, 0.5f, 0.0f, 1.0f },
-		glm::vec4 { -0.5f, 0.5f, 0.0f, 1.0f }
+		glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f },
+		glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f },
+		glm::vec4 { 1.0f, 1.0f, 0.0f, 1.0f },
+		glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }
 	};
 
 	bool Init(IRenderDevice* renderDevice, ShaderHandle quadShaderHandle) {
