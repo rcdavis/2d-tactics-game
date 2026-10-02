@@ -8,6 +8,8 @@
 #include "Renderer/TextureHandle.h"
 #include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
+#include "Renderer/IShader.h"
+#include "Renderer/ShaderSystem.h"
 #include "Renderer/Buffer.h"
 
 #include "Tiles/TileSystem.h"
@@ -41,12 +43,20 @@ namespace Renderer2D {
 	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
 	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
+	static IShader* s_QuadShader = nullptr;
+
 	static uint32_t s_QuadIndexCount = 0;
 
 	static std::array<TextureHandle, MaxTextureSlots> s_TextureSlots {};
 	static uint32_t s_TextureSlotIndex = 0;
 
-	bool Init(IRenderDevice* renderDevice) {
+	bool Init(IRenderDevice* renderDevice, ShaderHandle quadShaderHandle) {
+		s_QuadShader = ShaderSystem::GetShader(quadShaderHandle);
+		if (!s_QuadShader) {
+			LOG_ERROR("Failed to get quad shader");
+			return false;
+		}
+
 		s_RenderDevice = renderDevice;
 
 		s_QuadVertexBufferData = new QuadVertex[MaxVertices];
@@ -98,6 +108,7 @@ namespace Renderer2D {
 	}
 
 	void Shutdown() {
+		s_QuadShader = nullptr;
 		s_RenderDevice = nullptr;
 
 		delete[] s_QuadVertexBufferData;
@@ -122,6 +133,7 @@ namespace Renderer2D {
 	void BeginScene(Camera2D& camera) {
 		camera.UpdateViewProj();
 
+		s_QuadShader->Bind();
 		s_QuadVertexArray->Bind();
 	}
 
