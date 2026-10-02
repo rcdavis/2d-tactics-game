@@ -4,6 +4,7 @@
 
 #include "PlatformEvent.h"
 #include "IWindow.h"
+#include "Renderer/IRenderDevice.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
@@ -133,6 +134,10 @@ void Game::Run() {
 
 void Game::Render() {
 	Renderer2D::BeginScene(mCamera);
-	// Add rendering code here
+
+	Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+
 	Renderer2D::EndScene();
+
+	mPlatform.renderDevice->Present();
 }

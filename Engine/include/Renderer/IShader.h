@@ -1,5 +1,7 @@
 #pragma once
 
+#include "glm/ext/matrix_float4x4.hpp"
+
 class IShader {
 public:
 	virtual ~IShader() = default;
@@ -9,4 +11,6 @@ public:
 
 	virtual void Bind() = 0;
 	virtual void Unbind() = 0;
+
+	virtual void SetMat4(const char* const name, const glm::mat4& value) = 0;
 };

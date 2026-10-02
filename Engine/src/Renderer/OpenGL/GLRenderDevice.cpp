@@ -37,6 +37,8 @@ bool GLRenderDevice::Init(IWindow* window) {
 		return false;
 	}
 
+	glViewport(0, 0, window->GetWidth(), window->GetHeight());
+
 #ifdef DEBUG
 	GLint glMajorVer = 0, glMinorVer = 0;
 	glGetIntegerv(GL_MAJOR_VERSION, &glMajorVer);

@@ -139,6 +139,8 @@ namespace Renderer2D {
 		camera.UpdateViewProj();
 
 		s_QuadVertexArray->Bind();
+		s_QuadShader->Bind();
+		s_QuadShader->SetMat4("u_ViewProjection", camera.viewProj);
 	}
 
 	void EndScene() {
@@ -152,15 +154,14 @@ namespace Renderer2D {
 			return;
 
 		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
-		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize);
+			s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
 
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
+		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
 		s_QuadIndexCount = 0;
 	}
 
 	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color) {
-		s_QuadShader->Bind();
-
 		if (s_QuadIndexCount >= MaxIndices)
 			Flush();
 
