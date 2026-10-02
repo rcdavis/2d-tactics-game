@@ -7,9 +7,10 @@
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
-#include "TextureIds.h"
 #include "Tiles/TileSystem.h"
 
+#include "TextureIds.h"
+#include "ShaderIds.h"
 #include "TileIds.h"
 
 Game::~Game() {
@@ -70,6 +71,13 @@ bool Game::Init() {
 			LOG_ERROR("Failed to load tile map: {}", path);
 			return false;
 		}
+	}
+
+	constexpr const char* vs = Res::Shaders::Vertex::GetPath(Res::Shaders::Vertex::Id::ColoredQuad);
+	constexpr const char* fs = Res::Shaders::Fragment::GetPath(Res::Shaders::Fragment::Id::ColoredQuad);
+	if (ShaderSystem::Load(vs, fs) == InvalidShaderHandle) {
+		LOG_ERROR("Failed to load shaders: {} {}", vs, fs);
+		return false;
 	}
 
 	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);

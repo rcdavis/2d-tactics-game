@@ -4,4 +4,4 @@
 
 using ShaderHandle = uint8_t;
 
-constexpr ShaderHandle InvalidShaderHandle = 0;
+constexpr ShaderHandle InvalidShaderHandle = static_cast<ShaderHandle>(-1);
