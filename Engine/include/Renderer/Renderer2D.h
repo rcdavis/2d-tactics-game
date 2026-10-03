@@ -2,6 +2,7 @@
 
 #include "ShaderHandle.h"
 #include "Tiles/TileHandle.h"
+#include "Renderer/ClearFlags.h"
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -15,7 +16,7 @@ namespace Renderer2D {
 
 	void Shutdown();
 
-	void Clear();
+	void Clear(ClearFlags flags);
 
 	void BeginScene(Camera2D& camera);
 	void EndScene();

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GraphicsAPI.h"
+#include "Renderer/GraphicsAPI.h"
+#include "Renderer/ClearFlags.h"
 
 class IWindow;
 class ITexture;
@@ -20,7 +21,7 @@ public:
 	virtual void EnableDepthTest(bool enable) = 0;
 
 	virtual void SetClearColor(float r, float g, float b, float a) = 0;
-	virtual void Clear() = 0;
+	virtual void Clear(ClearFlags flags) = 0;
 
 	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) = 0;
 

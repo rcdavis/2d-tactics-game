@@ -135,8 +135,8 @@ namespace Renderer2D {
 		s_QuadIndexCount = 0;
 	}
 
-	void Clear() {
-		s_RenderDevice->Clear();
+	void Clear(ClearFlags flags) {
+		s_RenderDevice->Clear(flags);
 	}
 
 	void BeginScene(Camera2D& camera) {

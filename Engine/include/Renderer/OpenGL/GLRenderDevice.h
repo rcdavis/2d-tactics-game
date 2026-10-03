@@ -15,7 +15,7 @@ public:
 	virtual void EnableDepthTest(bool enable) override;
 
 	virtual void SetClearColor(float r, float g, float b, float a) override;
-	virtual void Clear() override;
+	virtual void Clear(ClearFlags flags) override;
 
 	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) override;
 

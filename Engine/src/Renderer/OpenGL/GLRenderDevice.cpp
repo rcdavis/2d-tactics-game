@@ -12,6 +12,16 @@
 
 #include "glad/gl.h"
 
+namespace {
+	GLenum ToGLClearFlags(ClearFlags flags) {
+		GLenum result = 0;
+		if (HasFlag(flags, ClearFlags::Color)) result |= GL_COLOR_BUFFER_BIT;
+		if (HasFlag(flags, ClearFlags::Depth)) result |= GL_DEPTH_BUFFER_BIT;
+		if (HasFlag(flags, ClearFlags::Stencil)) result |= GL_STENCIL_BUFFER_BIT;
+		return result;
+	}
+}
+
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, const GLchar* message, const void* userParam);
 
@@ -88,8 +98,8 @@ void GLRenderDevice::SetClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b, a);
 }
 
-void GLRenderDevice::Clear() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void GLRenderDevice::Clear(ClearFlags flags) {
+	glClear(ToGLClearFlags(flags));
 }
 
 void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {
