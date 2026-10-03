@@ -16,6 +16,8 @@ public:
 	virtual void Shutdown() = 0;
 
 	virtual void EnableVsync(bool enable) = 0;
+	virtual void EnableBlending(bool enable) = 0;
+	virtual void EnableDepthTest(bool enable) = 0;
 
 	virtual void SetClearColor(float r, float g, float b, float a) = 0;
 	virtual void Clear() = 0;

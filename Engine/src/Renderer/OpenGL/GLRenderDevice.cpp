@@ -76,6 +76,14 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	}
 }
 
+void GLRenderDevice::EnableBlending(bool enable) {
+	enable ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+}
+
+void GLRenderDevice::EnableDepthTest(bool enable) {
+	enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+}
+
 void GLRenderDevice::SetClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b, a);
 }

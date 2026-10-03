@@ -11,6 +11,8 @@ public:
 	virtual void Shutdown() override;
 
 	virtual void EnableVsync(bool enable) override;
+	virtual void EnableBlending(bool enable) override;
+	virtual void EnableDepthTest(bool enable) override;
 
 	virtual void SetClearColor(float r, float g, float b, float a) override;
 	virtual void Clear() override;
