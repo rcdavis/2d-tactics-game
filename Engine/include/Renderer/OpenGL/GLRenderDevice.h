@@ -18,7 +18,10 @@ public:
 	virtual void SetClearColor(float r, float g, float b, float a) override;
 	virtual void Clear(ClearFlags flags) override;
 
-	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) override;
+	virtual void DrawIndexed(
+		IVertexArray* vertexArray,
+		uint32_t indexCount = 0,
+		DrawIndexSize size = DrawIndexSize::UShort) override;
 
 	virtual void Present() override;
 
