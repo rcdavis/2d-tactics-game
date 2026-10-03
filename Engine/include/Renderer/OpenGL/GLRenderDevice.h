@@ -14,6 +14,7 @@ public:
 	virtual void EnableBlending(bool enable) override;
 	virtual void EnableDepthTest(bool enable) override;
 
+	virtual void SetViewport(int x, int y, int width, int height) override;
 	virtual void SetClearColor(float r, float g, float b, float a) override;
 	virtual void Clear(ClearFlags flags) override;
 

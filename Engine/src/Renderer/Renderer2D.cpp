@@ -158,7 +158,7 @@ namespace Renderer2D {
 			return;
 
 		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
-			s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
+		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
 
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
