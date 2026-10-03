@@ -1,6 +1,8 @@
 #pragma once
 
-#include "GraphicsAPI.h"
+#include "Renderer/GraphicsAPI.h"
+#include "Renderer/ClearFlags.h"
+#include "Renderer/DrawIndexSize.h"
 
 class IWindow;
 class ITexture;
@@ -16,11 +18,17 @@ public:
 	virtual void Shutdown() = 0;
 
 	virtual void EnableVsync(bool enable) = 0;
+	virtual void EnableBlending(bool enable) = 0;
+	virtual void EnableDepthTest(bool enable) = 0;
 
+	virtual void SetViewport(int x, int y, int width, int height) = 0;
 	virtual void SetClearColor(float r, float g, float b, float a) = 0;
-	virtual void Clear() = 0;
+	virtual void Clear(ClearFlags flags) = 0;
 
-	virtual void DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount = 0) = 0;
+	virtual void DrawIndexed(
+		IVertexArray* vertexArray,
+		uint32_t indexCount = 0,
+		DrawIndexSize size = DrawIndexSize::UShort) = 0;
 
 	virtual void Present() = 0;
 

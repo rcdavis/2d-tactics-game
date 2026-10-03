@@ -135,7 +135,7 @@ void Game::Run() {
 }
 
 void Game::Render() {
-	Renderer2D::Clear();
+	Renderer2D::Clear(ClearFlags::Color | ClearFlags::Depth);
 
 	Renderer2D::BeginScene(mCamera);
 

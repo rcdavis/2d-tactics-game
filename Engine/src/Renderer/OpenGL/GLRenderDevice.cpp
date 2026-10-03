@@ -12,6 +12,20 @@
 
 #include "glad/gl.h"
 
+namespace {
+	GLenum ToGLClearFlags(ClearFlags flags) {
+		GLenum result = 0;
+		if (HasFlag(flags, ClearFlags::Color)) result |= GL_COLOR_BUFFER_BIT;
+		if (HasFlag(flags, ClearFlags::Depth)) result |= GL_DEPTH_BUFFER_BIT;
+		if (HasFlag(flags, ClearFlags::Stencil)) result |= GL_STENCIL_BUFFER_BIT;
+		return result;
+	}
+
+	GLenum ToGLIndexSize(DrawIndexSize size) {
+		return size == DrawIndexSize::UShort ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+	}
+}
+
 static void GLAPIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, const GLchar* message, const void* userParam);
 
@@ -76,17 +90,29 @@ void GLRenderDevice::EnableVsync(bool enable) {
 	}
 }
 
+void GLRenderDevice::EnableBlending(bool enable) {
+	enable ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+}
+
+void GLRenderDevice::EnableDepthTest(bool enable) {
+	enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+}
+
+void GLRenderDevice::SetViewport(int x, int y, int width, int height) {
+	glViewport(x, y, width, height);
+}
+
 void GLRenderDevice::SetClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b, a);
 }
 
-void GLRenderDevice::Clear() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void GLRenderDevice::Clear(ClearFlags flags) {
+	glClear(ToGLClearFlags(flags));
 }
 
-void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount) {
+void GLRenderDevice::DrawIndexed(IVertexArray* vertexArray, uint32_t indexCount, DrawIndexSize size) {
 	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
-	glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_SHORT, nullptr);
+	glDrawElements(GL_TRIANGLES, count, ToGLIndexSize(size), nullptr);
 }
 
 void GLRenderDevice::Present() {
