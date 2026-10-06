@@ -29,7 +29,7 @@ namespace Renderer2D {
 		int32_t texIndex = 0;
 	};
 
-	static constexpr uint32_t MaxQuads = 1'000;
+	static constexpr uint32_t MaxQuads = 10'000;
 	static constexpr uint32_t MaxVertices = MaxQuads * 4;
 	static constexpr uint32_t MaxIndices = MaxQuads * 6;
 	static constexpr uint32_t MaxTextureSlots = 32;
@@ -171,8 +171,8 @@ namespace Renderer2D {
 		if (s_QuadIndexCount == 0)
 			return;
 
-		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
-		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
+		const uint32_t vertCount = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
+		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, vertCount * sizeof(QuadVertex));
 
 		s_WhiteTexture->Bind(0);
 		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
@@ -210,23 +210,26 @@ namespace Renderer2D {
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {
 		const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 		const TileSet* const tileSet = TileSystem::GetTileSet(tileMap->tileSetHandle);
+		ITexture* const texture = TextureSystem::GetTexture(tileSet->textureHandle);
+		s_TextureSlots[s_TextureSlotIndex] = tileSet->textureHandle;
+		++s_TextureSlotIndex;
 
 		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileMap->tileHeight;
 		if (startRow < 0)
 			startRow = 0;
 		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileMap->tileHeight + 1;
 		if (endRow > tileMap->tileRowCount)
-			endRow = tileMap->tileRowCount;
+			endRow = tileMap->tileRowCount - 1;
 		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileMap->tileWidth;
 		if (startCol < 0)
 			startCol = 0;
 		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileMap->tileWidth + 1;
 		if (endCol > tileMap->tileColumnCount)
-			endCol = tileMap->tileColumnCount;
+			endCol = tileMap->tileColumnCount - 1;
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
-			const float zIndex = 0.1f * layerIndex;
+			const float zIndex = 0.25f * layerIndex;
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
@@ -254,7 +257,7 @@ namespace Renderer2D {
 						s_QuadVertexBufferCurrent->position = vertPositions[i];
 						s_QuadVertexBufferCurrent->color = {1.0f, 1.0f, 1.0f, 1.0f};
 						s_QuadVertexBufferCurrent->texCoord = texCoords[i];
-						s_QuadVertexBufferCurrent->texIndex = 0;
+						s_QuadVertexBufferCurrent->texIndex = s_TextureSlotIndex;
 						++s_QuadVertexBufferCurrent;
 					}
 
