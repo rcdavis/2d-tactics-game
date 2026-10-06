@@ -209,7 +209,12 @@ namespace Renderer2D {
 		s_QuadIndexCount += 6;
 	}
 
-	void DrawTexturedQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, TextureHandle textureHandle) {
+	void DrawTexturedQuad(
+		const glm::vec3& position,
+		const glm::vec2& size,
+		const glm::vec4& color,
+		TextureHandle textureHandle
+	) {
 		if (s_QuadIndexCount >= MaxIndices)
 			Flush();
 

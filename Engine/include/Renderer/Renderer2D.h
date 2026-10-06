@@ -28,7 +28,11 @@ namespace Renderer2D {
 
 	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 
-	void DrawTexturedQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, TextureHandle textureHandle);
+	void DrawTexturedQuad(
+		const glm::vec3& position,
+		const glm::vec2& size,
+		const glm::vec4& color,
+		TextureHandle textureHandle);
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle);
 }
