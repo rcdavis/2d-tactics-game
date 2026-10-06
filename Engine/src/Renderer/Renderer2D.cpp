@@ -199,7 +199,7 @@ namespace Renderer2D {
 		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
 			glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		for (size_t i = 0; i < 4; ++i) {
+		for (uint8_t i = 0; i < 4; ++i) {
 			s_QuadVertexBufferCurrent->position = transform * quadVertexPositions[i];
 			s_QuadVertexBufferCurrent->color = color;
 			s_QuadVertexBufferCurrent->texCoord = { 0.0f, 0.0f };
@@ -248,9 +248,11 @@ namespace Renderer2D {
 		if (endCol > tileColumnCount)
 			endCol = tileColumnCount;
 
+		constexpr glm::vec4 color { 1.0f, 1.0f, 1.0f, 1.0f };
+
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
-			const float zIndex = 0.2f * layerIndex;
+			const float zIndex = 0.1f * layerIndex;
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
@@ -277,10 +279,9 @@ namespace Renderer2D {
 
 					const auto texCoords = tileSet->GetTexCoords(tileId - 1);
 
-					// Add the quad vertices to the buffer
-					for (size_t i = 0; i < 4; ++i) {
+					for (uint8_t i = 0; i < 4; ++i) {
 						s_QuadVertexBufferCurrent->position = vertPositions[i];
-						s_QuadVertexBufferCurrent->color = {1.0f, 1.0f, 1.0f, 1.0f};
+						s_QuadVertexBufferCurrent->color = color;
 						s_QuadVertexBufferCurrent->texCoord = texCoords[i];
 						s_QuadVertexBufferCurrent->texIndex = texIndex;
 						++s_QuadVertexBufferCurrent;
