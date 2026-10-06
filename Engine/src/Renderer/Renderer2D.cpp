@@ -1,6 +1,7 @@
 #include "Renderer/Renderer2D.h"
 
 #include <array>
+#include <cmath>
 #include <vector>
 #include <cstdint>
 
@@ -229,26 +230,31 @@ namespace Renderer2D {
 			texIndex = (int32_t)s_TextureSlotIndex;
 		}
 
-		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileMap->tileHeight;
+		const uint16_t tileWidth = tileMap->tileWidth;
+		const uint16_t tileHeight = tileMap->tileHeight;
+		const uint16_t tileRowCount = tileMap->tileRowCount;
+		const uint16_t tileColumnCount = tileMap->tileColumnCount;
+
+		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileHeight;
 		if (startRow < 0)
 			startRow = 0;
-		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileMap->tileHeight + 1;
-		if (endRow > tileMap->tileRowCount)
-			endRow = tileMap->tileRowCount;
-		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileMap->tileWidth;
+		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileHeight + 1;
+		if (endRow > tileRowCount)
+			endRow = tileRowCount;
+		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileWidth;
 		if (startCol < 0)
 			startCol = 0;
-		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileMap->tileWidth + 1;
-		if (endCol > tileMap->tileColumnCount)
-			endCol = tileMap->tileColumnCount;
+		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileWidth + 1;
+		if (endCol > tileColumnCount)
+			endCol = tileColumnCount;
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
-			const float zIndex = 0.25f * layerIndex;
+			const float zIndex = 0.2f * layerIndex;
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
-					const uint16_t tileId = layer.tiles[row * tileMap->tileColumnCount + col];
+					const uint16_t tileId = layer.tiles[row * tileColumnCount + col];
 					if (tileId == 0)
 						continue;
 
@@ -259,20 +265,17 @@ namespace Renderer2D {
 						texIndex = 1;
 					}
 
-					// Calculate the position and texture coordinates for the tile
-					const float x = col * tileMap->tileWidth;
-					const float y = row * tileMap->tileHeight;
-					const float w = tileMap->tileWidth;
-					const float h = tileMap->tileHeight;
+					const uint16_t xPos = col * tileWidth;
+					const uint16_t yPos = row * tileHeight;
 
 					const std::array<glm::vec3, 4> vertPositions = {
-						glm::vec3 { x, y, zIndex },
-						glm::vec3 { x + w, y, zIndex },
-						glm::vec3 { x + w, y - h, zIndex },
-						glm::vec3 { x, y - h, zIndex }
+						glm::vec3 { xPos, yPos, zIndex },
+						glm::vec3 { xPos + tileWidth, yPos, zIndex },
+						glm::vec3 { xPos + tileWidth, yPos + tileHeight, zIndex },
+						glm::vec3 { xPos, yPos + tileHeight, zIndex }
 					};
 
-					const auto texCoords = tileSet->GetTexCoords(tileId);
+					const auto texCoords = tileSet->GetTexCoords(tileId - 1);
 
 					// Add the quad vertices to the buffer
 					for (size_t i = 0; i < 4; ++i) {

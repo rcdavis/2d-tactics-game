@@ -86,7 +86,7 @@ bool Game::Init() {
 
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 
-	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);
+	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
 	if (!Renderer2D::Init(mPlatform.renderDevice, quadShaderHandle)) {
 		LOG_ERROR("Failed to initialize Renderer2D");

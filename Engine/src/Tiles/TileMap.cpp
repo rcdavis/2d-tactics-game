@@ -81,8 +81,8 @@ std::array<glm::vec2, 4> TileSet::GetTexCoords(uint16_t tileId) const {
 	const float textureWidth = (float)texture->GetWidth();
 	const float textureHeight = (float)texture->GetHeight();
 
-	const float texCoordU = (((tileId - 1) % columnCount) * tileWidth) / textureWidth;
-	const float texCoordV = (((tileId - 1) / columnCount) * tileHeight) / textureHeight;
+	const float texCoordU = ((tileId % columnCount) * tileWidth) / textureWidth;
+	const float texCoordV = ((tileId / columnCount) * tileHeight) / textureHeight;
 
 	const std::array<glm::vec2, 4> texCoords = {
 		glm::vec2 { texCoordU, 1.0f - texCoordV },
