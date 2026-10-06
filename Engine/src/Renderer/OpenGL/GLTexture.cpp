@@ -59,6 +59,27 @@ bool GLTexture::Init(const char* const filepath) {
     return true;
 }
 
+bool GLTexture::Init(const void* const data, uint16_t width, uint16_t height) {
+	mWidth = width;
+	mHeight = height;
+
+	GLenum internalFormat = GL_RGBA8;
+	GLenum dataFormat = GL_RGBA;
+
+	glCreateTextures(GL_TEXTURE_2D, 1, &mId);
+	glTextureStorage2D(mId, 1, internalFormat, mWidth, mHeight);
+	glTextureSubImage2D(mId, 0, 0, 0, mWidth, mHeight, dataFormat, GL_UNSIGNED_BYTE, data);
+	glGenerateTextureMipmap(mId);
+
+	glTextureParameteri(mId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTextureParameteri(mId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTextureParameteri(mId, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(mId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	return true;
+}
+
 void GLTexture::Destroy() {
     if (mId != 0) {
         glDeleteTextures(1, &mId);
