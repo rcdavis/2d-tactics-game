@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "Renderer/Camera2D.h"
-#include "Renderer/TextureHandle.h"
 #include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
 #include "Renderer/IShader.h"
@@ -204,6 +203,49 @@ namespace Renderer2D {
 			s_QuadVertexBufferCurrent->color = color;
 			s_QuadVertexBufferCurrent->texCoord = { 0.0f, 0.0f };
 			s_QuadVertexBufferCurrent->texIndex = 0;
+			++s_QuadVertexBufferCurrent;
+		}
+
+		s_QuadIndexCount += 6;
+	}
+
+	void DrawTexturedQuad(
+		const glm::vec3& position,
+		const glm::vec2& size,
+		const glm::vec4& color,
+		TextureHandle textureHandle
+	) {
+		if (s_QuadIndexCount >= MaxIndices)
+			Flush();
+
+		int32_t texIndex = 0;
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			if (s_TextureSlots[i] == textureHandle) {
+				texIndex = (int32_t)i + 1;
+				break;
+			}
+		}
+		if (texIndex == 0) {
+			if (s_TextureSlotIndex >= MaxTextureSlots - 1)
+				Flush();
+			s_TextureSlots[s_TextureSlotIndex] = textureHandle;
+			++s_TextureSlotIndex;
+			texIndex = (int32_t)s_TextureSlotIndex;
+		}
+
+		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+			glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+		constexpr std::array<glm::vec2, 4> texCoords = {
+			glm::vec2 { 0.0f, 0.0f }, glm::vec2 { 1.0f, 0.0f },
+			glm::vec2 { 1.0f, 1.0f }, glm::vec2 { 0.0f, 1.0f }
+		};
+
+		for (uint8_t i = 0; i < 4; ++i) {
+			s_QuadVertexBufferCurrent->position = transform * quadVertexPositions[i];
+			s_QuadVertexBufferCurrent->color = color;
+			s_QuadVertexBufferCurrent->texCoord = texCoords[i];
+			s_QuadVertexBufferCurrent->texIndex = texIndex;
 			++s_QuadVertexBufferCurrent;
 		}
 
