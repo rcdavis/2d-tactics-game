@@ -3,8 +3,6 @@
 #include "Platform.h"
 
 #include "Renderer/Camera2D.h"
-#include "Renderer/TextureHandle.h"
-#include "Tiles/TileHandle.h"
 
 class Game {
 public:
@@ -24,12 +22,6 @@ private:
 private:
 	Platform mPlatform;
 	Camera2D mCamera;
-
-	TileSetHandle mTileSetHandle = InvalidTileSetHandle;
-	TileMapHandle mTileMapHandle = InvalidTileMapHandle;
-
-	TextureHandle mTextureHandle = InvalidTextureHandle;
-	TextureHandle mSelectionRing = InvalidTextureHandle;
 
 	bool mIsRunning = false;
 };
