@@ -130,6 +130,7 @@ void Game::Run() {
 			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
 				// TODO: Handle window pixel size change
 				LOG_INFO("Window pixel size changed: {}x{}", event.windowSize.width, event.windowSize.height);
+				OnResize(event.windowSize.width, event.windowSize.height);
 			} else if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
 				break;
@@ -152,4 +153,8 @@ void Game::Render() {
 	Renderer2D::EndScene();
 
 	Renderer2D::Present();
+}
+
+void Game::OnResize(uint16_t width, uint16_t height) {
+	mPlatform.renderDevice->SetViewport(0, 0, width, height);
 }
