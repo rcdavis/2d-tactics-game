@@ -29,7 +29,7 @@ namespace Renderer2D {
 		int32_t texIndex = 0;
 	};
 
-	static constexpr uint32_t MaxQuads = 10'000;
+	static constexpr uint32_t MaxQuads = 3'000;
 	static constexpr uint32_t MaxVertices = MaxQuads * 4;
 	static constexpr uint32_t MaxIndices = MaxQuads * 6;
 	static constexpr uint32_t MaxTextureSlots = 32;
@@ -159,6 +159,8 @@ namespace Renderer2D {
 		s_QuadVertexArray->Bind();
 		s_QuadShader->Bind();
 		s_QuadShader->SetMat4("u_ViewProjection", camera.viewProj);
+
+		s_TextureSlotIndex = 0;
 	}
 
 	void EndScene() {
@@ -210,22 +212,35 @@ namespace Renderer2D {
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {
 		const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 		const TileSet* const tileSet = TileSystem::GetTileSet(tileMap->tileSetHandle);
-		ITexture* const texture = TextureSystem::GetTexture(tileSet->textureHandle);
-		s_TextureSlots[s_TextureSlotIndex] = tileSet->textureHandle;
-		++s_TextureSlotIndex;
+
+		// Reuse the slot if this texture is already bound; slot 0 is the white texture
+		int32_t texIndex = 0;
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			if (s_TextureSlots[i] == tileSet->textureHandle) {
+				texIndex = (int32_t)i + 1;
+				break;
+			}
+		}
+		if (texIndex == 0) {
+			if (s_TextureSlotIndex >= MaxTextureSlots - 1)
+				Flush();
+			s_TextureSlots[s_TextureSlotIndex] = tileSet->textureHandle;
+			++s_TextureSlotIndex;
+			texIndex = (int32_t)s_TextureSlotIndex;
+		}
 
 		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileMap->tileHeight;
 		if (startRow < 0)
 			startRow = 0;
 		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileMap->tileHeight + 1;
 		if (endRow > tileMap->tileRowCount)
-			endRow = tileMap->tileRowCount - 1;
+			endRow = tileMap->tileRowCount;
 		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileMap->tileWidth;
 		if (startCol < 0)
 			startCol = 0;
 		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileMap->tileWidth + 1;
 		if (endCol > tileMap->tileColumnCount)
-			endCol = tileMap->tileColumnCount - 1;
+			endCol = tileMap->tileColumnCount;
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
@@ -236,6 +251,13 @@ namespace Renderer2D {
 					const uint16_t tileId = layer.tiles[row * tileMap->tileColumnCount + col];
 					if (tileId == 0)
 						continue;
+
+					if (s_QuadIndexCount >= MaxIndices) {
+						Flush();
+						s_TextureSlots[0] = tileSet->textureHandle;
+						s_TextureSlotIndex = 1;
+						texIndex = 1;
+					}
 
 					// Calculate the position and texture coordinates for the tile
 					const float x = col * tileMap->tileWidth;
@@ -257,7 +279,7 @@ namespace Renderer2D {
 						s_QuadVertexBufferCurrent->position = vertPositions[i];
 						s_QuadVertexBufferCurrent->color = {1.0f, 1.0f, 1.0f, 1.0f};
 						s_QuadVertexBufferCurrent->texCoord = texCoords[i];
-						s_QuadVertexBufferCurrent->texIndex = s_TextureSlotIndex;
+						s_QuadVertexBufferCurrent->texIndex = texIndex;
 						++s_QuadVertexBufferCurrent;
 					}
 
