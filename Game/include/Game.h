@@ -29,6 +29,7 @@ private:
 	TileMapHandle mTileMapHandle = InvalidTileMapHandle;
 
 	TextureHandle mTextureHandle = InvalidTextureHandle;
+	TextureHandle mSelectionRing = InvalidTextureHandle;
 
 	bool mIsRunning = false;
 };

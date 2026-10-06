@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ShaderHandle.h"
+#include "Renderer/ShaderHandle.h"
+#include "Renderer/TextureHandle.h"
 #include "Tiles/TileHandle.h"
 #include "Renderer/ClearFlags.h"
 
@@ -26,6 +27,8 @@ namespace Renderer2D {
 	void Present();
 
 	void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
+
+	void DrawTexturedQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, TextureHandle textureHandle);
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle);
 }

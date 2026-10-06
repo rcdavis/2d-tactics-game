@@ -54,6 +54,7 @@ bool Game::Init() {
 	mTileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 	mTileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	mTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet);
+	mSelectionRing = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 
 	if (!TileSystem::Init()) {
 		LOG_ERROR("Failed to initialize tile system");
@@ -116,6 +117,7 @@ void Game::Shutdown() {
 	mTileSetHandle = InvalidTileSetHandle;
 	mTileMapHandle = InvalidTileMapHandle;
 	mTextureHandle = InvalidTextureHandle;
+	mSelectionRing = InvalidTextureHandle;
 	mIsRunning = false;
 }
 
@@ -147,6 +149,11 @@ void Game::Render() {
 
 	//Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.7f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
 	//Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.7f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
+	Renderer2D::DrawTexturedQuad(
+		{ 0.0f, 0.0f, 0.7f },
+		{16.0f, 16.0f},
+		{1.0f, 0.0f, 1.0f, 1.0f},
+		mSelectionRing);
 	Renderer2D::DrawTileMap(mCamera, mTileMapHandle);
 
 	Renderer2D::EndScene();
