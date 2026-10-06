@@ -94,6 +94,7 @@ bool Game::Init() {
 	}
 
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+	mPlatform.renderDevice->EnableDepthTest(true);
 
 	mIsRunning = true;
 
@@ -144,8 +145,8 @@ void Game::Render() {
 
 	Renderer2D::BeginScene(mCamera);
 
-	//Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-	//Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
+	//Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.7f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+	//Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.7f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
 	Renderer2D::DrawTileMap(mCamera, mTileMapHandle);
 
 	Renderer2D::EndScene();
