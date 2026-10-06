@@ -4,6 +4,7 @@
 
 struct PlatformEvent {
 	enum class Type : uint8_t {
+		WindowPixelSizeChanged,
 		Quit,
 		Count
 	};

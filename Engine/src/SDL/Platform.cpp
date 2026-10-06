@@ -56,6 +56,9 @@ bool Platform::PollEvent(PlatformEvent& event) {
 	SDL_Event sdlEvent {};
 	if (SDL_PollEvent(&sdlEvent)) {
 		switch (sdlEvent.type) {
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+			event.type = PlatformEvent::Type::WindowPixelSizeChanged;
+			break;
 		case SDL_EVENT_QUIT:
 			event.type = PlatformEvent::Type::Quit;
 			break;
