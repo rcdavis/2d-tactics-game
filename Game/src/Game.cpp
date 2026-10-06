@@ -129,6 +129,7 @@ void Game::Run() {
 		while (mPlatform.PollEvent(event)) {
 			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
 				// TODO: Handle window pixel size change
+				LOG_INFO("Window pixel size changed: {}x{}", event.windowSize.width, event.windowSize.height);
 			} else if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
 				break;

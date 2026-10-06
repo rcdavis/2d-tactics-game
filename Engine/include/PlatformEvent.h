@@ -10,4 +10,11 @@ struct PlatformEvent {
 	};
 
 	Type type = Type::Count;
+
+	union {
+		struct {
+			uint16_t width;
+			uint16_t height;
+		} windowSize;
+	};
 };
