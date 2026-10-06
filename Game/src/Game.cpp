@@ -127,7 +127,9 @@ void Game::Run() {
 	PlatformEvent event {};
 	while (mIsRunning) {
 		while (mPlatform.PollEvent(event)) {
-			if (event.type == PlatformEvent::Type::Quit) {
+			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
+				OnResize(event.windowSize.width, event.windowSize.height);
+			} else if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
 				break;
 			}
@@ -149,4 +151,8 @@ void Game::Render() {
 	Renderer2D::EndScene();
 
 	Renderer2D::Present();
+}
+
+void Game::OnResize(uint16_t width, uint16_t height) {
+	mPlatform.renderDevice->SetViewport(0, 0, width, height);
 }

@@ -19,6 +19,8 @@ private:
 
 	void Render();
 
+	void OnResize(uint16_t width, uint16_t height);
+
 private:
 	Platform mPlatform;
 	Camera2D mCamera;
