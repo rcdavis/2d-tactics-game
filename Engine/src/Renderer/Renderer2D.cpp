@@ -43,6 +43,8 @@ namespace Renderer2D {
 	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
 	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
 
+	static ITexture* s_WhiteTexture = nullptr;
+
 	static IShader* s_QuadShader = nullptr;
 
 	static uint32_t s_QuadIndexCount = 0;
@@ -109,12 +111,22 @@ namespace Renderer2D {
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
 
+		constexpr uint32_t whiteTextureData = 0xFFFFFFFF; // RGBA8 white pixel
+		s_WhiteTexture = s_RenderDevice->CreateTexture();
+		if (!s_WhiteTexture->Init(&whiteTextureData, 1, 1)) {
+			LOG_ERROR("Failed to initialize white texture");
+			return false;
+		}
+
 		s_QuadIndexCount = 0;
 
 		return true;
 	}
 
 	void Shutdown() {
+		delete s_WhiteTexture;
+		s_WhiteTexture = nullptr;
+
 		s_QuadShader = nullptr;
 		s_RenderDevice = nullptr;
 
@@ -162,9 +174,10 @@ namespace Renderer2D {
 		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
 		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
 
+		s_WhiteTexture->Bind(0);
 		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
 			ITexture* const texture = TextureSystem::GetTexture(s_TextureSlots[i]);
-			texture->Bind(i);
+			texture->Bind(i + 1);
 		}
 
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
