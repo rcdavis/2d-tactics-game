@@ -5,6 +5,8 @@
 struct PlatformEvent {
 	enum class Type : uint8_t {
 		WindowPixelSizeChanged,
+		KeyDown,
+		KeyUp,
 		Quit,
 		Count
 	};
@@ -16,5 +18,9 @@ struct PlatformEvent {
 			uint16_t width;
 			uint16_t height;
 		} windowSize;
+
+		struct {
+			uint16_t scancode;
+		} key;
 	};
 };
