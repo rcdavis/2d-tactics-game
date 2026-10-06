@@ -84,8 +84,7 @@ bool Game::Init() {
 		}
 	}
 
-	constexpr ShaderHandle tileMapShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TileMap);
-	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::ColoredQuad);
+	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 
 	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);
 
