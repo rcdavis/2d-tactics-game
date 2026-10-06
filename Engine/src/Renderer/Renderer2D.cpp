@@ -9,9 +9,11 @@
 #include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
 #include "Renderer/IShader.h"
+#include "Renderer/ITexture.h"
 #include "Renderer/ShaderSystem.h"
 #include "Renderer/Buffer.h"
 
+#include "Renderer/TextureSystem.h"
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
 
@@ -159,6 +161,11 @@ namespace Renderer2D {
 
 		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
 		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
+
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			ITexture* const texture = TextureSystem::GetTexture(s_TextureSlots[i]);
+			texture->Bind(i);
+		}
 
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
