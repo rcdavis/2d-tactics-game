@@ -1,6 +1,7 @@
 #include "Renderer/Renderer2D.h"
 
 #include <array>
+#include <cmath>
 #include <vector>
 #include <cstdint>
 
@@ -9,9 +10,11 @@
 #include "Renderer/IRenderDevice.h"
 #include "Renderer/IVertexArray.h"
 #include "Renderer/IShader.h"
+#include "Renderer/ITexture.h"
 #include "Renderer/ShaderSystem.h"
 #include "Renderer/Buffer.h"
 
+#include "Renderer/TextureSystem.h"
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
 
@@ -27,7 +30,7 @@ namespace Renderer2D {
 		int32_t texIndex = 0;
 	};
 
-	static constexpr uint32_t MaxQuads = 1'000;
+	static constexpr uint32_t MaxQuads = 3'000;
 	static constexpr uint32_t MaxVertices = MaxQuads * 4;
 	static constexpr uint32_t MaxIndices = MaxQuads * 6;
 	static constexpr uint32_t MaxTextureSlots = 32;
@@ -40,6 +43,8 @@ namespace Renderer2D {
 	static IVertexArray* s_QuadVertexArray = nullptr;
 	static IVertexBuffer* s_QuadVertexBuffer = nullptr;
 	static IIndexBuffer* s_QuadIndexBuffer = nullptr;
+
+	static ITexture* s_WhiteTexture = nullptr;
 
 	static IShader* s_QuadShader = nullptr;
 
@@ -107,12 +112,22 @@ namespace Renderer2D {
 		s_TextureSlots.fill(InvalidTextureHandle);
 		s_TextureSlotIndex = 0;
 
+		constexpr uint32_t whiteTextureData = 0xFFFFFFFF; // RGBA8 white pixel
+		s_WhiteTexture = s_RenderDevice->CreateTexture();
+		if (!s_WhiteTexture->Init(&whiteTextureData, 1, 1)) {
+			LOG_ERROR("Failed to initialize white texture");
+			return false;
+		}
+
 		s_QuadIndexCount = 0;
 
 		return true;
 	}
 
 	void Shutdown() {
+		delete s_WhiteTexture;
+		s_WhiteTexture = nullptr;
+
 		s_QuadShader = nullptr;
 		s_RenderDevice = nullptr;
 
@@ -145,6 +160,8 @@ namespace Renderer2D {
 		s_QuadVertexArray->Bind();
 		s_QuadShader->Bind();
 		s_QuadShader->SetMat4("u_ViewProjection", camera.viewProj);
+
+		s_TextureSlotIndex = 0;
 	}
 
 	void EndScene() {
@@ -157,8 +174,14 @@ namespace Renderer2D {
 		if (s_QuadIndexCount == 0)
 			return;
 
-		const uint32_t dataSize = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
-		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, dataSize * sizeof(QuadVertex));
+		const uint32_t vertCount = s_QuadVertexBufferCurrent - s_QuadVertexBufferData;
+		s_QuadVertexBuffer->SetData(s_QuadVertexBufferData, vertCount * sizeof(QuadVertex));
+
+		s_WhiteTexture->Bind(0);
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			ITexture* const texture = TextureSystem::GetTexture(s_TextureSlots[i]);
+			texture->Bind(i + 1);
+		}
 
 		s_RenderDevice->DrawIndexed(s_QuadVertexArray, s_QuadIndexCount);
 		s_QuadVertexBufferCurrent = s_QuadVertexBufferData;
@@ -176,7 +199,7 @@ namespace Renderer2D {
 		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
 			glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
-		for (size_t i = 0; i < 4; ++i) {
+		for (uint8_t i = 0; i < 4; ++i) {
 			s_QuadVertexBufferCurrent->position = transform * quadVertexPositions[i];
 			s_QuadVertexBufferCurrent->color = color;
 			s_QuadVertexBufferCurrent->texCoord = { 0.0f, 0.0f };
@@ -191,18 +214,41 @@ namespace Renderer2D {
 		const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 		const TileSet* const tileSet = TileSystem::GetTileSet(tileMap->tileSetHandle);
 
-		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileMap->tileHeight;
+		// Reuse the slot if this texture is already bound; slot 0 is the white texture
+		int32_t texIndex = 0;
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			if (s_TextureSlots[i] == tileSet->textureHandle) {
+				texIndex = (int32_t)i + 1;
+				break;
+			}
+		}
+		if (texIndex == 0) {
+			if (s_TextureSlotIndex >= MaxTextureSlots - 1)
+				Flush();
+			s_TextureSlots[s_TextureSlotIndex] = tileSet->textureHandle;
+			++s_TextureSlotIndex;
+			texIndex = (int32_t)s_TextureSlotIndex;
+		}
+
+		const uint16_t tileWidth = tileMap->tileWidth;
+		const uint16_t tileHeight = tileMap->tileHeight;
+		const uint16_t tileRowCount = tileMap->tileRowCount;
+		const uint16_t tileColumnCount = tileMap->tileColumnCount;
+
+		int16_t startRow = (int16_t)camera.position.y / (int16_t)tileHeight;
 		if (startRow < 0)
 			startRow = 0;
-		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileMap->tileHeight + 1;
-		if (endRow > tileMap->tileRowCount)
-			endRow = tileMap->tileRowCount;
-		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileMap->tileWidth;
+		int16_t endRow = (int16_t)(camera.position.y + camera.height) / (int16_t)tileHeight + 1;
+		if (endRow > tileRowCount)
+			endRow = tileRowCount;
+		int16_t startCol = (int16_t)camera.position.x / (int16_t)tileWidth;
 		if (startCol < 0)
 			startCol = 0;
-		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileMap->tileWidth + 1;
-		if (endCol > tileMap->tileColumnCount)
-			endCol = tileMap->tileColumnCount;
+		int16_t endCol = (int16_t)(camera.position.x + camera.width) / (int16_t)tileWidth + 1;
+		if (endCol > tileColumnCount)
+			endCol = tileColumnCount;
+
+		constexpr glm::vec4 color { 1.0f, 1.0f, 1.0f, 1.0f };
 
 		for (uint8_t layerIndex = 0; layerIndex < tileMap->layerCount; ++layerIndex) {
 			const TileLayer& layer = tileMap->layers[layerIndex];
@@ -210,31 +256,34 @@ namespace Renderer2D {
 
 			for (int16_t row = startRow; row < endRow; ++row) {
 				for (int16_t col = startCol; col < endCol; ++col) {
-					const uint16_t tileId = layer.tiles[row * tileMap->tileColumnCount + col];
+					const uint16_t tileId = layer.tiles[row * tileColumnCount + col];
 					if (tileId == 0)
 						continue;
 
-					// Calculate the position and texture coordinates for the tile
-					const float x = col * tileMap->tileWidth;
-					const float y = row * tileMap->tileHeight;
-					const float w = tileMap->tileWidth;
-					const float h = tileMap->tileHeight;
+					if (s_QuadIndexCount >= MaxIndices) {
+						Flush();
+						s_TextureSlots[0] = tileSet->textureHandle;
+						s_TextureSlotIndex = 1;
+						texIndex = 1;
+					}
+
+					const uint16_t xPos = col * tileWidth;
+					const uint16_t yPos = row * tileHeight;
 
 					const std::array<glm::vec3, 4> vertPositions = {
-						glm::vec3 { x, y, zIndex },
-						glm::vec3 { x + w, y, zIndex },
-						glm::vec3 { x + w, y - h, zIndex },
-						glm::vec3 { x, y - h, zIndex }
+						glm::vec3 { xPos, yPos, zIndex },
+						glm::vec3 { xPos + tileWidth, yPos, zIndex },
+						glm::vec3 { xPos + tileWidth, yPos + tileHeight, zIndex },
+						glm::vec3 { xPos, yPos + tileHeight, zIndex }
 					};
 
-					const auto texCoords = tileSet->GetTexCoords(tileId);
+					const auto texCoords = tileSet->GetTexCoords(tileId - 1);
 
-					// Add the quad vertices to the buffer
-					for (size_t i = 0; i < 4; ++i) {
+					for (uint8_t i = 0; i < 4; ++i) {
 						s_QuadVertexBufferCurrent->position = vertPositions[i];
-						s_QuadVertexBufferCurrent->color = {1.0f, 1.0f, 1.0f, 1.0f};
+						s_QuadVertexBufferCurrent->color = color;
 						s_QuadVertexBufferCurrent->texCoord = texCoords[i];
-						s_QuadVertexBufferCurrent->texIndex = 0;
+						s_QuadVertexBufferCurrent->texIndex = texIndex;
 						++s_QuadVertexBufferCurrent;
 					}
 

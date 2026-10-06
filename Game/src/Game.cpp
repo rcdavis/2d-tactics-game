@@ -74,16 +74,19 @@ bool Game::Init() {
 		}
 	}
 
-	constexpr const char* vs = Res::Shaders::Vertex::GetPath(Res::Shaders::Vertex::Id::ColoredQuad);
-	constexpr const char* fs = Res::Shaders::Fragment::GetPath(Res::Shaders::Fragment::Id::ColoredQuad);
-	if (ShaderSystem::Load(vs, fs) == InvalidShaderHandle) {
-		LOG_ERROR("Failed to load shaders: {} {}", vs, fs);
-		return false;
+	constexpr uint32_t numShaderPaths = static_cast<uint32_t>(Res::Shaders::Vertex::Paths.size());
+	for (uint32_t i = 0; i < numShaderPaths; ++i) {
+		const char* vs = Res::Shaders::Vertex::GetPath(static_cast<Res::Shaders::Vertex::Id>(i));
+		const char* fs = Res::Shaders::Fragment::GetPath(static_cast<Res::Shaders::Fragment::Id>(i));
+		if (ShaderSystem::Load(vs, fs) == InvalidShaderHandle) {
+			LOG_ERROR("Failed to load shader: {} {}", vs, fs);
+			return false;
+		}
 	}
 
-	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(0);
+	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 
-	mCamera.SetProjection(0.0f, (float)windowCreateInfo.width, 0.0f, (float)windowCreateInfo.height);
+	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
 	if (!Renderer2D::Init(mPlatform.renderDevice, quadShaderHandle)) {
 		LOG_ERROR("Failed to initialize Renderer2D");
@@ -139,8 +142,9 @@ void Game::Render() {
 
 	Renderer2D::BeginScene(mCamera);
 
-	Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-	Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
+	//Renderer2D::DrawQuad({ 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+	//Renderer2D::DrawQuad({ 100.0f, 100.0f, 0.0f }, { 100.0f, 100.0f }, { 1.0f, 1.0f, 0.0f, 1.0f });
+	Renderer2D::DrawTileMap(mCamera, mTileMapHandle);
 
 	Renderer2D::EndScene();
 

@@ -51,7 +51,6 @@ GLShader::~GLShader() {
 }
 
 bool GLShader::Init(const char* const vertexFilepath, const char* const fragmentFilepath) {
-	// TODO: Implement shader initialization
 	const uint32_t vertexShader = CompileShader(GL_VERTEX_SHADER, vertexFilepath);
 	if (!vertexShader) {
 		return false;
