@@ -81,14 +81,18 @@ std::array<glm::vec2, 4> TileSet::GetTexCoords(uint16_t tileId) const {
 	const float textureWidth = (float)texture->GetWidth();
 	const float textureHeight = (float)texture->GetHeight();
 
-	const float texCoordU = ((tileId % columnCount) * tileWidth) / textureWidth;
-	const float texCoordV = ((tileId / columnCount) * tileHeight) / textureHeight;
+	// Inset by a fraction of a texel so sampling never reaches neighbouring tiles in the atlas
+	const float inset = 0.01f;
+	const float u0 = ((tileId % columnCount) * tileWidth + inset) / textureWidth;
+	const float v0 = ((tileId / columnCount) * tileHeight + inset) / textureHeight;
+	const float u1 = ((tileId % columnCount) * tileWidth + tileWidth - inset) / textureWidth;
+	const float v1 = ((tileId / columnCount) * tileHeight + tileHeight - inset) / textureHeight;
 
 	const std::array<glm::vec2, 4> texCoords = {
-		glm::vec2 { texCoordU, 1.0f - texCoordV },
-		glm::vec2 { texCoordU + (tileWidth / textureWidth), 1.0f - texCoordV },
-		glm::vec2 { texCoordU + (tileWidth / textureWidth), 1.0f - (texCoordV + (tileHeight / textureHeight)) },
-		glm::vec2 { texCoordU, 1.0f - (texCoordV + (tileHeight / textureHeight)) }
+		glm::vec2 { u0, 1.0f - v0 },
+		glm::vec2 { u1, 1.0f - v0 },
+		glm::vec2 { u1, 1.0f - v1 },
+		glm::vec2 { u0, 1.0f - v1 }
 	};
 
 	return texCoords;
