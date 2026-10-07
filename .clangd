@@ -1,5 +1,5 @@
 If:
-  PathMatch: .*/(IWindow|GraphicsAPI|IRenderDevice|ITexture|TextureHandle)\.h
+  PathMatch: .*/(IWindow|GraphicsAPI|IRenderDevice|ITexture|TextureHandle|KeyCodes)\.h
 
 CompileFlags:
   Add: [-xc++]
