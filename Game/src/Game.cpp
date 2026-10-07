@@ -9,6 +9,7 @@
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
 #include "Tiles/TileSystem.h"
+#include "Input/Input.h"
 
 #include "TextureIds.h"
 #include "ShaderIds.h"
@@ -120,9 +121,11 @@ void Game::Run() {
 
 	PlatformEvent event {};
 	while (mIsRunning) {
+		Input::BeginFrame();
+
 		while (mPlatform.PollEvent(event)) {
 			if (event.type == PlatformEvent::Type::Quit) {
-				mIsRunning = false;
+				Close();
 				break;
 			}
 
@@ -132,7 +135,7 @@ void Game::Run() {
 				break;
 			case PlatformEvent::Type::KeyDown:
 			case PlatformEvent::Type::KeyUp:
-				LOG_INFO("Key event: scancode = {}", (uint16_t)event.key.scancode);
+				Input::HandleEvent(event);
 				break;
 			default:
 				break;
@@ -165,4 +168,8 @@ void Game::Render() {
 
 void Game::OnResize(uint16_t width, uint16_t height) {
 	mPlatform.renderDevice->SetViewport(0, 0, width, height);
+}
+
+void Game::Close() {
+	mIsRunning = false;
 }
