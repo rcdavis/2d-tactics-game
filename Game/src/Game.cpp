@@ -121,12 +121,20 @@ void Game::Run() {
 	PlatformEvent event {};
 	while (mIsRunning) {
 		while (mPlatform.PollEvent(event)) {
-			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
-				OnResize(event.windowSize.width, event.windowSize.height);
-			} else if (event.type == PlatformEvent::Type::KeyDown || event.type == PlatformEvent::Type::KeyUp) {
-				LOG_INFO("Key event: scancode = {}", (uint16_t)event.key.scancode);
-			} else if (event.type == PlatformEvent::Type::Quit) {
+			if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
+				break;
+			}
+
+			switch (event.type) {
+			case PlatformEvent::Type::WindowPixelSizeChanged:
+				OnResize(event.windowSize.width, event.windowSize.height);
+				break;
+			case PlatformEvent::Type::KeyDown:
+			case PlatformEvent::Type::KeyUp:
+				LOG_INFO("Key event: scancode = {}", (uint16_t)event.key.scancode);
+				break;
+			default:
 				break;
 			}
 		}
