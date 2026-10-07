@@ -124,7 +124,7 @@ void Game::Run() {
 			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
 				OnResize(event.windowSize.width, event.windowSize.height);
 			} else if (event.type == PlatformEvent::Type::KeyDown || event.type == PlatformEvent::Type::KeyUp) {
-				LOG_INFO("Key event: scancode = {}", event.key.scancode);
+				LOG_INFO("Key event: scancode = {}", (uint16_t)event.key.scancode);
 			} else if (event.type == PlatformEvent::Type::Quit) {
 				mIsRunning = false;
 				break;

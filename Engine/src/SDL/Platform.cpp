@@ -60,12 +60,12 @@ bool Platform::PollEvent(PlatformEvent& event) {
 		case SDL_EVENT_KEY_DOWN:
 			event.type = PlatformEvent::Type::KeyDown;
 			if (sdlEvent.key.scancode < SDL_SCANCODE_COUNT)
-				event.key.scancode = static_cast<uint16_t>(sdlEvent.key.scancode);
+				event.key.scancode = static_cast<KeyCode>(sdlEvent.key.scancode);
 			break;
 		case SDL_EVENT_KEY_UP:
 			event.type = PlatformEvent::Type::KeyUp;
 			if (sdlEvent.key.scancode < SDL_SCANCODE_COUNT)
-				event.key.scancode = static_cast<uint16_t>(sdlEvent.key.scancode);
+				event.key.scancode = static_cast<KeyCode>(sdlEvent.key.scancode);
 			break;
 		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			event.type = PlatformEvent::Type::WindowPixelSizeChanged;

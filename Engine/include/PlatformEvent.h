@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include "Input/KeyCodes.h"
 
 struct PlatformEvent {
 	enum class Type : uint8_t {
@@ -20,7 +20,7 @@ struct PlatformEvent {
 		} windowSize;
 
 		struct {
-			uint16_t scancode;
+			KeyCode scancode;
 		} key;
 	};
 };
