@@ -93,6 +93,8 @@ bool Game::Init() {
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	mPlatform.renderDevice->EnableDepthTest(true);
 
+	mActionMap = ActionMap::CreateDefault();
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -140,6 +142,21 @@ void Game::Run() {
 			default:
 				break;
 			}
+		}
+		mActionMap.Update();
+
+		if (mActionMap.IsPressed(Action::MoveUp)) {
+			LOG_INFO("MoveUp action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveDown)) {
+			LOG_INFO("MoveDown action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveLeft)) {
+			LOG_INFO("MoveLeft action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveRight)) {
+			LOG_INFO("MoveRight action pressed");
+		} else if (mActionMap.IsPressed(Action::Select)) {
+			LOG_INFO("Select action pressed");
+		} else if (mActionMap.IsPressed(Action::Cancel)) {
+			LOG_INFO("Cancel action pressed");
 		}
 
 		Render();

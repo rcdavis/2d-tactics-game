@@ -3,6 +3,7 @@
 #include "Platform.h"
 
 #include "Renderer/Camera2D.h"
+#include "Input/ActionMap.h"
 
 class Game {
 public:
@@ -23,6 +24,7 @@ private:
 
 private:
 	Platform mPlatform;
+	ActionMap mActionMap;
 	Camera2D mCamera;
 
 	bool mIsRunning = false;
