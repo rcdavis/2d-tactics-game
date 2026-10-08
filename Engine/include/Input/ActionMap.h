@@ -14,6 +14,7 @@ enum class Action : uint8_t {
 	MoveDown,
 	Select,
 	Cancel,
+	Pause,
 	Count
 };
 

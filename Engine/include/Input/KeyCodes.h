@@ -43,7 +43,7 @@ enum class KeyCode : uint16_t {
 	Digit9 = 38,
 	Digit0 = 39,
 
-	Return = 40,
+	Enter = 40,
 	Escape = 41,
 	Backspace = 42,
 	Tab = 43,

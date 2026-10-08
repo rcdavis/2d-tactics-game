@@ -157,6 +157,8 @@ void Game::Run() {
 			LOG_INFO("Select action pressed");
 		} else if (mActionMap.IsPressed(Action::Cancel)) {
 			LOG_INFO("Cancel action pressed");
+		} else if (mActionMap.IsPressed(Action::Pause)) {
+			LOG_INFO("Pause action pressed");
 		}
 
 		Render();

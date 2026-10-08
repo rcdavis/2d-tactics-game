@@ -48,22 +48,20 @@ float ActionMap::EvaluateBinding(const Binding& binding) {
 ActionMap ActionMap::CreateDefault() {
 	ActionMap map;
 
-	map.Bind(Action::MoveLeft, KeyBinding{KeyCode::A});
 	map.Bind(Action::MoveLeft, KeyBinding{KeyCode::Left});
 
-	map.Bind(Action::MoveRight, KeyBinding{KeyCode::D});
 	map.Bind(Action::MoveRight, KeyBinding{KeyCode::Right});
 
-	map.Bind(Action::MoveUp, KeyBinding{KeyCode::W});
 	map.Bind(Action::MoveUp, KeyBinding{KeyCode::Up});
 
-	map.Bind(Action::MoveDown, KeyBinding{KeyCode::S});
 	map.Bind(Action::MoveDown, KeyBinding{KeyCode::Down});
 
-	map.Bind(Action::Select, KeyBinding{KeyCode::Return});
+	map.Bind(Action::Select, KeyBinding{KeyCode::Enter});
 	map.Bind(Action::Select, KeyBinding{KeyCode::F});
 
-	map.Bind(Action::Cancel, KeyBinding{KeyCode::Escape});
+	map.Bind(Action::Cancel, KeyBinding{KeyCode::D});
+
+	map.Bind(Action::Pause, KeyBinding{KeyCode::Escape});
 
 	return map;
 }
