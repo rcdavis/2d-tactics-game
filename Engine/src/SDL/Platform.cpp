@@ -3,6 +3,7 @@
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_scancode.h"
 #include "Utils/Log.h"
 
 #include "IWindow.h"
@@ -56,6 +57,16 @@ bool Platform::PollEvent(PlatformEvent& event) {
 	SDL_Event sdlEvent {};
 	if (SDL_PollEvent(&sdlEvent)) {
 		switch (sdlEvent.type) {
+		case SDL_EVENT_KEY_DOWN:
+			event.type = PlatformEvent::Type::KeyDown;
+			if (sdlEvent.key.scancode < SDL_SCANCODE_COUNT)
+				event.key.scancode = static_cast<KeyCode>(sdlEvent.key.scancode);
+			break;
+		case SDL_EVENT_KEY_UP:
+			event.type = PlatformEvent::Type::KeyUp;
+			if (sdlEvent.key.scancode < SDL_SCANCODE_COUNT)
+				event.key.scancode = static_cast<KeyCode>(sdlEvent.key.scancode);
+			break;
 		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			event.type = PlatformEvent::Type::WindowPixelSizeChanged;
 			event.windowSize.width = static_cast<uint16_t>(sdlEvent.window.data1);

@@ -2,6 +2,8 @@ project(Engine)
 
 add_library(Engine STATIC
     glad/src/gl.c
+    src/Input/ActionMap.cpp
+    src/Input/Input.cpp
     src/Renderer/OpenGL/GLBuffer.cpp
     src/Renderer/OpenGL/GLRenderDevice.cpp
     src/Renderer/OpenGL/GLShader.cpp

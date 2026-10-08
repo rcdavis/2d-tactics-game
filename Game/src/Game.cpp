@@ -9,6 +9,7 @@
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
 #include "Tiles/TileSystem.h"
+#include "Input/Input.h"
 
 #include "TextureIds.h"
 #include "ShaderIds.h"
@@ -92,6 +93,8 @@ bool Game::Init() {
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	mPlatform.renderDevice->EnableDepthTest(true);
 
+	mActionMap = ActionMap::CreateDefault();
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -120,13 +123,42 @@ void Game::Run() {
 
 	PlatformEvent event {};
 	while (mIsRunning) {
+		Input::BeginFrame();
+
 		while (mPlatform.PollEvent(event)) {
-			if (event.type == PlatformEvent::Type::WindowPixelSizeChanged) {
-				OnResize(event.windowSize.width, event.windowSize.height);
-			} else if (event.type == PlatformEvent::Type::Quit) {
-				mIsRunning = false;
+			if (event.type == PlatformEvent::Type::Quit) {
+				Close();
 				break;
 			}
+
+			switch (event.type) {
+			case PlatformEvent::Type::WindowPixelSizeChanged:
+				OnResize(event.windowSize.width, event.windowSize.height);
+				break;
+			case PlatformEvent::Type::KeyDown:
+			case PlatformEvent::Type::KeyUp:
+				Input::HandleEvent(event);
+				break;
+			default:
+				break;
+			}
+		}
+		mActionMap.Update();
+
+		if (mActionMap.IsPressed(Action::MoveUp)) {
+			LOG_INFO("MoveUp action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveDown)) {
+			LOG_INFO("MoveDown action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveLeft)) {
+			LOG_INFO("MoveLeft action pressed");
+		} else if (mActionMap.IsPressed(Action::MoveRight)) {
+			LOG_INFO("MoveRight action pressed");
+		} else if (mActionMap.IsPressed(Action::Select)) {
+			LOG_INFO("Select action pressed");
+		} else if (mActionMap.IsPressed(Action::Cancel)) {
+			LOG_INFO("Cancel action pressed");
+		} else if (mActionMap.IsPressed(Action::Pause)) {
+			LOG_INFO("Pause action pressed");
 		}
 
 		Render();
@@ -155,4 +187,8 @@ void Game::Render() {
 
 void Game::OnResize(uint16_t width, uint16_t height) {
 	mPlatform.renderDevice->SetViewport(0, 0, width, height);
+}
+
+void Game::Close() {
+	mIsRunning = false;
 }
