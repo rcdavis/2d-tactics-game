@@ -42,6 +42,8 @@ public:
 	bool IsPressed(Action action) const;
 	bool IsReleased(Action action) const;
 
+	bool SaveBindings(const char* const filePath) const;
+
 	static ActionMap CreateDefault();
 
 private:

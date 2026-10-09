@@ -45,6 +45,11 @@ float ActionMap::EvaluateBinding(const Binding& binding) {
 	return 0.0f;
 }
 
+bool ActionMap::SaveBindings(const char* const filePath) const {
+	// Implement saving input bindings here
+	return true;
+}
+
 ActionMap ActionMap::CreateDefault() {
 	ActionMap map;
 
