@@ -59,4 +59,5 @@ target_link_libraries(Engine PUBLIC
 
 target_link_libraries(Engine PRIVATE
     SDL3::SDL3-static
+    nlohmann_json::nlohmann_json
 )

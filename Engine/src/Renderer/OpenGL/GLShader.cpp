@@ -22,9 +22,10 @@ namespace {
 		std::vector<GLchar> source(fileSize);
 		file.read(std::data(source), fileSize);
 		const GLchar* const sourceCStr = std::data(source);
+		const GLsizei sourceLength = static_cast<GLsizei>(fileSize);
 
 		const uint32_t shader = glCreateShader(type);
-		glShaderSource(shader, 1, &sourceCStr, nullptr);
+		glShaderSource(shader, 1, &sourceCStr, &sourceLength);
 		glCompileShader(shader);
 
 		GLint isCompiled = 0;

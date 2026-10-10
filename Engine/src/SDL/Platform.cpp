@@ -4,6 +4,7 @@
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_scancode.h"
+#include "SDL3/SDL_filesystem.h"
 #include "Utils/Log.h"
 
 #include "IWindow.h"
@@ -84,4 +85,17 @@ bool Platform::PollEvent(PlatformEvent& event) {
 	}
 
 	return false;
+}
+
+std::filesystem::path Platform::GetPreferencesPath(const char* const org, const char* const app) const {
+	char* p = SDL_GetPrefPath(org, app);
+	if (!p) {
+		LOG_ERROR("Failed to get preferences path: {}", SDL_GetError());
+		return "";
+	}
+
+	const std::filesystem::path path = p;
+	SDL_free(p);
+
+	return path;
 }

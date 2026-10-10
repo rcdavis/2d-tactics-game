@@ -14,6 +14,7 @@
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
+#include <filesystem>
 
 Game::~Game() {
 	Shutdown();
@@ -93,7 +94,8 @@ bool Game::Init() {
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	mPlatform.renderDevice->EnableDepthTest(true);
 
-	mActionMap = ActionMap::CreateDefault();
+	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
+	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
 	mIsRunning = true;
 
@@ -190,5 +192,7 @@ void Game::OnResize(uint16_t width, uint16_t height) {
 }
 
 void Game::Close() {
+	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
+	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
 }
