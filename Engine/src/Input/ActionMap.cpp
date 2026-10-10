@@ -22,16 +22,28 @@ const char* ActionToString(Action action) {
 	}
 }
 
+Action StringToAction(const char* const actionName) {
+	if (strcmp(actionName, "MoveLeft") == 0)  return Action::MoveLeft;
+	if (strcmp(actionName, "MoveRight") == 0) return Action::MoveRight;
+	if (strcmp(actionName, "MoveUp") == 0)    return Action::MoveUp;
+	if (strcmp(actionName, "MoveDown") == 0)  return Action::MoveDown;
+	if (strcmp(actionName, "Select") == 0)    return Action::Select;
+	if (strcmp(actionName, "Cancel") == 0)    return Action::Cancel;
+	if (strcmp(actionName, "Pause") == 0)     return Action::Pause;
+	if (strcmp(actionName, "Count") == 0)     return Action::Count;
+	return Action::Count; // Default to Count if unknown
+}
+
 void ActionMap::Bind(Action action, Binding binding) {
-    mBindings[static_cast<size_t>(action)].push_back(binding);
+	mBindings[static_cast<size_t>(action)].push_back(binding);
 }
 
 void ActionMap::ClearBindings(Action action) {
-    mBindings[static_cast<size_t>(action)].clear();
+	mBindings[static_cast<size_t>(action)].clear();
 }
 
 void ActionMap::Update() {
-    mPrev = mCur;
+	mPrev = mCur;
 	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
 		float value = 0.0f;
 		for (const auto& binding : mBindings[i]) {
@@ -42,17 +54,17 @@ void ActionMap::Update() {
 }
 
 bool ActionMap::IsDown(Action action) const {
-    return mCur[static_cast<size_t>(action)] > PressedThreshold;
+	return mCur[static_cast<size_t>(action)] > PressedThreshold;
 }
 
 bool ActionMap::IsPressed(Action action) const {
-    const size_t index = static_cast<size_t>(action);
-    return mCur[index] > PressedThreshold && mPrev[index] <= PressedThreshold;
+	const size_t index = static_cast<size_t>(action);
+	return mCur[index] > PressedThreshold && mPrev[index] <= PressedThreshold;
 }
 
 bool ActionMap::IsReleased(Action action) const {
-    const size_t index = static_cast<size_t>(action);
-    return mCur[index] <= PressedThreshold && mPrev[index] > PressedThreshold;
+	const size_t index = static_cast<size_t>(action);
+	return mCur[index] <= PressedThreshold && mPrev[index] > PressedThreshold;
 }
 
 float ActionMap::EvaluateBinding(const Binding& binding) {
@@ -80,14 +92,17 @@ bool ActionMap::SaveBindings(const std::filesystem::path& filePath) const {
 
 		for (const auto& binding : mBindings[i]) {
 			if (const KeyBinding* key = std::get_if<KeyBinding>(&binding)) {
-				bindingsForActionJson.push_back({{"type", "key"}, {"key", static_cast<int>(key->key)}});
+				bindingsForActionJson.push_back({
+					{"type", "key"},
+					{"key", static_cast<int>(key->key)}
+				});
 			}
 		}
 
 		bindings[actionName] = bindingsForActionJson;
 	}
 
-	nlohmann::json root = {
+	const nlohmann::json root = {
 		{"version", 1},
 		{"bindings", bindings},
 	};

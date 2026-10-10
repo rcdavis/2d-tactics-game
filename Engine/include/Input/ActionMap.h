@@ -20,6 +20,7 @@ enum class Action : uint8_t {
 };
 
 const char* ActionToString(Action action);
+Action StringToAction(const char* const actionName);
 
 struct KeyBinding {
 	KeyCode key = KeyCode::Unknown;
@@ -30,7 +31,7 @@ using Binding = std::variant<KeyBinding>;
 
 class ActionMap {
 public:
-    ActionMap() = default;
+	ActionMap() = default;
 
 	void Bind(Action action, Binding binding);
 	void ClearBindings(Action action);
@@ -53,7 +54,7 @@ private:
 	static float EvaluateBinding(const Binding& binding);
 
 private:
-    std::array<std::vector<Binding>, static_cast<size_t>(Action::Count)> mBindings;
+	std::array<std::vector<Binding>, static_cast<size_t>(Action::Count)> mBindings;
 	std::array<float, static_cast<size_t>(Action::Count)> mPrev;
 	std::array<float, static_cast<size_t>(Action::Count)> mCur;
 };
