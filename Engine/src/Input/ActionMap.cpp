@@ -1,8 +1,26 @@
 #include "Input/ActionMap.h"
 
+#include <fstream>
+
 #include "Input/Input.h"
+#include "Utils/Log.h"
+#include "nlohmann/json.hpp"
 
 static constexpr float PressedThreshold = 0.0f;
+
+const char* ActionToString(Action action) {
+	switch (action) {
+		case Action::MoveLeft:  return "MoveLeft";
+		case Action::MoveRight: return "MoveRight";
+		case Action::MoveUp:    return "MoveUp";
+		case Action::MoveDown:  return "MoveDown";
+		case Action::Select:    return "Select";
+		case Action::Cancel:    return "Cancel";
+		case Action::Pause:     return "Pause";
+		case Action::Count:     return "Count";
+		default:                return "Unknown";
+	}
+}
 
 void ActionMap::Bind(Action action, Binding binding) {
     mBindings[static_cast<size_t>(action)].push_back(binding);
@@ -45,8 +63,40 @@ float ActionMap::EvaluateBinding(const Binding& binding) {
 	return 0.0f;
 }
 
-bool ActionMap::SaveBindings(const char* const filePath) const {
-	// Implement saving input bindings here
+bool ActionMap::SaveBindings(const std::filesystem::path& filePath) const {
+	std::filesystem::create_directories(filePath.parent_path());
+
+	const std::filesystem::path tempFilePath = filePath.string() + ".tmp";
+	std::ofstream file(tempFilePath, std::ios::trunc);
+	if (!file) {
+		LOG_ERROR("Failed to open file for saving bindings: {}", tempFilePath.string());
+		return false;
+	}
+
+	nlohmann::json bindings = nlohmann::json::object();
+	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
+		const char* const actionName = ActionToString(static_cast<Action>(i));
+		nlohmann::json bindingsForActionJson = nlohmann::json::array();
+
+		for (const auto& binding : mBindings[i]) {
+			if (const KeyBinding* key = std::get_if<KeyBinding>(&binding)) {
+				bindingsForActionJson.push_back({{"type", "key"}, {"key", static_cast<int>(key->key)}});
+			}
+		}
+
+		bindings[actionName] = bindingsForActionJson;
+	}
+
+	nlohmann::json root = {
+		{"version", 1},
+		{"bindings", bindings},
+	};
+
+	file << root.dump(2);
+	file.close();
+
+	std::filesystem::rename(tempFilePath, filePath);
+
 	return true;
 }
 

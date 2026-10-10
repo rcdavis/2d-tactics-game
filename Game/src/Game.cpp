@@ -192,9 +192,6 @@ void Game::OnResize(uint16_t width, uint16_t height) {
 
 void Game::Close() {
 	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
-	std::filesystem::create_directories(prefPath);
-
-	const std::filesystem::path bindingsFilePath = prefPath / "bindings.json";
-	mActionMap.SaveBindings(bindingsFilePath.c_str());
+	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
 }

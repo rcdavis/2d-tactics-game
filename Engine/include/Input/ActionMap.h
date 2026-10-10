@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <variant>
+#include <filesystem>
 
 #include "Input/KeyCodes.h"
 
@@ -17,6 +18,8 @@ enum class Action : uint8_t {
 	Pause,
 	Count
 };
+
+const char* ActionToString(Action action);
 
 struct KeyBinding {
 	KeyCode key = KeyCode::Unknown;
@@ -42,7 +45,7 @@ public:
 	bool IsPressed(Action action) const;
 	bool IsReleased(Action action) const;
 
-	bool SaveBindings(const char* const filePath) const;
+	bool SaveBindings(const std::filesystem::path& filePath) const;
 
 	static ActionMap CreateDefault();
 
