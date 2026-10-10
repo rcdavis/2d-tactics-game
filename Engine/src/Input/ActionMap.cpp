@@ -115,6 +115,36 @@ bool ActionMap::SaveBindings(const std::filesystem::path& filePath) const {
 	return true;
 }
 
+ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
+	ActionMap map = CreateDefault();
+
+	std::ifstream file(filePath);
+	if (!file) {
+		LOG_WARN("Failed to open file for loading bindings: {}", filePath.string());
+		return map;
+	}
+
+	nlohmann::json root;
+	file >> root;
+	file.close();
+
+	const nlohmann::json& bindings = root.value("bindings", nlohmann::json::object());
+	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
+		const char* const actionName = ActionToString(static_cast<Action>(i));
+		const nlohmann::json& bindingsForActionJson = bindings.value(actionName, nlohmann::json::array());
+
+		for (const auto& bindingJson : bindingsForActionJson) {
+			const std::string type = bindingJson.value("type", "");
+			if (type == "key") {
+				const KeyCode key = static_cast<KeyCode>(bindingJson.value("key", static_cast<int>(KeyCode::Unknown)));
+				map.Bind(static_cast<Action>(i), KeyBinding{key});
+			}
+		}
+	}
+
+	return map;
+}
+
 ActionMap ActionMap::CreateDefault() {
 	ActionMap map;
 

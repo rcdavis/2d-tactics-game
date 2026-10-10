@@ -94,7 +94,8 @@ bool Game::Init() {
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	mPlatform.renderDevice->EnableDepthTest(true);
 
-	mActionMap = ActionMap::CreateDefault();
+	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
+	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
 	mIsRunning = true;
 

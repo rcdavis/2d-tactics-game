@@ -48,6 +48,7 @@ public:
 
 	bool SaveBindings(const std::filesystem::path& filePath) const;
 
+	static ActionMap LoadBindings(const std::filesystem::path& filePath);
 	static ActionMap CreateDefault();
 
 private:
