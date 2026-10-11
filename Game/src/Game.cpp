@@ -9,6 +9,7 @@
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
 #include "Tiles/TileSystem.h"
+#include "Tiles/TileMap.h"
 #include "Input/Input.h"
 
 #include "TextureIds.h"
@@ -163,7 +164,32 @@ void Game::Run() {
 			LOG_INFO("Pause action pressed");
 		}
 
+		Update();
+
 		Render();
+	}
+}
+
+void Game::Update() {
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	if (mActionMap.IsPressed(Action::MoveUp)) {
+		if (mCursorPos.y > 0)
+			mCursorPos.y--;
+		LOG_INFO("Cursor moved to position: row {}, column {}", mCursorPos.y, mCursorPos.x);
+	} else if (mActionMap.IsPressed(Action::MoveDown)) {
+		if (mCursorPos.y < tileMap->tileRowCount - 1)
+			mCursorPos.y++;
+		LOG_INFO("Cursor moved to position: row {}, column {}", mCursorPos.y, mCursorPos.x);
+	} else if (mActionMap.IsPressed(Action::MoveLeft)) {
+		if (mCursorPos.x > 0)
+			mCursorPos.x--;
+		LOG_INFO("Cursor moved to position: row {}, column {}", mCursorPos.y, mCursorPos.x);
+	} else if (mActionMap.IsPressed(Action::MoveRight)) {
+		if (mCursorPos.x < tileMap->tileColumnCount - 1)
+			mCursorPos.x++;
+		LOG_INFO("Cursor moved to position: row {}, column {}", mCursorPos.y, mCursorPos.x);
 	}
 }
 
