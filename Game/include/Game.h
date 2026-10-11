@@ -33,5 +33,7 @@ private:
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
 
+	float mTimeSinceKeyPressed = 0.0f;
+
 	bool mIsRunning = false;
 };

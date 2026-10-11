@@ -99,6 +99,8 @@ bool Game::Init() {
 	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
+	mTimeSinceKeyPressed = 0.0f;
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -159,21 +161,30 @@ void Game::Run() {
 }
 
 void Game::Update(float elapsedTime) {
+	constexpr float KeyPressInterval = 0.1f;
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
-	if (mActionMap.IsPressed(Action::MoveUp)) {
-		if (mCursorPos.y > 0)
-			mCursorPos.y--;
-	} else if (mActionMap.IsPressed(Action::MoveDown)) {
-		if (mCursorPos.y < tileMap->tileRowCount - 1)
-			mCursorPos.y++;
-	} else if (mActionMap.IsPressed(Action::MoveLeft)) {
-		if (mCursorPos.x > 0)
-			mCursorPos.x--;
-	} else if (mActionMap.IsPressed(Action::MoveRight)) {
-		if (mCursorPos.x < tileMap->tileColumnCount - 1)
-			mCursorPos.x++;
+	mTimeSinceKeyPressed += elapsedTime;
+
+	if (mTimeSinceKeyPressed > KeyPressInterval) {
+		if (mActionMap.IsDown(Action::MoveUp)) {
+			if (mCursorPos.y > 0)
+				mCursorPos.y--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveDown)) {
+			if (mCursorPos.y < tileMap->tileRowCount - 1)
+				mCursorPos.y++;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveLeft)) {
+			if (mCursorPos.x > 0)
+				mCursorPos.x--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveRight)) {
+			if (mCursorPos.x < tileMap->tileColumnCount - 1)
+				mCursorPos.x++;
+			mTimeSinceKeyPressed = 0.0f;
+		}
 	}
 
 	if (mActionMap.IsPressed(Action::Select)) {
