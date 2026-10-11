@@ -2,6 +2,8 @@
 
 #include "Renderer/GraphicsAPI.h"
 
+#include <filesystem>
+
 class IRenderDevice;
 class IWindow;
 struct PlatformEvent;
@@ -17,4 +19,6 @@ struct Platform {
 	void Destroy();
 
 	bool PollEvent(PlatformEvent& event);
+
+	std::filesystem::path GetPreferencesPath(const char* const org, const char* const app) const;
 };
