@@ -12,6 +12,7 @@
 #include "Tiles/TileMap.h"
 #include "Input/Input.h"
 
+#include "Timer.h"
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
@@ -124,6 +125,9 @@ void Game::Run() {
 		return;
 	}
 
+	Timer timer;
+	timer.Init();
+
 	PlatformEvent event {};
 	while (mIsRunning) {
 		Input::BeginFrame();
@@ -148,13 +152,13 @@ void Game::Run() {
 		}
 		mActionMap.Update();
 
-		Update();
+		Update(timer.GetElapsedTime());
 
 		Render();
 	}
 }
 
-void Game::Update() {
+void Game::Update(float elapsedTime) {
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
@@ -170,6 +174,10 @@ void Game::Update() {
 	} else if (mActionMap.IsPressed(Action::MoveRight)) {
 		if (mCursorPos.x < tileMap->tileColumnCount - 1)
 			mCursorPos.x++;
+	}
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		LOG_INFO("Elapsed time: {}", elapsedTime);
 	}
 }
 

@@ -18,7 +18,7 @@ private:
 	bool Init();
 	void Shutdown();
 
-	void Update();
+	void Update(float elapsedTime);
 	void Render();
 
 	void OnResize(uint16_t width, uint16_t height);
