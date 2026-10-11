@@ -26,6 +26,7 @@ if(USE_SDL3_BACKEND)
     target_sources(Engine PRIVATE
         src/SDL/Platform.cpp
         src/SDL/SDLWindow.cpp
+        src/SDL/Timer.cpp
         stb/src/stb_image.c
     )
 endif()

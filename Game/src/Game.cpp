@@ -9,8 +9,10 @@
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
 #include "Tiles/TileSystem.h"
+#include "Tiles/TileMap.h"
 #include "Input/Input.h"
 
+#include "Timer.h"
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
@@ -97,6 +99,8 @@ bool Game::Init() {
 	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
+	mTimeSinceKeyPressed = 0.0f;
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");
@@ -123,6 +127,9 @@ void Game::Run() {
 		return;
 	}
 
+	Timer timer;
+	timer.Init();
+
 	PlatformEvent event {};
 	while (mIsRunning) {
 		Input::BeginFrame();
@@ -147,23 +154,41 @@ void Game::Run() {
 		}
 		mActionMap.Update();
 
-		if (mActionMap.IsPressed(Action::MoveUp)) {
-			LOG_INFO("MoveUp action pressed");
-		} else if (mActionMap.IsPressed(Action::MoveDown)) {
-			LOG_INFO("MoveDown action pressed");
-		} else if (mActionMap.IsPressed(Action::MoveLeft)) {
-			LOG_INFO("MoveLeft action pressed");
-		} else if (mActionMap.IsPressed(Action::MoveRight)) {
-			LOG_INFO("MoveRight action pressed");
-		} else if (mActionMap.IsPressed(Action::Select)) {
-			LOG_INFO("Select action pressed");
-		} else if (mActionMap.IsPressed(Action::Cancel)) {
-			LOG_INFO("Cancel action pressed");
-		} else if (mActionMap.IsPressed(Action::Pause)) {
-			LOG_INFO("Pause action pressed");
-		}
+		Update(timer.GetElapsedTime());
 
 		Render();
+	}
+}
+
+void Game::Update(float elapsedTime) {
+	constexpr float KeyPressInterval = 0.1f;
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	mTimeSinceKeyPressed += elapsedTime;
+
+	if (mTimeSinceKeyPressed > KeyPressInterval) {
+		if (mActionMap.IsDown(Action::MoveUp)) {
+			if (mCursorPos.y > 0)
+				mCursorPos.y--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveDown)) {
+			if (mCursorPos.y < tileMap->tileRowCount - 1)
+				mCursorPos.y++;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveLeft)) {
+			if (mCursorPos.x > 0)
+				mCursorPos.x--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveRight)) {
+			if (mCursorPos.x < tileMap->tileColumnCount - 1)
+				mCursorPos.x++;
+			mTimeSinceKeyPressed = 0.0f;
+		}
+	}
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		LOG_INFO("Elapsed time: {}", elapsedTime);
 	}
 }
 
@@ -174,10 +199,11 @@ void Game::Render() {
 
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr float tileSize = 16.0f;
 
 	Renderer2D::DrawTexturedQuad(
-		{ 0.0f, 0.0f, 0.7f },
-		{ 16.0f, 16.0f },
+		{ mCursorPos.x * tileSize, mCursorPos.y * tileSize, 0.7f },
+		{ tileSize, tileSize },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
