@@ -7,6 +7,8 @@
 
 #include "glm/ext/vector_int2.hpp"
 
+#include "Character.h"
+
 class Game {
 public:
 	Game() = default;
@@ -29,6 +31,8 @@ private:
 	Platform mPlatform;
 	ActionMap mActionMap;
 	Camera2D mCamera;
+
+	Character mCharacter;
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};

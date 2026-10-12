@@ -252,6 +252,64 @@ namespace Renderer2D {
 		s_QuadIndexCount += 6;
 	}
 
+	void DrawTextureQuad(
+		const glm::vec3& position,
+		uint16_t sourceX,
+		uint16_t sourceY,
+		uint8_t sourceWidth,
+		uint8_t sourceHeight,
+		const glm::vec4& color,
+		TextureHandle textureHandle)
+	{
+		if (s_QuadIndexCount >= MaxIndices)
+			Flush();
+
+		int32_t texIndex = 0;
+		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+			if (s_TextureSlots[i] == textureHandle) {
+				texIndex = (int32_t)i + 1;
+				break;
+			}
+		}
+		if (texIndex == 0) {
+			if (s_TextureSlotIndex >= MaxTextureSlots - 1)
+				Flush();
+			s_TextureSlots[s_TextureSlotIndex] = textureHandle;
+			++s_TextureSlotIndex;
+			texIndex = (int32_t)s_TextureSlotIndex;
+		}
+
+		const glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+			glm::scale(glm::mat4(1.0f), { static_cast<float>(sourceWidth), static_cast<float>(sourceHeight), 1.0f });
+
+		const ITexture* const texture = TextureSystem::GetTexture(textureHandle);
+		const float textureWidth = static_cast<float>(texture->GetWidth());
+		const float textureHeight = static_cast<float>(texture->GetHeight());
+		constexpr float inset = 0.01f;
+
+		const float u0 = (static_cast<float>(sourceX) + inset) / textureWidth;
+		const float u1 = (static_cast<float>(sourceX + sourceWidth) - inset) / textureWidth;
+		const float v0 = (static_cast<float>(sourceY) + inset) / textureHeight;
+		const float v1 = (static_cast<float>(sourceY + sourceHeight) - inset) / textureHeight;
+
+		const std::array<glm::vec2, 4> texCoords = {
+			glm::vec2 { u0, 1.0f - v0 },
+			glm::vec2 { u1, 1.0f - v0 },
+			glm::vec2 { u1, 1.0f - v1 },
+			glm::vec2 { u0, 1.0f - v1 }
+		};
+
+		for (uint8_t i = 0; i < 4; ++i) {
+			s_QuadVertexBufferCurrent->position = transform * quadVertexPositions[i];
+			s_QuadVertexBufferCurrent->color = color;
+			s_QuadVertexBufferCurrent->texCoord = texCoords[i];
+			s_QuadVertexBufferCurrent->texIndex = texIndex;
+			++s_QuadVertexBufferCurrent;
+		}
+
+		s_QuadIndexCount += 6;
+	}
+
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle) {
 		const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 		const TileSet* const tileSet = TileSystem::GetTileSet(tileMap->tileSetHandle);

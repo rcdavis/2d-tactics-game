@@ -34,5 +34,14 @@ namespace Renderer2D {
 		const glm::vec4& color,
 		TextureHandle textureHandle);
 
+	void DrawTextureQuad(
+		const glm::vec3& position,
+		uint16_t sourceX,
+		uint16_t sourceY,
+		uint8_t sourceWidth,
+		uint8_t sourceHeight,
+		const glm::vec4& color,
+		TextureHandle textureHandle);
+
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle);
 }

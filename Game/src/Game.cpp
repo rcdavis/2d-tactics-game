@@ -5,6 +5,7 @@
 #include "PlatformEvent.h"
 #include "IWindow.h"
 #include "Renderer/IRenderDevice.h"
+#include "Renderer/ITexture.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
@@ -100,6 +101,15 @@ bool Game::Init() {
 	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
 	mTimeSinceKeyPressed = 0.0f;
+
+	mCharacter = {
+		.position = {0, 0},
+		.sourceX = 16,
+		.sourceY = 256,
+		.sourceWidth = 16,
+		.sourceHeight = 16,
+		.textureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet),
+	};
 
 	mIsRunning = true;
 
@@ -227,6 +237,16 @@ void Game::Render() {
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
+
+	Renderer2D::DrawTextureQuad(
+		{ mCharacter.position.x, mCharacter.position.y, 0.8f },
+		mCharacter.sourceX,
+		mCharacter.sourceY,
+		mCharacter.sourceWidth,
+		mCharacter.sourceHeight,
+		{ 1.0f, 1.0f, 1.0f, 1.0f },
+		mCharacter.textureHandle
+	);
 
 	Renderer2D::EndScene();
 
