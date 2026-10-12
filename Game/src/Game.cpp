@@ -187,6 +187,26 @@ void Game::Update(float elapsedTime) {
 		}
 	}
 
+	mCamera.position = {
+		mCursorPos.x * tileMap->tileWidth - mCamera.width / 2.0f,
+		mCursorPos.y * tileMap->tileHeight - mCamera.height / 2.0f
+	};
+
+	const glm::vec2 worldEndPos = {
+		tileMap->tileColumnCount * tileMap->tileWidth,
+		tileMap->tileRowCount * tileMap->tileHeight
+	};
+
+	if (mCamera.position.x < 0.0f)
+		mCamera.position.x = 0.0f;
+	else if (mCamera.position.x + mCamera.width > worldEndPos.x)
+		mCamera.position.x = worldEndPos.x - mCamera.width;
+
+	if (mCamera.position.y < 0.0f)
+		mCamera.position.y = 0.0f;
+	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
+		mCamera.position.y = worldEndPos.y - mCamera.height;
+
 	if (mActionMap.IsPressed(Action::Select)) {
 		LOG_INFO("Elapsed time: {}", elapsedTime);
 	}
@@ -199,11 +219,11 @@ void Game::Render() {
 
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	constexpr float tileSize = 16.0f;
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
-		{ mCursorPos.x * tileSize, mCursorPos.y * tileSize, 0.7f },
-		{ tileSize, tileSize },
+		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.7f },
+		{ tileMap->tileWidth, tileMap->tileHeight },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
