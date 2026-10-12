@@ -5,7 +5,6 @@
 #include "PlatformEvent.h"
 #include "IWindow.h"
 #include "Renderer/IRenderDevice.h"
-#include "Renderer/ITexture.h"
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
@@ -218,7 +217,9 @@ void Game::Update(float elapsedTime) {
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
 	if (mActionMap.IsPressed(Action::Select)) {
-		LOG_INFO("Elapsed time: {}", elapsedTime);
+		if (mCursorPos == mCharacter.position) {
+			LOG_INFO("Character selected");
+		}
 	}
 }
 
