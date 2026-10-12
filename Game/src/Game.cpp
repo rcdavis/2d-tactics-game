@@ -16,7 +16,12 @@
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
+#include "glm/ext/vector_float2.hpp"
 #include <filesystem>
+
+namespace {
+	constexpr float tileSize = 16.0f;
+}
 
 Game::~Game() {
 	Shutdown();
@@ -187,6 +192,26 @@ void Game::Update(float elapsedTime) {
 		}
 	}
 
+	mCamera.position = {
+		mCursorPos.x * tileSize - mCamera.width / 2.0f,
+		mCursorPos.y * tileSize - mCamera.height / 2.0f
+	};
+
+	const glm::vec2 worldEndPos = {
+		tileMap->tileColumnCount * tileSize,
+		tileMap->tileRowCount * tileSize
+	};
+
+	if (mCamera.position.x < 0.0f)
+		mCamera.position.x = 0.0f;
+	else if (mCamera.position.x + mCamera.width > worldEndPos.x)
+		mCamera.position.x = worldEndPos.x - mCamera.width;
+
+	if (mCamera.position.y < 0.0f)
+		mCamera.position.y = 0.0f;
+	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
+		mCamera.position.y = worldEndPos.y - mCamera.height;
+
 	if (mActionMap.IsPressed(Action::Select)) {
 		LOG_INFO("Elapsed time: {}", elapsedTime);
 	}
@@ -199,7 +224,6 @@ void Game::Render() {
 
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	constexpr float tileSize = 16.0f;
 
 	Renderer2D::DrawTexturedQuad(
 		{ mCursorPos.x * tileSize, mCursorPos.y * tileSize, 0.7f },
