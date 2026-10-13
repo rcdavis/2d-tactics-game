@@ -227,6 +227,7 @@ void Game::Render() {
 
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
@@ -241,8 +242,7 @@ void Game::Render() {
 		{ tileMap->tileWidth, tileMap->tileHeight },
 		mCharacter.tileId,
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		tileMapHandle
-	);
+		tileSetHandle);
 
 	Renderer2D::EndScene();
 

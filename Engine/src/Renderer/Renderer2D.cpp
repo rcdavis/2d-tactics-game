@@ -315,10 +315,9 @@ namespace Renderer2D {
 		const glm::vec2& size,
 		uint16_t tileId,
 		const glm::vec4& color,
-		TileMapHandle tileMapHandle)
+		TileSetHandle tileSetHandle)
 	{
-		const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
-		const TileSet* const tileSet = TileSystem::GetTileSet(tileMap->tileSetHandle);
+		const TileSet* const tileSet = TileSystem::GetTileSet(tileSetHandle);
 
 		int32_t texIndex = 0;
 		for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {

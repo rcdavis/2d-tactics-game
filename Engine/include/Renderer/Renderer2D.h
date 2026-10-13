@@ -48,7 +48,7 @@ namespace Renderer2D {
 		const glm::vec2& size,
 		uint16_t tileId,
 		const glm::vec4& color,
-		TileMapHandle tileMapHandle);
+		TileSetHandle tileSetHandle);
 
 	void DrawTileMap(Camera2D& camera, TileMapHandle tileMapHandle);
 }
