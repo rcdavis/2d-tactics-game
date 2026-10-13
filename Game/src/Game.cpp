@@ -103,10 +103,7 @@ bool Game::Init() {
 
 	mCharacter = {
 		.position = {0, 0},
-		.sourceX = 16,
-		.sourceY = 256,
-		.sourceWidth = 16,
-		.sourceHeight = 16,
+		.tileId = 114,
 		.textureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet),
 	};
 
@@ -239,14 +236,12 @@ void Game::Render() {
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
 
-	Renderer2D::DrawTextureQuad(
+	Renderer2D::DrawTile(
 		{ mCharacter.position.x, mCharacter.position.y, 0.8f },
-		mCharacter.sourceX,
-		mCharacter.sourceY,
-		mCharacter.sourceWidth,
-		mCharacter.sourceHeight,
+		{ tileMap->tileWidth, tileMap->tileHeight },
+		mCharacter.tileId,
 		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		mCharacter.textureHandle
+		tileMapHandle
 	);
 
 	Renderer2D::EndScene();
