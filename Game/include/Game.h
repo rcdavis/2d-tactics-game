@@ -3,8 +3,10 @@
 #include "Platform.h"
 
 #include "Renderer/Camera2D.h"
+#include "Tiles/TileHandle.h"
 #include "Input/ActionMap.h"
 
+#include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
 
 class Game {
@@ -25,9 +27,15 @@ private:
 
 	void Close();
 
+	entt::entity CreateCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex = 0);
+
 private:
 	Platform mPlatform;
 	ActionMap mActionMap;
+
+	entt::registry mRegistry;
+	entt::entity mCharacter = entt::null;
+
 	Camera2D mCamera;
 
 	// Cursor position in column and row

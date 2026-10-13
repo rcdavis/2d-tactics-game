@@ -16,6 +16,8 @@
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
+#include "Components.h"
+
 #include <filesystem>
 
 Game::~Game() {
@@ -100,6 +102,8 @@ bool Game::Init() {
 	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
 
 	mTimeSinceKeyPressed = 0.0f;
+
+	mCharacter = CreateCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
 
 	mIsRunning = true;
 
@@ -208,7 +212,10 @@ void Game::Update(float elapsedTime) {
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
 	if (mActionMap.IsPressed(Action::Select)) {
-		LOG_INFO("Elapsed time: {}", elapsedTime);
+		GridPosition& position = mRegistry.get<GridPosition>(mCharacter);
+		if (mCursorPos == position.cell) {
+			LOG_INFO("Character selected");
+		}
 	}
 }
 
@@ -219,6 +226,7 @@ void Game::Render() {
 
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
@@ -227,6 +235,15 @@ void Game::Render() {
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
+
+	mRegistry.view<GridPosition, Sprite>().each([tileMap](auto entity, auto& gridPosition, auto& sprite) {
+		Renderer2D::DrawTile(
+			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.5f },
+			{ tileMap->tileWidth, tileMap->tileHeight },
+			sprite.frameIndex,
+			{ 1.0f, 1.0f, 1.0f, 1.0f },
+			sprite.tileSetHandle);
+	});
 
 	Renderer2D::EndScene();
 
@@ -241,4 +258,11 @@ void Game::Close() {
 	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
+}
+
+entt::entity Game::CreateCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
+	entt::entity character = mRegistry.create();
+	mRegistry.emplace<GridPosition>(character, cell);
+	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
+	return character;
 }
