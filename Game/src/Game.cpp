@@ -238,7 +238,7 @@ void Game::Render() {
 
 	mRegistry.view<GridPosition, Sprite>().each([tileMap](auto entity, auto& gridPosition, auto& sprite) {
 		Renderer2D::DrawTile(
-			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.8f },
+			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.5f },
 			{ tileMap->tileWidth, tileMap->tileHeight },
 			sprite.frameIndex,
 			{ 1.0f, 1.0f, 1.0f, 1.0f },
