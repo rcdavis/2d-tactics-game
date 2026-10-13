@@ -17,6 +17,7 @@
 #include "ShaderIds.h"
 #include "TileIds.h"
 #include "Components.h"
+#include "Rng.h"
 
 #include <filesystem>
 
@@ -85,6 +86,8 @@ bool Game::Init() {
 			return false;
 		}
 	}
+
+	Rng::Init();
 
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 

@@ -18,6 +18,7 @@ add_library(Engine STATIC
     src/Tiles/TileMap.cpp
     src/Tiles/TileSystem.cpp
     src/Utils/Log.cpp
+    src/Rng.cpp
 )
 
 if(USE_SDL3_BACKEND)
