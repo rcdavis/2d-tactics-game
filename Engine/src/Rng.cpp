@@ -5,15 +5,13 @@
 namespace Rng {
 	std::mt19937 s_Engine;
 
-	bool Init() {
+	void Init() {
 		std::random_device rd;
 		s_Engine.seed(rd());
-		return true;
 	}
 
-	bool InitSeeded(uint32_t seed) {
+	void InitSeeded(uint32_t seed) {
 		s_Engine.seed(seed);
-		return true;
 	}
 
 	bool RollPercentage(uint8_t percentage) {
