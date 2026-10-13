@@ -78,9 +78,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann-json)
 
 FetchContent_Declare(
-    entt
+    EnTT
     GIT_REPOSITORY https://github.com/skypjack/entt.git
     GIT_TAG        v4.0.0
     GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(entt)
+FetchContent_MakeAvailable(EnTT)

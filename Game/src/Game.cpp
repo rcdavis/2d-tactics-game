@@ -16,6 +16,8 @@
 #include "TextureIds.h"
 #include "ShaderIds.h"
 #include "TileIds.h"
+#include "Components.h"
+
 #include <filesystem>
 
 Game::~Game() {
@@ -101,11 +103,7 @@ bool Game::Init() {
 
 	mTimeSinceKeyPressed = 0.0f;
 
-	mCharacter = {
-		.position = {0, 0},
-		.tileId = 114,
-		.textureHandle = static_cast<TextureHandle>(Res::Textures::Id::ToenTileSet),
-	};
+	mCharacter = CreateCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
 
 	mIsRunning = true;
 
@@ -214,7 +212,8 @@ void Game::Update(float elapsedTime) {
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
 	if (mActionMap.IsPressed(Action::Select)) {
-		if (mCursorPos == mCharacter.position) {
+		GridPosition& position = mRegistry.get<GridPosition>(mCharacter);
+		if (mCursorPos == position.cell) {
 			LOG_INFO("Character selected");
 		}
 	}
@@ -237,12 +236,14 @@ void Game::Render() {
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
 
-	Renderer2D::DrawTile(
-		{ mCharacter.position.x, mCharacter.position.y, 0.8f },
-		{ tileMap->tileWidth, tileMap->tileHeight },
-		mCharacter.tileId,
-		{ 1.0f, 1.0f, 1.0f, 1.0f },
-		tileSetHandle);
+	mRegistry.view<GridPosition, Sprite>().each([tileMap](auto entity, auto& gridPosition, auto& sprite) {
+		Renderer2D::DrawTile(
+			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.8f },
+			{ tileMap->tileWidth, tileMap->tileHeight },
+			sprite.frameIndex,
+			{ 1.0f, 1.0f, 1.0f, 1.0f },
+			sprite.tileSetHandle);
+	});
 
 	Renderer2D::EndScene();
 
@@ -257,4 +258,11 @@ void Game::Close() {
 	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
+}
+
+entt::entity Game::CreateCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
+	entt::entity character = mRegistry.create();
+	mRegistry.emplace<GridPosition>(character, cell);
+	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
+	return character;
 }
