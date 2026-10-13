@@ -3,7 +3,7 @@
 #include <random>
 
 namespace Rng {
-	std::mt19937 s_Engine;
+	static std::mt19937 s_Engine;
 
 	void Init() {
 		std::random_device rd;
