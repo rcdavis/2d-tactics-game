@@ -16,6 +16,7 @@ add_library(Engine STATIC
     src/Renderer/ShaderSystem.cpp
     src/Renderer/TextureSystem.cpp
     src/Tiles/TileMap.cpp
+    src/Tiles/TilePathing.cpp
     src/Tiles/TileSystem.cpp
     src/Utils/Log.cpp
     src/Rng.cpp
