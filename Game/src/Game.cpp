@@ -106,7 +106,7 @@ bool Game::Init() {
 
 	mTimeSinceKeyPressed = 0.0f;
 
-	mCharacter = CreateCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
+	mCharacter = CreatePlayerTeamCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
 
 	mIsRunning = true;
 
@@ -117,6 +117,9 @@ bool Game::Init() {
 
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
+
+	mRegistry.clear();
+	mCharacter = entt::null;
 
 	Renderer2D::Shutdown();
 	TileSystem::Shutdown();
@@ -147,13 +150,11 @@ void Game::Run() {
 				break;
 			}
 
+			Input::HandleEvent(event);
+
 			switch (event.type) {
 			case PlatformEvent::Type::WindowPixelSizeChanged:
 				OnResize(event.windowSize.width, event.windowSize.height);
-				break;
-			case PlatformEvent::Type::KeyDown:
-			case PlatformEvent::Type::KeyUp:
-				Input::HandleEvent(event);
 				break;
 			default:
 				break;
@@ -194,14 +195,14 @@ void Game::Update(float elapsedTime) {
 		}
 	}
 
-	mCamera.position = {
-		mCursorPos.x * tileMap->tileWidth - mCamera.width / 2.0f,
-		mCursorPos.y * tileMap->tileHeight - mCamera.height / 2.0f
-	};
-
 	const glm::vec2 worldEndPos = {
 		tileMap->tileColumnCount * tileMap->tileWidth,
 		tileMap->tileRowCount * tileMap->tileHeight
+	};
+
+	mCamera.position = {
+		mCursorPos.x * tileMap->tileWidth - mCamera.width / 2.0f,
+		mCursorPos.y * tileMap->tileHeight - mCamera.height / 2.0f
 	};
 
 	if (mCamera.position.x < 0.0f)
@@ -263,9 +264,10 @@ void Game::Close() {
 	mIsRunning = false;
 }
 
-entt::entity Game::CreateCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
+entt::entity Game::CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
 	entt::entity character = mRegistry.create();
 	mRegistry.emplace<GridPosition>(character, cell);
 	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
+	mRegistry.emplace<PlayerTeam>(character);
 	return character;
 }
