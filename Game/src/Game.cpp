@@ -26,6 +26,10 @@ Game::~Game() {
 }
 
 bool Game::Init() {
+	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
+
 	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
 		.width = 800,
@@ -89,9 +93,6 @@ bool Game::Init() {
 
 	Rng::Init();
 
-	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-
 	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
 	if (!Renderer2D::Init(mPlatform.renderDevice, quadShaderHandle)) {
@@ -109,7 +110,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	mCharacter = CreatePlayerTeamCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
+	mCharacter = CreatePlayerTeamCharacter({0, 0}, tileSetHandle, 114);
 
 	mIsRunning = true;
 
