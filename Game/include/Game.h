@@ -4,6 +4,7 @@
 
 #include "Renderer/Camera2D.h"
 #include "Tiles/TileHandle.h"
+#include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
 
 #include "entt/entity/registry.hpp"
@@ -32,6 +33,8 @@ private:
 private:
 	Platform mPlatform;
 	ActionMap mActionMap;
+
+	TilePathing mTilePathing;
 
 	entt::registry mRegistry;
 	entt::entity mCharacter = entt::null;

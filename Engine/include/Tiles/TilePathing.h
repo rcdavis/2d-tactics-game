@@ -2,8 +2,6 @@
 
 #include "Tiles/TileHandle.h"
 
-#include <vector>
-
 class TilePathing {
 public:
 	struct Cell {
@@ -14,11 +12,13 @@ public:
 
 public:
 	TilePathing() = default;
+	~TilePathing();
 
-	void SetTileMap(TileMapHandle tileMapHandle);
+	void Init(TileMapHandle tileMapHandle);
+	void Destroy();
 
 private:
-	std::vector<Cell> mCells;
-	uint32_t mRowCount = 0;
-	uint32_t mColumnCount = 0;
+	Cell* mCells = nullptr;
+	uint16_t mRowCount = 0;
+	uint16_t mColumnCount = 0;
 };

@@ -90,6 +90,7 @@ bool Game::Init() {
 	Rng::Init();
 
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 
 	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
@@ -106,6 +107,8 @@ bool Game::Init() {
 
 	mTimeSinceKeyPressed = 0.0f;
 
+	mTilePathing.Init(tileMapHandle);
+
 	mCharacter = CreatePlayerTeamCharacter({0, 0}, static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen), 114);
 
 	mIsRunning = true;
@@ -117,6 +120,8 @@ bool Game::Init() {
 
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
+
+	mTilePathing.Destroy();
 
 	mRegistry.clear();
 	mCharacter = entt::null;
