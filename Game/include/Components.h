@@ -13,3 +13,5 @@ struct Sprite {
 	TileSetHandle tileSetHandle = InvalidTileSetHandle;
 	uint16_t frameIndex = 0;
 };
+
+struct PlayerTeam {};
