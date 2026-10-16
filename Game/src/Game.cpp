@@ -284,11 +284,10 @@ void Game::Render() {
 
 		auto path = mTilePathing.FindPath(mStartPos.y, mStartPos.x, mEndPos.y, mEndPos.x);
 		for (const TilePathing::Cell& cell : path) {
-			Renderer2D::DrawTexturedQuad(
+			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
 				{ tileMap->tileWidth, tileMap->tileHeight },
-				{ 1.0f, 1.0f, 0.0f, 0.5f },
-				selectionRingTextureHandle);
+				{ 0.0f, 0.0f, 0.75f, 0.5f });
 		}
 
 		Renderer2D::Flush();
