@@ -21,6 +21,8 @@ public:
 
 	std::vector<Cell> FindPath(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol);
 
+	Cell GetCell(uint16_t row, uint16_t col) const { return mCells[static_cast<uint32_t>(row) * mColumnCount + col]; }
+
 private:
 	Cell* mCells = nullptr;
 	uint16_t mRowCount = 0;

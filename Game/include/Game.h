@@ -12,6 +12,13 @@
 
 class Game {
 public:
+	enum class State : uint8_t {
+		SelectStartPos,
+		SelectEndPos,
+		DisplayPath,
+	};
+
+public:
 	Game() = default;
 	~Game();
 
@@ -46,5 +53,6 @@ private:
 
 	float mTimeSinceKeyPressed = 0.0f;
 
+	State mState = State::SelectStartPos;
 	bool mIsRunning = false;
 };

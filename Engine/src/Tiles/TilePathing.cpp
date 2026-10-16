@@ -33,7 +33,7 @@ void TilePathing::Init(TileMapHandle tileMapHandle) {
 				mCells[row * mColumnCount + col] = {
 					.row = row,
 					.col = col,
-					.movementCost = tileSet->terrains[tileId].movementCost,
+					.movementCost = tileSet->terrains[tileId - 1].movementCost, // tile IDs in the map are 1-based (0 = empty)
 				};
 				break;
 			}

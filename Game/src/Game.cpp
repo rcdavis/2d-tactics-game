@@ -227,6 +227,11 @@ void Game::Update(float elapsedTime) {
 			LOG_INFO("Character selected");
 		}
 	}
+
+	if (mActionMap.IsPressed(Action::Pause)) {
+		TilePathing::Cell cell = mTilePathing.GetCell(mCursorPos.y, mCursorPos.x);
+		LOG_INFO("Cell: column: {}, row: {}, movementCost: {}", cell.col, cell.row, cell.movementCost);
+	}
 }
 
 void Game::Render() {
