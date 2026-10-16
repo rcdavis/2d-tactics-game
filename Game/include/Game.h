@@ -9,6 +9,7 @@
 
 #include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
+#include "glm/ext/vector_uint2.hpp"
 
 class Game {
 public:
@@ -50,6 +51,9 @@ private:
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
+
+	glm::uvec2 mStartPos {0, 0};
+	glm::uvec2 mEndPos {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
 

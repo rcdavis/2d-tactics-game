@@ -222,9 +222,26 @@ void Game::Update(float elapsedTime) {
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
 	if (mActionMap.IsPressed(Action::Select)) {
-		GridPosition& position = mRegistry.get<GridPosition>(mCharacter);
-		if (mCursorPos == position.cell) {
-			LOG_INFO("Character selected");
+		switch (mState) {
+		case State::SelectStartPos:
+		{
+			mStartPos = glm::uvec2(mCursorPos.x, mCursorPos.y);
+			mState = State::SelectEndPos;
+		}
+		break;
+
+		case State::SelectEndPos:
+		{
+			mEndPos = glm::uvec2(mCursorPos.x, mCursorPos.y);
+			mState = State::DisplayPath;
+		}
+		break;
+
+		case State::DisplayPath:
+		{
+			mState = State::SelectStartPos;
+		}
+		break;
 		}
 	}
 
@@ -259,6 +276,25 @@ void Game::Render() {
 			{ 1.0f, 1.0f, 1.0f, 1.0f },
 			sprite.tileSetHandle);
 	});
+
+	if (mState == State::DisplayPath) {
+		Renderer2D::Flush();
+
+		mPlatform.renderDevice->EnableBlending(true);
+
+		auto path = mTilePathing.FindPath(mStartPos.y, mStartPos.x, mEndPos.y, mEndPos.x);
+		for (const TilePathing::Cell& cell : path) {
+			Renderer2D::DrawTexturedQuad(
+				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
+				{ tileMap->tileWidth, tileMap->tileHeight },
+				{ 1.0f, 1.0f, 0.0f, 0.5f },
+				selectionRingTextureHandle);
+		}
+
+		Renderer2D::Flush();
+
+		mPlatform.renderDevice->EnableBlending(false);
+	}
 
 	Renderer2D::EndScene();
 
