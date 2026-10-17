@@ -6,9 +6,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <limits>
 #include <queue>
+#include <tuple>
 #include <utility>
 
 TilePathing::~TilePathing() {
@@ -66,11 +68,11 @@ std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t
 	std::vector<uint16_t> distances(cellCount, Unreachable);
 	std::vector<uint32_t> parents(cellCount, NoParent);
 
-	using QueueEntry = std::pair<uint16_t, uint32_t>;
+	using QueueEntry = std::tuple<uint32_t, uint16_t, uint32_t>;
 	std::priority_queue<QueueEntry, std::vector<QueueEntry>, std::greater<QueueEntry>> queue;
 
 	distances[startIndex] = 0;
-	queue.emplace(0, startIndex);
+	queue.emplace(Heuristic(startRow, startCol, endRow, endCol), 0, startIndex);
 
 	const auto relaxNeighbor = [&](uint16_t row, uint16_t col, uint32_t currentIndex, uint16_t currentDistance) {
 		const uint32_t neighborIndex = static_cast<uint32_t>(row) * mColumnCount + col;
@@ -84,11 +86,16 @@ std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t
 
 		distances[neighborIndex] = newDistance;
 		parents[neighborIndex] = currentIndex;
-		queue.emplace(newDistance, neighborIndex);
+		queue.emplace(
+			static_cast<uint32_t>(newDistance) + Heuristic(row, col, endRow, endCol),
+			newDistance,
+			neighborIndex
+		);
 	};
 
 	while (!queue.empty()) {
-		const auto [distance, currentIndex] = queue.top();
+		const uint16_t distance = std::get<1>(queue.top());
+		const uint32_t currentIndex = std::get<2>(queue.top());
 		queue.pop();
 
 		if (distance != distances[currentIndex])
@@ -124,4 +131,10 @@ std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t
 
 	std::reverse(path.begin(), path.end());
 	return path;
+}
+
+uint32_t TilePathing::Heuristic(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol) const {
+	const int32_t dRow = static_cast<int32_t>(endRow) - static_cast<int32_t>(startRow);
+	const int32_t dCol = static_cast<int32_t>(endCol) - static_cast<int32_t>(startCol);
+	return static_cast<uint32_t>(std::abs(dRow) + std::abs(dCol));
 }
