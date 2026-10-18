@@ -133,6 +133,62 @@ std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t
 	return path;
 }
 
+std::vector<TilePathing::Cell> TilePathing::FindMovementZone(uint16_t startRow, uint16_t startCol, uint8_t movementRange) {
+	if (mCells == nullptr || startRow >= mRowCount || startCol >= mColumnCount)
+		return {};
+
+	const uint32_t startIndex = static_cast<uint32_t>(startRow) * mColumnCount + startCol;
+	if (mCells[startIndex].movementCost == 0)
+		return {};
+
+	constexpr uint32_t Unreachable = std::numeric_limits<uint32_t>::max();
+	std::vector<uint32_t> distances(static_cast<size_t>(mRowCount) * mColumnCount, Unreachable);
+
+	using QueueEntry = std::pair<uint32_t, uint32_t>; // (distance, cell index)
+	std::priority_queue<QueueEntry, std::vector<QueueEntry>, std::greater<QueueEntry>> queue;
+
+	distances[startIndex] = 0;
+	queue.emplace(0, startIndex);
+
+	const auto relaxNeighbor = [&](uint16_t row, uint16_t col, uint32_t currentDistance) {
+		const uint32_t neighborIndex = static_cast<uint32_t>(row) * mColumnCount + col;
+		const uint8_t movementCost = mCells[neighborIndex].movementCost;
+		if (movementCost == 0)
+			return;
+
+		const uint32_t newDistance = currentDistance + movementCost;
+		if (newDistance > movementRange || newDistance >= distances[neighborIndex])
+			return;
+
+		distances[neighborIndex] = newDistance;
+		queue.emplace(newDistance, neighborIndex);
+	};
+
+	std::vector<Cell> zone;
+	while (!queue.empty()) {
+		const auto [distance, currentIndex] = queue.top();
+		queue.pop();
+
+		if (distance != distances[currentIndex])
+			continue;
+
+		zone.push_back(mCells[currentIndex]);
+
+		const uint16_t row = static_cast<uint16_t>(currentIndex / mColumnCount);
+		const uint16_t col = static_cast<uint16_t>(currentIndex % mColumnCount);
+		if (row > 0)
+			relaxNeighbor(row - 1, col, distance);
+		if (col > 0)
+			relaxNeighbor(row, col - 1, distance);
+		if (col + 1 < mColumnCount)
+			relaxNeighbor(row, col + 1, distance);
+		if (row + 1 < mRowCount)
+			relaxNeighbor(row + 1, col, distance);
+	}
+
+	return zone;
+}
+
 uint32_t TilePathing::Heuristic(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol) const {
 	const int32_t dRow = static_cast<int32_t>(endRow) - static_cast<int32_t>(startRow);
 	const int32_t dCol = static_cast<int32_t>(endCol) - static_cast<int32_t>(startCol);
