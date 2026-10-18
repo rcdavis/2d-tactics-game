@@ -10,7 +10,6 @@
 #include "entt/entity/fwd.hpp"
 #include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
-#include "glm/ext/vector_uint2.hpp"
 
 class Game {
 public:
@@ -45,15 +44,12 @@ private:
 	TilePathing mTilePathing;
 
 	entt::registry mRegistry;
-	entt::entity mCharacter = entt::null;
 	entt::entity mSelectedCharacter = entt::null;
 
 	Camera2D mCamera;
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
-
-	glm::uvec2 mSelectedCharacterCell {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
 

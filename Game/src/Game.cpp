@@ -29,6 +29,7 @@ bool Game::Init() {
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
+	constexpr uint16_t blueSpearFrameIndex = 114;
 
 	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
@@ -110,7 +111,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	mCharacter = CreatePlayerTeamCharacter({0, 0}, tileSetHandle, 114);
+	CreatePlayerTeamCharacter({0, 0}, tileSetHandle, blueSpearFrameIndex);
 
 	mIsRunning = true;
 
@@ -125,7 +126,7 @@ void Game::Shutdown() {
 	mTilePathing.Destroy();
 
 	mRegistry.clear();
-	mCharacter = entt::null;
+	mSelectedCharacter = entt::null;
 
 	Renderer2D::Shutdown();
 	TileSystem::Shutdown();
@@ -230,7 +231,6 @@ void Game::Update(float elapsedTime) {
 				const auto& gridPosition = view.get<GridPosition>(entity);
 				if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
 					mSelectedCharacter = entity;
-					mSelectedCharacterCell = glm::uvec2(gridPosition.cell.x, gridPosition.cell.y);
 					mState = State::MovingCharacter;
 					break;
 				}
@@ -240,11 +240,26 @@ void Game::Update(float elapsedTime) {
 
 		case State::MovingCharacter:
 		{
+			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, 7);
+			for (const TilePathing::Cell& cell : tiles) {
+				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
+					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+					break;
+				}
+			}
+
 			mSelectedCharacter = entt::null;
-			mSelectedCharacterCell = glm::uvec2(0, 0);
 			mState = State::SelectCharacter;
 		}
 		break;
+		}
+	}
+
+	if (mActionMap.IsPressed(Action::Cancel)) {
+		if (mState == State::MovingCharacter) {
+			mSelectedCharacter = entt::null;
+			mState = State::SelectCharacter;
 		}
 	}
 
@@ -280,12 +295,14 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	if (mState == State::MovingCharacter) {
+	if (mState == State::MovingCharacter && mSelectedCharacter != entt::null) {
 		Renderer2D::Flush();
 
 		mPlatform.renderDevice->EnableBlending(true);
 
-		auto path = mTilePathing.FindMovementZone(mSelectedCharacterCell.y, mSelectedCharacterCell.x, 7);
+		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
+
+		auto path = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, 7);
 		for (const TilePathing::Cell& cell : path) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
