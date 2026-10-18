@@ -4,12 +4,20 @@
 
 #include "Renderer/Camera2D.h"
 #include "Tiles/TileHandle.h"
+#include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
 
+#include "entt/entity/fwd.hpp"
 #include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
 
 class Game {
+public:
+	enum class State : uint8_t {
+		SelectCharacter,
+		MovingCharacter,
+	};
+
 public:
 	Game() = default;
 	~Game();
@@ -33,8 +41,10 @@ private:
 	Platform mPlatform;
 	ActionMap mActionMap;
 
+	TilePathing mTilePathing;
+
 	entt::registry mRegistry;
-	entt::entity mCharacter = entt::null;
+	entt::entity mSelectedCharacter = entt::null;
 
 	Camera2D mCamera;
 
@@ -43,5 +53,6 @@ private:
 
 	float mTimeSinceKeyPressed = 0.0f;
 
+	State mState = State::SelectCharacter;
 	bool mIsRunning = false;
 };

@@ -52,6 +52,7 @@ bool GLRenderDevice::Init(IWindow* window) {
 	}
 
 	glViewport(0, 0, window->GetWidth(), window->GetHeight());
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 #ifdef DEBUG
 	GLint glMajorVer = 0, glMinorVer = 0;
