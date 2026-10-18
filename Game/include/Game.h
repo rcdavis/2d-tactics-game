@@ -7,6 +7,7 @@
 #include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
 
+#include "entt/entity/fwd.hpp"
 #include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
 #include "glm/ext/vector_uint2.hpp"
@@ -14,9 +15,8 @@
 class Game {
 public:
 	enum class State : uint8_t {
-		SelectStartPos,
-		SelectEndPos,
-		DisplayPath,
+		SelectCharacter,
+		MovingCharacter,
 	};
 
 public:
@@ -46,17 +46,17 @@ private:
 
 	entt::registry mRegistry;
 	entt::entity mCharacter = entt::null;
+	entt::entity mSelectedCharacter = entt::null;
 
 	Camera2D mCamera;
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
 
-	glm::uvec2 mStartPos {0, 0};
-	glm::uvec2 mEndPos {0, 0};
+	glm::uvec2 mSelectedCharacterCell {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
 
-	State mState = State::SelectStartPos;
+	State mState = State::SelectCharacter;
 	bool mIsRunning = false;
 };

@@ -223,23 +223,26 @@ void Game::Update(float elapsedTime) {
 
 	if (mActionMap.IsPressed(Action::Select)) {
 		switch (mState) {
-		case State::SelectStartPos:
+		case State::SelectCharacter:
 		{
-			mStartPos = glm::uvec2(mCursorPos.x, mCursorPos.y);
-			mState = State::SelectEndPos;
+			auto view = mRegistry.view<GridPosition, PlayerTeam>();
+			for (auto entity : view) {
+				const auto& gridPosition = view.get<GridPosition>(entity);
+				if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+					mSelectedCharacter = entity;
+					mSelectedCharacterCell = glm::uvec2(gridPosition.cell.x, gridPosition.cell.y);
+					mState = State::MovingCharacter;
+					break;
+				}
+			}
 		}
 		break;
 
-		case State::SelectEndPos:
+		case State::MovingCharacter:
 		{
-			mEndPos = glm::uvec2(mCursorPos.x, mCursorPos.y);
-			mState = State::DisplayPath;
-		}
-		break;
-
-		case State::DisplayPath:
-		{
-			mState = State::SelectStartPos;
+			mSelectedCharacter = entt::null;
+			mSelectedCharacterCell = glm::uvec2(0, 0);
+			mState = State::SelectCharacter;
 		}
 		break;
 		}
@@ -277,12 +280,12 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	if (mState == State::DisplayPath) {
+	if (mState == State::MovingCharacter) {
 		Renderer2D::Flush();
 
 		mPlatform.renderDevice->EnableBlending(true);
 
-		auto path = mTilePathing.FindPath(mStartPos.y, mStartPos.x, mEndPos.y, mEndPos.x);
+		auto path = mTilePathing.FindMovementZone(mSelectedCharacterCell.y, mSelectedCharacterCell.x, 7);
 		for (const TilePathing::Cell& cell : path) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
