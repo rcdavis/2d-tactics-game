@@ -35,7 +35,7 @@ private:
 
 	void Close();
 
-	entt::entity CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex, uint8_t movementCost);
+	entt::entity CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
 
 private:
 	Platform mPlatform;

@@ -29,7 +29,6 @@ bool Game::Init() {
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
-	constexpr uint16_t blueSpearFrameIndex = 114;
 
 	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
@@ -111,7 +110,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	CreatePlayerTeamCharacter({0, 0}, tileSetHandle, blueSpearFrameIndex, 7);
+	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
 
 	mIsRunning = true;
 
@@ -330,11 +329,14 @@ void Game::Close() {
 	mIsRunning = false;
 }
 
-entt::entity Game::CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex, uint8_t movementCost) {
-	entt::entity character = mRegistry.create();
-	mRegistry.emplace<GridPosition>(character, cell);
-	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
-	mRegistry.emplace<PlayerTeam>(character);
-	mRegistry.emplace<Stats>(character, movementCost);
-	return character;
+entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueSpearFrameIndex = 114;
+	constexpr uint8_t blueSpearMovementCost = 7;
+
+	entt::entity spearman = mRegistry.create();
+	mRegistry.emplace<GridPosition>(spearman, cell);
+	mRegistry.emplace<Sprite>(spearman, tileSetHandle, blueSpearFrameIndex);
+	mRegistry.emplace<PlayerTeam>(spearman);
+	mRegistry.emplace<Stats>(spearman, blueSpearMovementCost);
+	return spearman;
 }
