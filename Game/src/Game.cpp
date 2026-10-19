@@ -243,7 +243,7 @@ void Game::Update(float elapsedTime) {
 		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, stats.movementCost);
+			const auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, stats.movementCost);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
@@ -278,7 +278,7 @@ void Game::Render() {
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
-		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.7f },
+		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.6f },
 		{ tileMap->tileWidth, tileMap->tileHeight },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
@@ -301,12 +301,20 @@ void Game::Render() {
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
 		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 
-		auto path = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, stats.movementCost);
-		for (const TilePathing::Cell& cell : path) {
+		const auto movementZone = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, stats.movementCost);
+		for (const TilePathing::Cell& cell : movementZone) {
 			Renderer2D::DrawQuad(
-				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
+				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
 				{ tileMap->tileWidth, tileMap->tileHeight },
 				{ 0.0f, 0.0f, 0.75f, 0.5f });
+		}
+
+		const auto tilePath = mTilePathing.FindPath(gridPosition.cell.y, gridPosition.cell.x, mCursorPos.y, mCursorPos.x);
+		for (const TilePathing::Cell& cell : tilePath) {
+			Renderer2D::DrawQuad(
+				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },
+				{ tileMap->tileWidth, tileMap->tileHeight },
+				{ 0.75f, 0.0f, 0.0f, 0.5f });
 		}
 
 		Renderer2D::Flush();
