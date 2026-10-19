@@ -51,7 +51,13 @@ void TilePathing::Destroy() {
 	mColumnCount = 0;
 }
 
-std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol) {
+std::vector<TilePathing::Cell> TilePathing::FindPath(
+	uint16_t startRow,
+	uint16_t startCol,
+	uint16_t endRow,
+	uint16_t endCol,
+	uint8_t movementRange
+) {
 	if (mCells == nullptr || startRow >= mRowCount || startCol >= mColumnCount ||
 		endRow >= mRowCount || endCol >= mColumnCount) {
 		return {};
@@ -130,6 +136,20 @@ std::vector<TilePathing::Cell> TilePathing::FindPath(uint16_t startRow, uint16_t
 		return {};
 
 	std::reverse(path.begin(), path.end());
+
+	// -1 (wrapped to 255) means unlimited range; otherwise cut the path where the range is exceeded
+	if (movementRange != static_cast<uint8_t>(-1)) {
+		uint32_t cost = 0;
+		size_t keep = 1; // the start cell is always kept
+		while (keep < path.size()) {
+			cost += path[keep].movementCost;
+			if (cost > movementRange)
+				break;
+			++keep;
+		}
+		path.resize(keep);
+	}
+
 	return path;
 }
 

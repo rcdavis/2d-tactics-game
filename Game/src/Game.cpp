@@ -309,7 +309,12 @@ void Game::Render() {
 				{ 0.0f, 0.0f, 0.75f, 0.5f });
 		}
 
-		const auto tilePath = mTilePathing.FindPath(gridPosition.cell.y, gridPosition.cell.x, mCursorPos.y, mCursorPos.x);
+		const auto tilePath = mTilePathing.FindPath(
+			gridPosition.cell.y,
+			gridPosition.cell.x,
+			mCursorPos.y,
+			mCursorPos.x,
+			stats.movementCost);
 		for (const TilePathing::Cell& cell : tilePath) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },

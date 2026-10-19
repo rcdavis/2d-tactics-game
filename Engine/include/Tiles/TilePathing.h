@@ -19,7 +19,12 @@ public:
 	void Init(TileMapHandle tileMapHandle);
 	void Destroy();
 
-	std::vector<Cell> FindPath(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol);
+	std::vector<Cell> FindPath(
+		uint16_t startRow,
+		uint16_t startCol,
+		uint16_t endRow,
+		uint16_t endCol,
+		uint8_t movementRange = -1);
 
 	std::vector<Cell> FindMovementZone(uint16_t startRow, uint16_t startCol, uint8_t movementRange);
 
