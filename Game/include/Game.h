@@ -35,6 +35,7 @@ private:
 
 	void Close();
 
+	entt::entity CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
 

@@ -110,6 +110,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
+	CreatePlayerTeamArcher({7, 8}, tileSetHandle);
 	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
 	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
 
@@ -341,6 +342,18 @@ void Game::Close() {
 	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
+}
+
+entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueArcherFrameIndex = 113;
+	constexpr uint8_t blueArcherMovementCost = 6;
+
+	entt::entity archer = mRegistry.create();
+	mRegistry.emplace<GridPosition>(archer, cell);
+	mRegistry.emplace<Sprite>(archer, tileSetHandle, blueArcherFrameIndex);
+	mRegistry.emplace<PlayerTeam>(archer);
+	mRegistry.emplace<Stats>(archer, blueArcherMovementCost);
+	return archer;
 }
 
 entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
