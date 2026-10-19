@@ -111,6 +111,7 @@ bool Game::Init() {
 	mTilePathing.Init(tileMapHandle);
 
 	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
+	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
 
 	mIsRunning = true;
 
@@ -352,4 +353,16 @@ entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileS
 	mRegistry.emplace<PlayerTeam>(spearman);
 	mRegistry.emplace<Stats>(spearman, blueSpearMovementCost);
 	return spearman;
+}
+
+entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueKnightFrameIndex = 115;
+	constexpr uint8_t blueKnightMovementCost = 5;
+
+	entt::entity knight = mRegistry.create();
+	mRegistry.emplace<GridPosition>(knight, cell);
+	mRegistry.emplace<Sprite>(knight, tileSetHandle, blueKnightFrameIndex);
+	mRegistry.emplace<PlayerTeam>(knight);
+	mRegistry.emplace<Stats>(knight, blueKnightMovementCost);
+	return knight;
 }
