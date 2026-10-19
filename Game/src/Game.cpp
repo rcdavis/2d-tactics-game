@@ -113,6 +113,7 @@ bool Game::Init() {
 	CreatePlayerTeamArcher({7, 8}, tileSetHandle);
 	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
 	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
+	CreatePlayerTeamPaladin({5, 5}, tileSetHandle);
 
 	mIsRunning = true;
 
@@ -378,4 +379,16 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<PlayerTeam>(knight);
 	mRegistry.emplace<Stats>(knight, blueKnightMovementCost);
 	return knight;
+}
+
+entt::entity Game::CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t bluePaladinFrameIndex = 116;
+	constexpr uint8_t bluePaladinMovementCost = 8;
+
+	entt::entity paladin = mRegistry.create();
+	mRegistry.emplace<GridPosition>(paladin, cell);
+	mRegistry.emplace<Sprite>(paladin, tileSetHandle, bluePaladinFrameIndex);
+	mRegistry.emplace<PlayerTeam>(paladin);
+	mRegistry.emplace<Stats>(paladin, bluePaladinMovementCost);
+	return paladin;
 }
