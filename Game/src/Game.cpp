@@ -111,7 +111,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	CreatePlayerTeamCharacter({0, 0}, tileSetHandle, blueSpearFrameIndex);
+	CreatePlayerTeamCharacter({0, 0}, tileSetHandle, blueSpearFrameIndex, 7);
 
 	mIsRunning = true;
 
@@ -243,7 +243,8 @@ void Game::Update(float elapsedTime) {
 	{
 		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
-			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, 7);
+			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, stats.movementCost);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
@@ -284,7 +285,7 @@ void Game::Render() {
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
 
-	mRegistry.view<GridPosition, Sprite>().each([tileMap](auto entity, auto& gridPosition, auto& sprite) {
+	mRegistry.view<GridPosition, Sprite>().each([tileMap](const auto& gridPosition, const auto& sprite) {
 		Renderer2D::DrawTile(
 			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.5f },
 			{ tileMap->tileWidth, tileMap->tileHeight },
@@ -299,8 +300,9 @@ void Game::Render() {
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
+		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 
-		auto path = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, 7);
+		auto path = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, stats.movementCost);
 		for (const TilePathing::Cell& cell : path) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
@@ -328,10 +330,11 @@ void Game::Close() {
 	mIsRunning = false;
 }
 
-entt::entity Game::CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
+entt::entity Game::CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex, uint8_t movementCost) {
 	entt::entity character = mRegistry.create();
 	mRegistry.emplace<GridPosition>(character, cell);
 	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
 	mRegistry.emplace<PlayerTeam>(character);
+	mRegistry.emplace<Stats>(character, movementCost);
 	return character;
 }
