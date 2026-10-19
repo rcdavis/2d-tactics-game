@@ -222,10 +222,10 @@ void Game::Update(float elapsedTime) {
 	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
-	if (mActionMap.IsPressed(Action::Select)) {
-		switch (mState) {
-		case State::SelectCharacter:
-		{
+	switch (mState) {
+	case State::SelectCharacter:
+	{
+		if (mActionMap.IsPressed(Action::Select)) {
 			auto view = mRegistry.view<GridPosition, PlayerTeam>();
 			for (auto entity : view) {
 				const auto& gridPosition = view.get<GridPosition>(entity);
@@ -236,10 +236,12 @@ void Game::Update(float elapsedTime) {
 				}
 			}
 		}
-		break;
+	}
+	break;
 
-		case State::MovingCharacter:
-		{
+	case State::MovingCharacter:
+	{
+		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, 7);
 			for (const TilePathing::Cell& cell : tiles) {
@@ -251,21 +253,17 @@ void Game::Update(float elapsedTime) {
 
 			mSelectedCharacter = entt::null;
 			mState = State::SelectCharacter;
-		}
-		break;
-		}
-	}
-
-	if (mActionMap.IsPressed(Action::Cancel)) {
-		if (mState == State::MovingCharacter) {
+		} else if (mActionMap.IsPressed(Action::Cancel)) {
 			mSelectedCharacter = entt::null;
 			mState = State::SelectCharacter;
 		}
 	}
+	break;
+	}
 
 	if (mActionMap.IsPressed(Action::Pause)) {
-		TilePathing::Cell cell = mTilePathing.GetCell(mCursorPos.y, mCursorPos.x);
-		LOG_INFO("Cell: column: {}, row: {}, movementCost: {}", cell.col, cell.row, cell.movementCost);
+		// TODO: Implement pause menu functionality.
+		Close();
 	}
 }
 
