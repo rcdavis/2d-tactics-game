@@ -29,7 +29,6 @@ bool Game::Init() {
 	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
-	constexpr uint16_t blueSpearFrameIndex = 114;
 
 	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
@@ -111,7 +110,7 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	CreatePlayerTeamCharacter({0, 0}, tileSetHandle, blueSpearFrameIndex);
+	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
 
 	mIsRunning = true;
 
@@ -222,10 +221,10 @@ void Game::Update(float elapsedTime) {
 	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
 		mCamera.position.y = worldEndPos.y - mCamera.height;
 
-	if (mActionMap.IsPressed(Action::Select)) {
-		switch (mState) {
-		case State::SelectCharacter:
-		{
+	switch (mState) {
+	case State::SelectCharacter:
+	{
+		if (mActionMap.IsPressed(Action::Select)) {
 			auto view = mRegistry.view<GridPosition, PlayerTeam>();
 			for (auto entity : view) {
 				const auto& gridPosition = view.get<GridPosition>(entity);
@@ -236,12 +235,15 @@ void Game::Update(float elapsedTime) {
 				}
 			}
 		}
-		break;
+	}
+	break;
 
-		case State::MovingCharacter:
-		{
+	case State::MovingCharacter:
+	{
+		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
-			auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, 7);
+			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+			const auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, stats.movementCost);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
@@ -251,21 +253,17 @@ void Game::Update(float elapsedTime) {
 
 			mSelectedCharacter = entt::null;
 			mState = State::SelectCharacter;
-		}
-		break;
-		}
-	}
-
-	if (mActionMap.IsPressed(Action::Cancel)) {
-		if (mState == State::MovingCharacter) {
+		} else if (mActionMap.IsPressed(Action::Cancel)) {
 			mSelectedCharacter = entt::null;
 			mState = State::SelectCharacter;
 		}
 	}
+	break;
+	}
 
 	if (mActionMap.IsPressed(Action::Pause)) {
-		TilePathing::Cell cell = mTilePathing.GetCell(mCursorPos.y, mCursorPos.x);
-		LOG_INFO("Cell: column: {}, row: {}, movementCost: {}", cell.col, cell.row, cell.movementCost);
+		// TODO: Implement pause menu functionality.
+		Close();
 	}
 }
 
@@ -280,13 +278,13 @@ void Game::Render() {
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
-		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.7f },
+		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.6f },
 		{ tileMap->tileWidth, tileMap->tileHeight },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
 
-	mRegistry.view<GridPosition, Sprite>().each([tileMap](auto entity, auto& gridPosition, auto& sprite) {
+	mRegistry.view<GridPosition, Sprite>().each([tileMap](const auto& gridPosition, const auto& sprite) {
 		Renderer2D::DrawTile(
 			{ gridPosition.cell.x * tileMap->tileWidth, gridPosition.cell.y * tileMap->tileHeight, 0.5f },
 			{ tileMap->tileWidth, tileMap->tileHeight },
@@ -301,13 +299,27 @@ void Game::Render() {
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
+		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 
-		auto path = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, 7);
-		for (const TilePathing::Cell& cell : path) {
+		const auto movementZone = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, stats.movementCost);
+		for (const TilePathing::Cell& cell : movementZone) {
 			Renderer2D::DrawQuad(
-				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.6f },
+				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
 				{ tileMap->tileWidth, tileMap->tileHeight },
 				{ 0.0f, 0.0f, 0.75f, 0.5f });
+		}
+
+		const auto tilePath = mTilePathing.FindPath(
+			gridPosition.cell.y,
+			gridPosition.cell.x,
+			mCursorPos.y,
+			mCursorPos.x,
+			stats.movementCost);
+		for (const TilePathing::Cell& cell : tilePath) {
+			Renderer2D::DrawQuad(
+				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },
+				{ tileMap->tileWidth, tileMap->tileHeight },
+				{ 0.75f, 0.0f, 0.0f, 0.5f });
 		}
 
 		Renderer2D::Flush();
@@ -330,10 +342,14 @@ void Game::Close() {
 	mIsRunning = false;
 }
 
-entt::entity Game::CreatePlayerTeamCharacter(glm::ivec2 cell, TileSetHandle tileSetHandle, uint16_t frameIndex) {
-	entt::entity character = mRegistry.create();
-	mRegistry.emplace<GridPosition>(character, cell);
-	mRegistry.emplace<Sprite>(character, tileSetHandle, frameIndex);
-	mRegistry.emplace<PlayerTeam>(character);
-	return character;
+entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueSpearFrameIndex = 114;
+	constexpr uint8_t blueSpearMovementCost = 7;
+
+	entt::entity spearman = mRegistry.create();
+	mRegistry.emplace<GridPosition>(spearman, cell);
+	mRegistry.emplace<Sprite>(spearman, tileSetHandle, blueSpearFrameIndex);
+	mRegistry.emplace<PlayerTeam>(spearman);
+	mRegistry.emplace<Stats>(spearman, blueSpearMovementCost);
+	return spearman;
 }

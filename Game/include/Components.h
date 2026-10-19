@@ -14,4 +14,8 @@ struct Sprite {
 	uint16_t frameIndex = 0;
 };
 
+struct Stats {
+	uint8_t movementCost = 0;
+};
+
 struct PlayerTeam {};
