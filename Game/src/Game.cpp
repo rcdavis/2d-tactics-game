@@ -110,7 +110,10 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
+	CreatePlayerTeamArcher({7, 8}, tileSetHandle);
 	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
+	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
+	CreatePlayerTeamPaladin({5, 5}, tileSetHandle);
 
 	mIsRunning = true;
 
@@ -342,6 +345,18 @@ void Game::Close() {
 	mIsRunning = false;
 }
 
+entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueArcherFrameIndex = 113;
+	constexpr uint8_t blueArcherMovementCost = 6;
+
+	entt::entity archer = mRegistry.create();
+	mRegistry.emplace<GridPosition>(archer, cell);
+	mRegistry.emplace<Sprite>(archer, tileSetHandle, blueArcherFrameIndex);
+	mRegistry.emplace<PlayerTeam>(archer);
+	mRegistry.emplace<Stats>(archer, blueArcherMovementCost);
+	return archer;
+}
+
 entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueSpearFrameIndex = 114;
 	constexpr uint8_t blueSpearMovementCost = 7;
@@ -352,4 +367,28 @@ entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileS
 	mRegistry.emplace<PlayerTeam>(spearman);
 	mRegistry.emplace<Stats>(spearman, blueSpearMovementCost);
 	return spearman;
+}
+
+entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueKnightFrameIndex = 115;
+	constexpr uint8_t blueKnightMovementCost = 5;
+
+	entt::entity knight = mRegistry.create();
+	mRegistry.emplace<GridPosition>(knight, cell);
+	mRegistry.emplace<Sprite>(knight, tileSetHandle, blueKnightFrameIndex);
+	mRegistry.emplace<PlayerTeam>(knight);
+	mRegistry.emplace<Stats>(knight, blueKnightMovementCost);
+	return knight;
+}
+
+entt::entity Game::CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t bluePaladinFrameIndex = 116;
+	constexpr uint8_t bluePaladinMovementCost = 8;
+
+	entt::entity paladin = mRegistry.create();
+	mRegistry.emplace<GridPosition>(paladin, cell);
+	mRegistry.emplace<Sprite>(paladin, tileSetHandle, bluePaladinFrameIndex);
+	mRegistry.emplace<PlayerTeam>(paladin);
+	mRegistry.emplace<Stats>(paladin, bluePaladinMovementCost);
+	return paladin;
 }
