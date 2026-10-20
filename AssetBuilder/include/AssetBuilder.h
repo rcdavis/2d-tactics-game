@@ -25,7 +25,9 @@ private:
 	void CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
 	void CreateShaderIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
 	void CreateTileIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
-	void CreateStringIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir);
+	void CreateStringIdHeader(
+		const std::filesystem::path& generatedDir,
+		const std::vector<ParsedStringEntry>& stringData);
 
 	bool ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData);
 	bool ParseTileMapData(const std::filesystem::path& tileMapPath, TileMapData& outTileMapData);

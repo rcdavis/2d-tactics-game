@@ -93,7 +93,11 @@ void AssetBuilder::BuildStrings(const std::filesystem::path& inputDir, const std
 	for (const auto& stringFile : mStringFiles)
 		ConvertStringFileToBinary(stringFile, stringsOutputDir);
 
-	//CreateStringIdHeader(inputDir, generatedDir);
+	if (!mStringFiles.empty()) {
+		std::vector<ParsedStringEntry> stringData;
+		ParseStringData(mStringFiles[0], stringData);
+		CreateStringIdHeader(generatedDir, stringData);
+	}
 }
 
 void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir) {
@@ -485,48 +489,30 @@ void AssetBuilder::CreateTileIdHeader(const std::filesystem::path& inputDir, con
 	std::cout << "Generated tile ID header at " << headerPath << std::endl;
 }
 
-void AssetBuilder::CreateStringIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
-	const auto headerPath = generatedDir / "StringId.h";
+void AssetBuilder::CreateStringIdHeader(
+	const std::filesystem::path& generatedDir,
+	const std::vector<ParsedStringEntry>& stringData
+) {
+	const auto headerPath = generatedDir / "StringIds.h";
 	std::ofstream file(headerPath);
 	if (!file) {
 		std::cerr << "Failed to create string ID header at " << headerPath << std::endl;
 		return;
 	}
 
+	file << "////////////////////////////////////////////////////////////////////////\n";
+	file << "// This file is auto-generated. Do not modify directly.\n";
+	file << "////////////////////////////////////////////////////////////////////////\n";
 	file << "#pragma once\n\n";
+	file << "#include <cstdint>\n\n";
+
 	file << "namespace Res::Strings {\n";
 
 	file << "\tenum class Id : uint8_t {\n";
-	for (const auto& stringFile : mStringFiles) {
-		file << "\t\t" << stringFile.stem().string() << ",\n";
+	for (const auto& entry : stringData) {
+		file << "\t\t" << entry.key << ",\n";
 	}
 	file << "\t\tCount\n";
-	file << "\t};\n\n";
-
-	file << "\tinline constexpr const char* ToString(Id id) {\n";
-	file << "\t\tswitch (id) {\n";
-	for (const auto& stringFile : mStringFiles) {
-		file << "\t\t\tcase Id::" << stringFile.stem().string() << ": return \"" << stringFile.stem().string() << "\";\n";
-	}
-	file << "\t\t\tdefault: return \"Unknown\";\n";
-	file << "\t\t}\n";
-	file << "\t}\n\n";
-
-	file << "\tinline constexpr const char* GetPath(Id id) {\n";
-	file << "\t\tswitch (id) {\n";
-	for (const auto& stringFile : mStringFiles) {
-		const auto relativePath = std::filesystem::relative(stringFile, inputDir).replace_extension("strbin");
-		file << "\t\t\tcase Id::" << stringFile.stem().string() << ": return \"" << relativePath.generic_string() << "\";\n";
-	}
-	file << "\t\t\tdefault: return nullptr;\n";
-	file << "\t\t}\n";
-	file << "\t}\n\n";
-
-	file << "\tinline constexpr std::array<const char*, " << std::size(mStringFiles) << "> Paths = {\n";
-	for (const auto& stringFile : mStringFiles) {
-		const auto relativePath = std::filesystem::relative(stringFile, inputDir).replace_extension("strbin");
-		file << "\t\t\"" << relativePath.generic_string() << "\",\n";
-	}
 	file << "\t};\n";
 
 	file << "} // namespace Res::Strings\n";
