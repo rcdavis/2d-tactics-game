@@ -130,14 +130,15 @@ ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
 
 	const nlohmann::json& bindings = root.value("bindings", nlohmann::json::object());
 	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
-		const char* const actionName = ActionToString(static_cast<Action>(i));
+		const Action action = static_cast<Action>(i);
+		const char* const actionName = ActionToString(action);
 		const nlohmann::json& bindingsForActionJson = bindings.value(actionName, nlohmann::json::array());
 
 		for (const auto& bindingJson : bindingsForActionJson) {
 			const std::string type = bindingJson.value("type", "");
 			if (type == "key") {
 				const KeyCode key = static_cast<KeyCode>(bindingJson.value("key", static_cast<int>(KeyCode::Unknown)));
-				map.Bind(static_cast<Action>(i), KeyBinding{key});
+				map.Bind(action, KeyBinding{key});
 			}
 		}
 	}

@@ -2,7 +2,6 @@ project(Engine)
 
 add_library(Engine STATIC
     glad/src/gl.c
-    src/Input/ActionMap.cpp
     src/Input/Input.cpp
     src/Renderer/OpenGL/GLBuffer.cpp
     src/Renderer/OpenGL/GLRenderDevice.cpp
@@ -62,5 +61,4 @@ target_link_libraries(Engine PUBLIC
 
 target_link_libraries(Engine PRIVATE
     SDL3::SDL3-static
-    nlohmann_json::nlohmann_json
 )
