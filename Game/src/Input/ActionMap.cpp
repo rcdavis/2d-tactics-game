@@ -132,7 +132,12 @@ ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
 	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
 		const Action action = static_cast<Action>(i);
 		const char* const actionName = ActionToString(action);
-		const nlohmann::json& bindingsForActionJson = bindings.value(actionName, nlohmann::json::array());
+		if (!bindings.contains(actionName) || !bindings[actionName].is_array()) {
+			continue; // Keep defaults for actions missing from the file
+		}
+
+		const nlohmann::json& bindingsForActionJson = bindings[actionName];
+		map.ClearBindings(action); // Saved bindings replace the defaults
 
 		for (const auto& bindingJson : bindingsForActionJson) {
 			const std::string type = bindingJson.value("type", "");
