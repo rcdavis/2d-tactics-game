@@ -14,6 +14,7 @@ class Game {
 public:
 	enum class State : uint8_t {
 		SelectCharacter,
+		MovementZone,
 		MovingCharacter,
 	};
 
@@ -33,6 +34,8 @@ private:
 	void OnResize(uint16_t width, uint16_t height);
 
 	void Close();
+
+	void UpdateCursor(const float elapsedTime);
 
 	entt::entity CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);

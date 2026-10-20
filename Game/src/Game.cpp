@@ -182,31 +182,10 @@ void Game::Run() {
 }
 
 void Game::Update(float elapsedTime) {
-	constexpr float KeyPressInterval = 0.1f;
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
-	mTimeSinceKeyPressed += elapsedTime;
-
-	if (mTimeSinceKeyPressed > KeyPressInterval) {
-		if (mActionMap.IsDown(Action::MoveUp)) {
-			if (mCursorPos.y > 0)
-				mCursorPos.y--;
-			mTimeSinceKeyPressed = 0.0f;
-		} else if (mActionMap.IsDown(Action::MoveDown)) {
-			if (mCursorPos.y < tileMap->tileRowCount - 1)
-				mCursorPos.y++;
-			mTimeSinceKeyPressed = 0.0f;
-		} else if (mActionMap.IsDown(Action::MoveLeft)) {
-			if (mCursorPos.x > 0)
-				mCursorPos.x--;
-			mTimeSinceKeyPressed = 0.0f;
-		} else if (mActionMap.IsDown(Action::MoveRight)) {
-			if (mCursorPos.x < tileMap->tileColumnCount - 1)
-				mCursorPos.x++;
-			mTimeSinceKeyPressed = 0.0f;
-		}
-	}
+	UpdateCursor(elapsedTime);
 
 	const glm::vec2 worldEndPos = {
 		tileMap->tileColumnCount * tileMap->tileWidth,
@@ -237,7 +216,7 @@ void Game::Update(float elapsedTime) {
 				const auto& gridPosition = view.get<GridPosition>(entity);
 				if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
 					mSelectedCharacter = entity;
-					mState = State::MovingCharacter;
+					mState = State::MovementZone;
 					break;
 				}
 			}
@@ -245,7 +224,7 @@ void Game::Update(float elapsedTime) {
 	}
 	break;
 
-	case State::MovingCharacter:
+	case State::MovementZone:
 	{
 		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
@@ -267,6 +246,12 @@ void Game::Update(float elapsedTime) {
 			mSelectedCharacter = entt::null;
 			mState = State::SelectCharacter;
 		}
+	}
+	break;
+
+	case State::MovingCharacter:
+	{
+		// TODO: Implement moving character state functionality.
 	}
 	break;
 	}
@@ -303,7 +288,7 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	if (mState == State::MovingCharacter && mSelectedCharacter != entt::null) {
+	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
 		Renderer2D::Flush();
 
 		mPlatform.renderDevice->EnableBlending(true);
@@ -353,6 +338,34 @@ void Game::Close() {
 	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
 	mActionMap.SaveBindings(prefPath / "bindings.json");
 	mIsRunning = false;
+}
+
+void Game::UpdateCursor(const float elapsedTime) {
+	constexpr float KeyPressInterval = 0.1f;
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	mTimeSinceKeyPressed += elapsedTime;
+
+	if (mTimeSinceKeyPressed > KeyPressInterval) {
+		if (mActionMap.IsDown(Action::MoveUp)) {
+			if (mCursorPos.y > 0)
+				mCursorPos.y--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveDown)) {
+			if (mCursorPos.y < tileMap->tileRowCount - 1)
+				mCursorPos.y++;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveLeft)) {
+			if (mCursorPos.x > 0)
+				mCursorPos.x--;
+			mTimeSinceKeyPressed = 0.0f;
+		} else if (mActionMap.IsDown(Action::MoveRight)) {
+			if (mCursorPos.x < tileMap->tileColumnCount - 1)
+				mCursorPos.x++;
+			mTimeSinceKeyPressed = 0.0f;
+		}
+	}
 }
 
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
