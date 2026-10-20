@@ -181,31 +181,9 @@ void Game::Run() {
 	}
 }
 
-void Game::Update(float elapsedTime) {
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
-
+void Game::Update(const float elapsedTime) {
 	UpdateCursor(elapsedTime);
-
-	const glm::vec2 worldEndPos = {
-		tileMap->tileColumnCount * tileMap->tileWidth,
-		tileMap->tileRowCount * tileMap->tileHeight
-	};
-
-	mCamera.position = {
-		mCursorPos.x * tileMap->tileWidth - mCamera.width / 2.0f,
-		mCursorPos.y * tileMap->tileHeight - mCamera.height / 2.0f
-	};
-
-	if (mCamera.position.x < 0.0f)
-		mCamera.position.x = 0.0f;
-	else if (mCamera.position.x + mCamera.width > worldEndPos.x)
-		mCamera.position.x = worldEndPos.x - mCamera.width;
-
-	if (mCamera.position.y < 0.0f)
-		mCamera.position.y = 0.0f;
-	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
-		mCamera.position.y = worldEndPos.y - mCamera.height;
+	FocusCamera(mCursorPos);
 
 	switch (mState) {
 	case State::SelectCharacter:
@@ -366,6 +344,31 @@ void Game::UpdateCursor(const float elapsedTime) {
 			mTimeSinceKeyPressed = 0.0f;
 		}
 	}
+}
+
+void Game::FocusCamera(const glm::ivec2& cell) {
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	const glm::vec2 worldEndPos = {
+		tileMap->tileColumnCount * tileMap->tileWidth,
+		tileMap->tileRowCount * tileMap->tileHeight
+	};
+
+	mCamera.position = {
+		cell.x * tileMap->tileWidth - mCamera.width / 2.0f,
+		cell.y * tileMap->tileHeight - mCamera.height / 2.0f
+	};
+
+	if (mCamera.position.x < 0.0f)
+		mCamera.position.x = 0.0f;
+	else if (mCamera.position.x + mCamera.width > worldEndPos.x)
+		mCamera.position.x = worldEndPos.x - mCamera.width;
+
+	if (mCamera.position.y < 0.0f)
+		mCamera.position.y = 0.0f;
+	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
+		mCamera.position.y = worldEndPos.y - mCamera.height;
 }
 
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {

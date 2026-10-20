@@ -28,7 +28,7 @@ private:
 	bool Init();
 	void Shutdown();
 
-	void Update(float elapsedTime);
+	void Update(const float elapsedTime);
 	void Render();
 
 	void OnResize(uint16_t width, uint16_t height);
@@ -36,6 +36,7 @@ private:
 	void Close();
 
 	void UpdateCursor(const float elapsedTime);
+	void FocusCamera(const glm::ivec2& cell);
 
 	entt::entity CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
