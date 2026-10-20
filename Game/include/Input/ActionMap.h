@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <array>
 #include <vector>
 #include <variant>
@@ -27,13 +26,13 @@ struct KeyBinding {
 };
 
 // TODO: Add Gamepad support
-using Binding = std::variant<KeyBinding>;
+using InputBinding = std::variant<KeyBinding>;
 
 class ActionMap {
 public:
 	ActionMap() = default;
 
-	void Bind(Action action, Binding binding);
+	void Bind(Action action, InputBinding binding);
 	void ClearBindings(Action action);
 
 	/**
@@ -52,10 +51,10 @@ public:
 	static ActionMap CreateDefault();
 
 private:
-	static float EvaluateBinding(const Binding& binding);
+	static float EvaluateBinding(const InputBinding& binding);
 
 private:
-	std::array<std::vector<Binding>, static_cast<size_t>(Action::Count)> mBindings;
+	std::array<std::vector<InputBinding>, static_cast<size_t>(Action::Count)> mBindings;
 	std::array<float, static_cast<size_t>(Action::Count)> mPrev;
 	std::array<float, static_cast<size_t>(Action::Count)> mCur;
 };

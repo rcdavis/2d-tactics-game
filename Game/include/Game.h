@@ -7,7 +7,6 @@
 #include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
 
-#include "entt/entity/fwd.hpp"
 #include "entt/entity/registry.hpp"
 #include "glm/ext/vector_int2.hpp"
 

@@ -115,6 +115,10 @@ bool Game::Init() {
 	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
 	CreatePlayerTeamPaladin({5, 5}, tileSetHandle);
 
+	mState = State::SelectCharacter;
+	mSelectedCharacter = entt::null;
+	mCursorPos = {0, 0};
+
 	mIsRunning = true;
 
 	LOG_INFO("Game initialized successfully");

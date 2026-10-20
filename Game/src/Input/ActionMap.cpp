@@ -34,7 +34,7 @@ Action StringToAction(const char* const actionName) {
 	return Action::Count; // Default to Count if unknown
 }
 
-void ActionMap::Bind(Action action, Binding binding) {
+void ActionMap::Bind(Action action, InputBinding binding) {
 	mBindings[static_cast<size_t>(action)].push_back(binding);
 }
 
@@ -67,8 +67,8 @@ bool ActionMap::IsReleased(Action action) const {
 	return mCur[index] <= PressedThreshold && mPrev[index] > PressedThreshold;
 }
 
-float ActionMap::EvaluateBinding(const Binding& binding) {
-	if (const KeyBinding* key = std::get_if<KeyBinding>(&binding)) {
+float ActionMap::EvaluateBinding(const InputBinding& binding) {
+	if (const KeyBinding* const key = std::get_if<KeyBinding>(&binding)) {
 		return Input::IsKeyDown(key->key) ? 1.0f : 0.0f;
 	}
 
@@ -81,7 +81,7 @@ bool ActionMap::SaveBindings(const std::filesystem::path& filePath) const {
 	const std::filesystem::path tempFilePath = filePath.string() + ".tmp";
 	std::ofstream file(tempFilePath, std::ios::trunc);
 	if (!file) {
-		LOG_ERROR("Failed to open file for saving bindings: {}", tempFilePath.string());
+		LOG_ERROR("Failed to open file for saving bindings: {}", tempFilePath.c_str());
 		return false;
 	}
 
@@ -120,7 +120,7 @@ ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
 
 	std::ifstream file(filePath);
 	if (!file) {
-		LOG_WARN("Failed to open file for loading bindings: {}", filePath.string());
+		LOG_WARN("Failed to open file for loading bindings: {}", filePath.c_str());
 		return map;
 	}
 
@@ -130,14 +130,20 @@ ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
 
 	const nlohmann::json& bindings = root.value("bindings", nlohmann::json::object());
 	for (uint8_t i = 0; i < static_cast<uint8_t>(Action::Count); ++i) {
-		const char* const actionName = ActionToString(static_cast<Action>(i));
-		const nlohmann::json& bindingsForActionJson = bindings.value(actionName, nlohmann::json::array());
+		const Action action = static_cast<Action>(i);
+		const char* const actionName = ActionToString(action);
+		if (!bindings.contains(actionName) || !bindings[actionName].is_array()) {
+			continue; // Keep defaults for actions missing from the file
+		}
+
+		const nlohmann::json& bindingsForActionJson = bindings[actionName];
+		map.ClearBindings(action); // Saved bindings replace the defaults
 
 		for (const auto& bindingJson : bindingsForActionJson) {
 			const std::string type = bindingJson.value("type", "");
 			if (type == "key") {
 				const KeyCode key = static_cast<KeyCode>(bindingJson.value("key", static_cast<int>(KeyCode::Unknown)));
-				map.Bind(static_cast<Action>(i), KeyBinding{key});
+				map.Bind(action, KeyBinding{key});
 			}
 		}
 	}
