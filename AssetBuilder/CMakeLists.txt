@@ -3,6 +3,7 @@ project(AssetBuilder)
 add_executable(AssetBuilder
     src/AssetBuilder.cpp
     src/Main.cpp
+    src/StringData.cpp
 )
 
 target_include_directories(AssetBuilder PRIVATE

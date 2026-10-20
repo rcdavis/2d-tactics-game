@@ -676,19 +676,11 @@ bool AssetBuilder::ParseStringData(const std::filesystem::path& stringFilePath, 
 			parsedEntry.forms.push_back(parsedForm);
 		} else if (value.is_object()) {
 			for (const auto& [categoryKey, categoryValue] : value.items()) {
-				if (strcmp(categoryKey.c_str(), "one") == 0) {
-					const ParsedStringForm parsedForm {
-						.text = categoryValue.get<std::string>(),
-						.category = PluralCategory::One
-					};
-					parsedEntry.forms.push_back(parsedForm);
-				} else {
-					const ParsedStringForm parsedForm {
-						.text = categoryValue.get<std::string>(),
-						.category = PluralCategory::Other
-					};
-					parsedEntry.forms.push_back(parsedForm);
-				}
+				const ParsedStringForm parsedForm {
+					.text = categoryValue.get<std::string>(),
+					.category = StringToPluralCategory(categoryKey.c_str())
+				};
+				parsedEntry.forms.push_back(parsedForm);
 			}
 		}
 

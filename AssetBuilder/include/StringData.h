@@ -37,3 +37,5 @@ struct StringForm {
 	uint32_t category = 0;
 	uint32_t offset = 0;
 };
+
+PluralCategory StringToPluralCategory(const char* const str);
