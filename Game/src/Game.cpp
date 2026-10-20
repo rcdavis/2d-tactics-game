@@ -213,7 +213,23 @@ void Game::Update(const float elapsedTime) {
 				stats.movementCost);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
-					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+					bool isOccupied = false;
+					auto positionedEntities = mRegistry.view<GridPosition>();
+					for (const auto entity : positionedEntities) {
+						if (entity == mSelectedCharacter) {
+							continue;
+						}
+
+						const auto& gridPosition = positionedEntities.get<GridPosition>(entity);
+						if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+							isOccupied = true;
+							break;
+						}
+					}
+
+					if (!isOccupied) {
+						selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+					}
 					break;
 				}
 			}
