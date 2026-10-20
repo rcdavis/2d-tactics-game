@@ -34,7 +34,7 @@ Action StringToAction(const char* const actionName) {
 	return Action::Count; // Default to Count if unknown
 }
 
-void ActionMap::Bind(Action action, Binding binding) {
+void ActionMap::Bind(Action action, InputBinding binding) {
 	mBindings[static_cast<size_t>(action)].push_back(binding);
 }
 
@@ -67,8 +67,8 @@ bool ActionMap::IsReleased(Action action) const {
 	return mCur[index] <= PressedThreshold && mPrev[index] > PressedThreshold;
 }
 
-float ActionMap::EvaluateBinding(const Binding& binding) {
-	if (const KeyBinding* key = std::get_if<KeyBinding>(&binding)) {
+float ActionMap::EvaluateBinding(const InputBinding& binding) {
+	if (const KeyBinding* const key = std::get_if<KeyBinding>(&binding)) {
 		return Input::IsKeyDown(key->key) ? 1.0f : 0.0f;
 	}
 
