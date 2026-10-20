@@ -7,6 +7,7 @@
 
 #include "TileMapData.h"
 #include "pugixml.hpp"
+#include "nlohmann/json.hpp"
 
 void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
 	std::filesystem::create_directories(outputDir);
@@ -15,6 +16,7 @@ void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std:
 	BuildTextures(inputDir, generatedDir);
 	BuildShaders(inputDir, generatedDir);
 	BuildTileMaps(inputDir, outputDir, generatedDir);
+	BuildStrings(inputDir, outputDir, generatedDir);
 }
 
 void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -72,6 +74,26 @@ void AssetBuilder::BuildTileMaps(const std::filesystem::path& inputDir, const st
 		ConvertTileMapToBinary(tileMap, tilemapsOutputDir);
 
 	CreateTileIdHeader(inputDir, generatedDir);
+}
+
+void AssetBuilder::BuildStrings(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(inputDir / "strings")) {
+		if (entry.is_regular_file()) {
+			const auto& path = entry.path();
+			if (path.extension() == ".json") {
+				mStringFiles.push_back(path);
+				std::cout << "Found string file: " << path << std::endl;
+			}
+		}
+	}
+
+	const auto stringsOutputDir = outputDir / "strings";
+	std::filesystem::create_directories(stringsOutputDir);
+
+	for (const auto& stringFile : mStringFiles)
+		ConvertStringFileToBinary(stringFile, stringsOutputDir);
+
+	//CreateStringIdHeader(inputDir, generatedDir);
 }
 
 void AssetBuilder::ConvertTileSetToBinary(const std::filesystem::path& tileSetPath, const std::filesystem::path& outputDir) {
@@ -162,6 +184,61 @@ void AssetBuilder::ConvertTileMapToBinary(const std::filesystem::path& tileMapPa
 	}
 
 	std::cout << "Converted tile map to binary successfully: " << tileMapPath << " -> " << outputBinaryPath << std::endl;
+}
+
+void AssetBuilder::ConvertStringFileToBinary(const std::filesystem::path& stringFilePath, const std::filesystem::path& outputDir) {
+	std::vector<ParsedStringEntry> stringData;
+	if (!ParseStringData(stringFilePath, stringData)) {
+		std::cerr << "Failed to get string data: " << stringFilePath << std::endl;
+		return;
+	}
+
+	const auto outputBinaryPath = outputDir / (stringFilePath.stem().string() + ".strbin");
+	std::ofstream file(outputBinaryPath, std::ios::binary);
+	if (!file) {
+		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
+		return;
+	}
+
+	std::vector<StringEntry> stringEntries;
+	std::vector<StringForm> stringForms;
+	std::vector<char> stringPool;
+
+	for (const auto& parsedEntry : stringData) {
+		const StringEntry entry {
+			.firstForm = static_cast<uint32_t>(stringForms.size()),
+			.formCount = static_cast<uint32_t>(parsedEntry.forms.size())
+		};
+
+		for (const auto& parsedForm : parsedEntry.forms) {
+			const StringForm form {
+				.category = parsedForm.category,
+				.offset = static_cast<uint32_t>(stringPool.size())
+			};
+
+			stringPool.insert(stringPool.end(), parsedForm.text.cbegin(), parsedForm.text.cend());
+			stringPool.push_back('\0');
+
+			stringForms.push_back(form);
+		}
+
+		stringEntries.push_back(entry);
+	}
+
+	const StringBinaryHeader header {
+		.magic = {'S', 'T', 'R', 'B'},
+		.version = 1,
+		.entryCount = static_cast<uint32_t>(stringData.size()),
+		.formCount = static_cast<uint32_t>(stringForms.size()),
+		.stringPoolSize = static_cast<uint32_t>(stringPool.size())
+	};
+
+	file.write((const char*)&header, sizeof(StringBinaryHeader));
+	file.write((const char*)stringEntries.data(), stringEntries.size() * sizeof(StringEntry));
+	file.write((const char*)stringForms.data(), stringForms.size() * sizeof(StringForm));
+	file.write((const char*)stringPool.data(), stringPool.size() * sizeof(char));
+
+	std::cout << "Converted string file to binary successfully: " << stringFilePath << " -> " << outputBinaryPath << std::endl;
 }
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -408,6 +485,56 @@ void AssetBuilder::CreateTileIdHeader(const std::filesystem::path& inputDir, con
 	std::cout << "Generated tile ID header at " << headerPath << std::endl;
 }
 
+void AssetBuilder::CreateStringIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
+	const auto headerPath = generatedDir / "StringId.h";
+	std::ofstream file(headerPath);
+	if (!file) {
+		std::cerr << "Failed to create string ID header at " << headerPath << std::endl;
+		return;
+	}
+
+	file << "#pragma once\n\n";
+	file << "namespace Res::Strings {\n";
+
+	file << "\tenum class Id : uint8_t {\n";
+	for (const auto& stringFile : mStringFiles) {
+		file << "\t\t" << stringFile.stem().string() << ",\n";
+	}
+	file << "\t\tCount\n";
+	file << "\t};\n\n";
+
+	file << "\tinline constexpr const char* ToString(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& stringFile : mStringFiles) {
+		file << "\t\t\tcase Id::" << stringFile.stem().string() << ": return \"" << stringFile.stem().string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return \"Unknown\";\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr const char* GetPath(Id id) {\n";
+	file << "\t\tswitch (id) {\n";
+	for (const auto& stringFile : mStringFiles) {
+		const auto relativePath = std::filesystem::relative(stringFile, inputDir).replace_extension("strbin");
+		file << "\t\t\tcase Id::" << stringFile.stem().string() << ": return \"" << relativePath.generic_string() << "\";\n";
+	}
+	file << "\t\t\tdefault: return nullptr;\n";
+	file << "\t\t}\n";
+	file << "\t}\n\n";
+
+	file << "\tinline constexpr std::array<const char*, " << std::size(mStringFiles) << "> Paths = {\n";
+	for (const auto& stringFile : mStringFiles) {
+		const auto relativePath = std::filesystem::relative(stringFile, inputDir).replace_extension("strbin");
+		file << "\t\t\"" << relativePath.generic_string() << "\",\n";
+	}
+	file << "\t};\n";
+
+	file << "} // namespace Res::Strings\n";
+
+	std::cout << "Generated string ID header at " << headerPath << std::endl;
+}
+
+
 bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData) {
 	pugi::xml_document doc;
 	if (const pugi::xml_parse_result result = doc.load_file(tileSetPath.c_str()); !result) {
@@ -521,6 +648,51 @@ bool AssetBuilder::ParseTileMapData(const std::filesystem::path& tileMapPath, Ti
 		}
 
 		outTileMapData.layers.push_back(layerData);
+	}
+
+	return true;
+}
+
+bool AssetBuilder::ParseStringData(const std::filesystem::path& stringFilePath, std::vector<ParsedStringEntry>& outStringData) {
+	std::ifstream file(stringFilePath);
+	if (!file) {
+		std::cerr << "Failed to open string file " << stringFilePath << std::endl;
+		return false;
+	}
+
+	nlohmann::json root;
+	file >> root;
+	file.close();
+
+	for (const auto& [key, value] : root.items()) {
+		ParsedStringEntry parsedEntry;
+		parsedEntry.key = key;
+
+		if (value.is_string()) {
+			const ParsedStringForm parsedForm {
+				.text = value.get<std::string>(),
+				.category = PluralCategory::One
+			};
+			parsedEntry.forms.push_back(parsedForm);
+		} else if (value.is_object()) {
+			for (const auto& [categoryKey, categoryValue] : value.items()) {
+				if (strcmp(categoryKey.c_str(), "one") == 0) {
+					const ParsedStringForm parsedForm {
+						.text = categoryValue.get<std::string>(),
+						.category = PluralCategory::One
+					};
+					parsedEntry.forms.push_back(parsedForm);
+				} else {
+					const ParsedStringForm parsedForm {
+						.text = categoryValue.get<std::string>(),
+						.category = PluralCategory::Other
+					};
+					parsedEntry.forms.push_back(parsedForm);
+				}
+			}
+		}
+
+		outStringData.push_back(parsedEntry);
 	}
 
 	return true;
