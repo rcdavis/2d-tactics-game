@@ -81,7 +81,7 @@ bool ActionMap::SaveBindings(const std::filesystem::path& filePath) const {
 	const std::filesystem::path tempFilePath = filePath.string() + ".tmp";
 	std::ofstream file(tempFilePath, std::ios::trunc);
 	if (!file) {
-		LOG_ERROR("Failed to open file for saving bindings: {}", tempFilePath.string());
+		LOG_ERROR("Failed to open file for saving bindings: {}", tempFilePath.c_str());
 		return false;
 	}
 
@@ -120,7 +120,7 @@ ActionMap ActionMap::LoadBindings(const std::filesystem::path& filePath) {
 
 	std::ifstream file(filePath);
 	if (!file) {
-		LOG_WARN("Failed to open file for loading bindings: {}", filePath.string());
+		LOG_WARN("Failed to open file for loading bindings: {}", filePath.c_str());
 		return map;
 	}
 
