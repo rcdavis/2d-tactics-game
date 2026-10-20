@@ -250,7 +250,10 @@ void Game::Update(float elapsedTime) {
 		if (mActionMap.IsPressed(Action::Select)) {
 			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-			const auto tiles = mTilePathing.FindMovementZone(selectedCharPos.cell.y, selectedCharPos.cell.x, stats.movementCost);
+			const auto tiles = mTilePathing.FindMovementZone(
+				selectedCharPos.cell.y,
+				selectedCharPos.cell.x,
+				stats.movementCost);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
@@ -308,7 +311,10 @@ void Game::Render() {
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
 		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 
-		const auto movementZone = mTilePathing.FindMovementZone(gridPosition.cell.y, gridPosition.cell.x, stats.movementCost);
+		const auto movementZone = mTilePathing.FindMovementZone(
+			gridPosition.cell.y,
+			gridPosition.cell.x,
+			stats.movementCost);
 		for (const TilePathing::Cell& cell : movementZone) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
