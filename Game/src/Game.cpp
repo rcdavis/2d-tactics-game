@@ -145,6 +145,8 @@ bool Game::Init() {
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
 
+	Localization::Destroy();
+
 	mTilePathing.Destroy();
 
 	mRegistry.clear();
