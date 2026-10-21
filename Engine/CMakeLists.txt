@@ -18,6 +18,7 @@ add_library(Engine STATIC
     src/Tiles/TilePathing.cpp
     src/Tiles/TileSystem.cpp
     src/Utils/Log.cpp
+    src/Localization.cpp
     src/Rng.cpp
 )
 

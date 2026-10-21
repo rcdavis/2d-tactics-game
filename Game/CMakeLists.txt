@@ -56,6 +56,10 @@ file(GLOB_RECURSE TILEMAP_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tmx"
 )
 
+file(GLOB_RECURSE STRING_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/res/strings/*.json"
+)
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
     COMMAND $<TARGET_FILE:AssetBuilder>
@@ -63,7 +67,7 @@ add_custom_command(
         --output ${CMAKE_BINARY_DIR}/Game/res
         --generated ${CMAKE_BINARY_DIR}/generated
     COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/Game/build_assets.stamp
-    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} ${SHADER_FILES} $<TARGET_FILE:AssetBuilder>
+    DEPENDS ${TEXTURE_FILES} ${TILEMAP_FILES} ${SHADER_FILES} ${STRING_FILES} $<TARGET_FILE:AssetBuilder>
     COMMENT "Building Assets..."
     VERBATIM
 )

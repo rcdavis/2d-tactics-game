@@ -3,6 +3,7 @@ project(AssetBuilder)
 add_executable(AssetBuilder
     src/AssetBuilder.cpp
     src/Main.cpp
+    src/StringData.cpp
 )
 
 target_include_directories(AssetBuilder PRIVATE
@@ -14,4 +15,5 @@ target_compile_features(AssetBuilder PRIVATE cxx_std_20)
 target_link_libraries(AssetBuilder PRIVATE
     CLI11::CLI11
     pugixml
+    nlohmann_json::nlohmann_json
 )
