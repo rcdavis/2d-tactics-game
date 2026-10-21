@@ -18,6 +18,8 @@
 #include "TileIds.h"
 #include "Components.h"
 #include "Rng.h"
+#include "Localization.h"
+#include "StringIds.h"
 
 #include <filesystem>
 
@@ -118,6 +120,20 @@ bool Game::Init() {
 	mState = State::SelectCharacter;
 	mSelectedCharacter = entt::null;
 	mCursorPos = {0, 0};
+
+	if (!Localization::Load("res/strings/en.strbin")) {
+		LOG_ERROR("Failed to initialize localization");
+		return false;
+	}
+
+	constexpr StringHandle menuPauseStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_PAUSE);
+	constexpr StringHandle menuQuitStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_QUIT);
+	constexpr StringHandle itemCountStringHandle = static_cast<StringHandle>(Res::Strings::Id::ITEM_COUNT);
+
+	LOG_INFO("Test localization MENU_PAUSE: {}", Localization::GetString(menuPauseStringHandle));
+	LOG_INFO("Test localization MENU_QUIT: {}", Localization::GetString(menuQuitStringHandle));
+	LOG_INFO("Test localization ITEM_COUNT 1: {}", Localization::GetPlural(itemCountStringHandle, 1));
+	LOG_INFO("Test localization ITEM_COUNT 2: {}", Localization::GetPlural(itemCountStringHandle, 2));
 
 	mIsRunning = true;
 
