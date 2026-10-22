@@ -41,7 +41,8 @@ set(SDL_SENSOR OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.4.16
+    GIT_TAG release-3.4.18
+    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(SDL3)
 
@@ -80,7 +81,21 @@ FetchContent_MakeAvailable(nlohmann-json)
 FetchContent_Declare(
     EnTT
     GIT_REPOSITORY https://github.com/skypjack/entt.git
-    GIT_TAG        v4.0.0
+    GIT_TAG v4.0.0
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(EnTT)
+
+set(FT_DISABLE_ZLIB     ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BZIP2    ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_PNG      ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BROTLI   ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    freetype
+    GIT_REPOSITORY https://github.com/freetype/freetype.git
+    GIT_TAG VER-2-15-0
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(freetype)
