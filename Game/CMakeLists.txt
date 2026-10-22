@@ -51,6 +51,29 @@ endforeach()
 add_custom_target(CopyShaders ALL DEPENDS ${COPIED_SHADERS})
 add_dependencies(Game CopyShaders)
 
+# Copy fonts to the build directory
+file(GLOB_RECURSE FONT_FILES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/res/fonts/*.json"
+)
+set(COPIED_FONTS "")
+
+foreach(FONT_FILE ${FONT_FILES})
+    get_filename_component(FONT_NAME ${FONT_FILE} NAME)
+    set(DEST_FONT_FILE ${CMAKE_BINARY_DIR}/Game/res/fonts/${FONT_NAME})
+
+    add_custom_command(
+        OUTPUT ${DEST_FONT_FILE}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FONT_FILE} ${DEST_FONT_FILE}
+        DEPENDS ${FONT_FILE}
+        COMMENT "Copying font: ${FONT_NAME}"
+    )
+
+    list(APPEND COPIED_FONTS ${DEST_FONT_FILE})
+endforeach()
+
+add_custom_target(CopyFonts ALL DEPENDS ${COPIED_FONTS})
+add_dependencies(Game CopyFonts)
+
 file(GLOB_RECURSE TILEMAP_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tsx"
     "${CMAKE_CURRENT_SOURCE_DIR}/res/tilemaps/*.tmx"
