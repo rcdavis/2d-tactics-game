@@ -10,6 +10,7 @@ add_library(Engine STATIC
     src/Renderer/OpenGL/GLVertexArray.cpp
     src/Renderer/Buffer.cpp
     src/Renderer/Camera2D.cpp
+    src/Renderer/FontSystem.cpp
     src/Renderer/IRenderDevice.cpp
     src/Renderer/Renderer2D.cpp
     src/Renderer/ShaderSystem.cpp
@@ -62,4 +63,8 @@ target_link_libraries(Engine PUBLIC
 
 target_link_libraries(Engine PRIVATE
     SDL3::SDL3-static
+)
+
+target_link_libraries(Engine PUBLIC
+    nlohmann_json::nlohmann_json
 )
