@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string_view>
+
+#include "Renderer/FontHandle.h"
 #include "Renderer/ShaderHandle.h"
 #include "Renderer/TextureHandle.h"
 #include "Tiles/TileHandle.h"
@@ -33,6 +36,15 @@ namespace Renderer2D {
 		const glm::vec2& size,
 		const glm::vec4& color,
 		TextureHandle textureHandle);
+
+	// position is the top-left of the first line; size is the font size in world units (em height).
+	// Requires a y-down camera; '\n' starts a new line.
+	void DrawText(
+		FontHandle fontHandle,
+		std::string_view utf8Text,
+		const glm::vec3& position,
+		float size,
+		const glm::vec4& color);
 
 	void DrawTile(
 		const glm::vec3& position,

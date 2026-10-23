@@ -3,6 +3,7 @@
 #include "Platform.h"
 
 #include "Renderer/Camera2D.h"
+#include "Renderer/FontHandle.h"
 #include "Tiles/TileHandle.h"
 #include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
@@ -58,6 +59,8 @@ private:
 	glm::ivec2 mCursorPos {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
+
+	FontHandle mFontHandle = InvalidFontHandle;
 
 	State mState = State::SelectCharacter;
 	bool mIsRunning = false;
