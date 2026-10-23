@@ -8,6 +8,7 @@
 #include "Renderer/Renderer2D.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/ShaderSystem.h"
+#include "Renderer/FontSystem.h"
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
 #include "Input/Input.h"
@@ -123,6 +124,14 @@ bool Game::Init() {
 
 	if (!Localization::Load("res/strings/en.strbin")) {
 		LOG_ERROR("Failed to initialize localization");
+		return false;
+	}
+
+	constexpr TextureHandle fontTexture = static_cast<TextureHandle>(Res::Textures::Id::MyFont);
+
+	mFontHandle = FontSystem::Load("res/fonts/MyFont.json", fontTexture);
+	if (mFontHandle == InvalidFontHandle) {
+		LOG_ERROR("Failed to load font: res/fonts/MyFont.json");
 		return false;
 	}
 
@@ -336,6 +345,17 @@ void Game::Render() {
 
 		mPlatform.renderDevice->EnableBlending(false);
 	}
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+	Renderer2D::DrawText(
+		mFontHandle,
+		"Hello, World!",
+		{ 16.0f, 16.0f, 0.9f },
+		24.0f,
+		{ 1.0f, 1.0f, 1.0f, 1.0f });
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
 
 	Renderer2D::EndScene();
 

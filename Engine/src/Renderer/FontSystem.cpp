@@ -10,15 +10,19 @@
 namespace FontSystem {
 	static std::vector<Font> s_Fonts;
 
-	bool Load(const char* const fontFile, TextureHandle fontImage) {
+	FontHandle Load(const char* const fontFile, TextureHandle fontImage) {
 		std::ifstream file(fontFile);
 		if (!file) {
 			LOG_ERROR("Failed to load font file: {}", fontFile);
-			return false;
+			return InvalidFontHandle;
 		}
 
-		auto root = nlohmann::json::parse(file);
+		auto root = nlohmann::json::parse(file, nullptr, false);
 		file.close();
+		if (root.is_discarded()) {
+			LOG_ERROR("Failed to parse font file: {}", fontFile);
+			return InvalidFontHandle;
+		}
 
 		Font font;
 		font.texture = fontImage;
@@ -26,8 +30,10 @@ namespace FontSystem {
 		const auto& atlasJson = root["atlas"];
 		const float atlasWidth = atlasJson["width"];
 		const float atlasHeight = atlasJson["height"];
-		const bool flipY = atlasJson["yOrigin"] == "bottom";
+		// Textures are uploaded flipped (stbi_set_flip_vertically_on_load), so v = 0 is the bottom row
+		const bool originTop = atlasJson["yOrigin"] == "top";
 		font.distanceRange = atlasJson["distanceRange"];
+		font.atlasSize = atlasJson["size"];
 
 		const auto& metricsJson = root["metrics"];
 		font.lineHeight = metricsJson["lineHeight"];
@@ -35,33 +41,40 @@ namespace FontSystem {
 		font.descender = metricsJson["descender"];
 
 		for (const auto& glyphJson : root["glyphs"]) {
-			const auto& planeBounds = glyphJson["planeBounds"];
-			const auto& atlasBounds = glyphJson["atlasBounds"];
 			Glyph glyph;
-			glyph.planeMin = { planeBounds["left"], planeBounds["bottom"] };
-			glyph.planeMax = { planeBounds["right"], planeBounds["top"] };
-			float u0 = (float)atlasBounds["left"] / atlasWidth;
-			float v0 = (float)atlasBounds["bottom"] / atlasHeight;
-			float u1 = (float)atlasBounds["right"] / atlasWidth;
-			float v1 = (float)atlasBounds["top"] / atlasHeight;
-			if (flipY) {
-				v0 = 1.0f - v0;
-				v1 = 1.0f - v1;
+			glyph.advance = glyphJson["advance"];
+
+			// Glyphs such as space have an advance but no geometry
+			if (glyphJson.contains("planeBounds") && glyphJson.contains("atlasBounds")) {
+				const auto& planeBounds = glyphJson["planeBounds"];
+				const auto& atlasBounds = glyphJson["atlasBounds"];
+				glyph.planeMin = { planeBounds["left"], planeBounds["bottom"] };
+				glyph.planeMax = { planeBounds["right"], planeBounds["top"] };
+
+				const float u0 = (float)atlasBounds["left"] / atlasWidth;
+				const float u1 = (float)atlasBounds["right"] / atlasWidth;
+				float vBottom = (float)atlasBounds["bottom"] / atlasHeight;
+				float vTop = (float)atlasBounds["top"] / atlasHeight;
+				if (originTop) {
+					vBottom = 1.0f - vBottom;
+					vTop = 1.0f - vTop;
+				}
+				glyph.uvMin = { u0, vBottom };
+				glyph.uvMax = { u1, vTop };
+				glyph.hasGeometry = true;
 			}
-			glyph.uvMin = { u0, v1 };
-			glyph.uvMax = { u1, v0 };
-			glyph.hasGeometry = true;
 
 			font.glyphs[glyphJson["unicode"]] = glyph;
 		}
 
-		s_Fonts.push_back(font);
+		s_Fonts.push_back(std::move(font));
 
-		return true;
+		return static_cast<FontHandle>(s_Fonts.size() - 1);
 	}
 
 	Font* Get(FontHandle handle) {
-		// Implementation here
-		return s_Fonts.data() + handle;
+		if (handle >= s_Fonts.size())
+			return nullptr;
+		return &s_Fonts[handle];
 	}
 }

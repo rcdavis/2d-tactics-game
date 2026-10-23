@@ -3,6 +3,7 @@
 #include "Platform.h"
 
 #include "Renderer/Camera2D.h"
+#include "Renderer/FontHandle.h"
 #include "Tiles/TileHandle.h"
 #include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
@@ -53,6 +54,7 @@ private:
 	entt::entity mSelectedCharacter = entt::null;
 
 	Camera2D mCamera;
+	FontHandle mFontHandle = InvalidFontHandle;
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};

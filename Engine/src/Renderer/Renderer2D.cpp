@@ -14,6 +14,8 @@
 #include "Renderer/Buffer.h"
 
 #include "Renderer/TextureSystem.h"
+#include "Renderer/Font.h"
+#include "Renderer/FontSystem.h"
 #include "Tiles/TileSystem.h"
 #include "Tiles/TileMap.h"
 
@@ -58,6 +60,28 @@ namespace Renderer2D {
 		glm::vec4 { 1.0f, 1.0f, 0.0f, 1.0f },
 		glm::vec4 { 0.0f, 1.0f, 0.0f, 1.0f }
 	};
+
+	// Decodes one UTF-8 code point and advances i; malformed bytes yield U+FFFD
+	static uint32_t NextCodePoint(std::string_view text, size_t& i) {
+		const auto byte = [&](size_t n) { return static_cast<uint8_t>(text[n]); };
+		const uint8_t lead = byte(i++);
+		if (lead < 0x80)
+			return lead;
+
+		uint32_t cp;
+		int extra;
+		if ((lead & 0xE0) == 0xC0) { cp = lead & 0x1F; extra = 1; }
+		else if ((lead & 0xF0) == 0xE0) { cp = lead & 0x0F; extra = 2; }
+		else if ((lead & 0xF8) == 0xF0) { cp = lead & 0x07; extra = 3; }
+		else return 0xFFFD;
+
+		for (int n = 0; n < extra; ++n) {
+			if (i >= text.size() || (byte(i) & 0xC0) != 0x80)
+				return 0xFFFD;
+			cp = (cp << 6) | (byte(i++) & 0x3F);
+		}
+		return cp;
+	}
 
 	bool Init(IRenderDevice* renderDevice, ShaderHandle quadShaderHandle) {
 		s_QuadShader = ShaderSystem::GetShader(quadShaderHandle);
@@ -250,6 +274,89 @@ namespace Renderer2D {
 		}
 
 		s_QuadIndexCount += 6;
+	}
+
+	void DrawText(
+		FontHandle fontHandle,
+		std::string_view utf8Text,
+		const glm::vec3& position,
+		float size,
+		const glm::vec4& color)
+	{
+		const Font* const font = FontSystem::Get(fontHandle);
+		if (!font) {
+			LOG_ERROR("Invalid font handle: {}", fontHandle);
+			return;
+		}
+
+		const auto findTexIndex = [&]() {
+			for (uint32_t i = 0; i < s_TextureSlotIndex; ++i) {
+				if (s_TextureSlots[i] == font->texture)
+					return (int32_t)i + 1;
+			}
+			if (s_TextureSlotIndex >= MaxTextureSlots - 1)
+				Flush();
+			s_TextureSlots[s_TextureSlotIndex] = font->texture;
+			++s_TextureSlotIndex;
+			return (int32_t)s_TextureSlotIndex;
+		};
+
+		// A negative texture index tells the fragment shader to treat the texture as an MTSDF atlas
+		int32_t texIndex = -findTexIndex();
+
+		// The font's y axis points up while the camera's points down
+		float baselineY = position.y + font->ascender * size;
+		float penX = position.x;
+
+		for (size_t i = 0; i < utf8Text.size();) {
+			const uint32_t codePoint = NextCodePoint(utf8Text, i);
+
+			if (codePoint == '\n') {
+				penX = position.x;
+				baselineY += font->lineHeight * size;
+				continue;
+			}
+
+			auto it = font->glyphs.find(codePoint);
+			if (it == font->glyphs.end())
+				it = font->glyphs.find('?');
+			if (it == font->glyphs.end())
+				continue;
+
+			const Glyph& glyph = it->second;
+			if (glyph.hasGeometry) {
+				if (s_QuadIndexCount >= MaxIndices) {
+					Flush();
+					texIndex = -findTexIndex();
+				}
+
+				const float left = penX + glyph.planeMin.x * size;
+				const float right = penX + glyph.planeMax.x * size;
+				const float bottom = baselineY - glyph.planeMin.y * size;
+				const float top = baselineY - glyph.planeMax.y * size;
+
+				const std::array<glm::vec3, 4> positions = {
+					glm::vec3 { left, bottom, position.z }, glm::vec3 { right, bottom, position.z },
+					glm::vec3 { right, top, position.z }, glm::vec3 { left, top, position.z }
+				};
+				const std::array<glm::vec2, 4> texCoords = {
+					glm::vec2 { glyph.uvMin.x, glyph.uvMin.y }, glm::vec2 { glyph.uvMax.x, glyph.uvMin.y },
+					glm::vec2 { glyph.uvMax.x, glyph.uvMax.y }, glm::vec2 { glyph.uvMin.x, glyph.uvMax.y }
+				};
+
+				for (uint8_t v = 0; v < 4; ++v) {
+					s_QuadVertexBufferCurrent->position = positions[v];
+					s_QuadVertexBufferCurrent->color = color;
+					s_QuadVertexBufferCurrent->texCoord = texCoords[v];
+					s_QuadVertexBufferCurrent->texIndex = texIndex;
+					++s_QuadVertexBufferCurrent;
+				}
+
+				s_QuadIndexCount += 6;
+			}
+
+			penX += glyph.advance * size;
+		}
 	}
 
 	void DrawTile(
