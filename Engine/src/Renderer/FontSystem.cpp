@@ -75,6 +75,6 @@ namespace FontSystem {
 	Font* Get(FontHandle handle) {
 		if (handle >= s_Fonts.size())
 			return nullptr;
-		return &s_Fonts[handle];
+		return s_Fonts.data() + handle;
 	}
 }

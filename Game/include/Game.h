@@ -54,12 +54,13 @@ private:
 	entt::entity mSelectedCharacter = entt::null;
 
 	Camera2D mCamera;
-	FontHandle mFontHandle = InvalidFontHandle;
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
+
+	FontHandle mFontHandle = InvalidFontHandle;
 
 	State mState = State::SelectCharacter;
 	bool mIsRunning = false;

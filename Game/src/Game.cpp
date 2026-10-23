@@ -128,21 +128,13 @@ bool Game::Init() {
 	}
 
 	constexpr TextureHandle fontTexture = static_cast<TextureHandle>(Res::Textures::Id::MyFont);
+	constexpr const char* fontJsonPath = "res/fonts/MyFont.json";
 
-	mFontHandle = FontSystem::Load("res/fonts/MyFont.json", fontTexture);
+	mFontHandle = FontSystem::Load(fontJsonPath, fontTexture);
 	if (mFontHandle == InvalidFontHandle) {
-		LOG_ERROR("Failed to load font: res/fonts/MyFont.json");
+		LOG_ERROR("Failed to load font: {}", fontJsonPath);
 		return false;
 	}
-
-	constexpr StringHandle menuPauseStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_PAUSE);
-	constexpr StringHandle menuQuitStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_QUIT);
-	constexpr StringHandle itemCountStringHandle = static_cast<StringHandle>(Res::Strings::Id::ITEM_COUNT);
-
-	LOG_INFO("Test localization MENU_PAUSE: {}", Localization::GetString(menuPauseStringHandle));
-	LOG_INFO("Test localization MENU_QUIT: {}", Localization::GetString(menuQuitStringHandle));
-	LOG_INFO("Test localization ITEM_COUNT 1: {}", Localization::GetPlural(itemCountStringHandle, 1));
-	LOG_INFO("Test localization ITEM_COUNT 2: {}", Localization::GetPlural(itemCountStringHandle, 2));
 
 	mIsRunning = true;
 
@@ -309,9 +301,9 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
-		Renderer2D::Flush();
+	Renderer2D::Flush();
 
+	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
@@ -346,11 +338,12 @@ void Game::Render() {
 		mPlatform.renderDevice->EnableBlending(false);
 	}
 
-	Renderer2D::Flush();
+	constexpr StringHandle menuPauseStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_PAUSE);
+
 	mPlatform.renderDevice->EnableBlending(true);
 	Renderer2D::DrawText(
 		mFontHandle,
-		"Hello, World!",
+		Localization::GetString(menuPauseStringHandle),
 		{ 16.0f, 16.0f, 0.9f },
 		24.0f,
 		{ 1.0f, 1.0f, 1.0f, 1.0f });
