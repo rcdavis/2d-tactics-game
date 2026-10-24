@@ -31,5 +31,16 @@ struct Stats {
 	uint8_t movement = 0;
 };
 
+struct GrowthRates {
+	uint8_t hp = 0;
+	uint8_t strength = 0;
+	uint8_t magic = 0;
+	uint8_t skill = 0;
+	uint8_t speed = 0;
+	uint8_t luck = 0;
+	uint8_t defense = 0;
+	uint8_t resistance = 0;
+};
+
 struct PlayerTeam {};
 struct EnemyTeam {};

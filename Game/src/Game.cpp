@@ -428,11 +428,23 @@ entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSet
 		.movement = 6,
 	};
 
+	GrowthRates growthRates {
+		.hp = 60,
+		.strength = 40,
+		.magic = 10,
+		.skill = 60,
+		.speed = 55,
+		.luck = 30,
+		.defense = 40,
+		.resistance = 40,
+	};
+
 	entt::entity unit = mRegistry.create();
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueArcherFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
 }
 
@@ -453,11 +465,23 @@ entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSe
 		.movement = 6,
 	};
 
+	GrowthRates growthRates {
+		.hp = 80,
+		.strength = 40,
+		.magic = 15,
+		.skill = 50,
+		.speed = 45,
+		.luck = 25,
+		.defense = 40,
+		.resistance = 35,
+	};
+
 	entt::entity unit = mRegistry.create();
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueSoldierFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
 }
 
@@ -478,11 +502,23 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 		.movement = 5,
 	};
 
+	GrowthRates growthRates {
+		.hp = 75,
+		.strength = 50,
+		.magic = 20,
+		.skill = 45,
+		.speed = 30,
+		.luck = 25,
+		.defense = 60,
+		.resistance = 45,
+	};
+
 	entt::entity unit = mRegistry.create();
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueKnightFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
 }
 
@@ -503,11 +539,23 @@ entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileS
 		.movement = 8,
 	};
 
+	GrowthRates growthRates {
+		.hp = 70,
+		.strength = 45,
+		.magic = 15,
+		.skill = 40,
+		.speed = 50,
+		.luck = 30,
+		.defense = 45,
+		.resistance = 40,
+	};
+
 	entt::entity unit = mRegistry.create();
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueCavalierFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
 }
 
