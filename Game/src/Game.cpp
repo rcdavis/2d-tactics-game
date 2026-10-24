@@ -381,7 +381,10 @@ void Game::Render() {
 			{ 0.0f, 0.0f, 0.0f, 0.75f });
 
 		char buffer[32] { 0 };
-		constexpr std::array<StringHandle, 8> statNames = {
+		constexpr std::array<StringHandle, 11> statNames = {
+			static_cast<StringHandle>(Res::Strings::Id::MENU_LEVEL),
+			static_cast<StringHandle>(Res::Strings::Id::MENU_EXP),
+			static_cast<StringHandle>(Res::Strings::Id::MENU_HP),
 			static_cast<StringHandle>(Res::Strings::Id::MENU_STRENGTH),
 			static_cast<StringHandle>(Res::Strings::Id::MENU_MAGIC),
 			static_cast<StringHandle>(Res::Strings::Id::MENU_SKILL),
@@ -393,7 +396,11 @@ void Game::Render() {
 		};
 
 		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-		const std::array<int, 8> statValues = {
+		const auto& unitExp = mRegistry.get<UnitExperience>(mSelectedCharacter);
+		const std::array<int, 11> statValues = {
+			unitExp.level,
+			unitExp.experience,
+			stats.curHp,
 			stats.strength,
 			stats.magic,
 			stats.skill,
