@@ -118,6 +118,11 @@ bool Game::Init() {
 	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
 	CreatePlayerTeamPaladin({5, 5}, tileSetHandle);
 
+	CreateEnemyTeamArcher({20, 8}, tileSetHandle);
+	CreateEnemyTeamSpearman({22, 0}, tileSetHandle);
+	CreateEnemyTeamKnight({22, 22}, tileSetHandle);
+	CreateEnemyTeamPaladin({25, 5}, tileSetHandle);
+
 	mState = State::SelectCharacter;
 	mSelectedCharacter = entt::null;
 	mCursorPos = {0, 0};
@@ -301,9 +306,9 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	Renderer2D::Flush();
-
 	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
+		Renderer2D::Flush();
+
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
@@ -337,18 +342,6 @@ void Game::Render() {
 
 		mPlatform.renderDevice->EnableBlending(false);
 	}
-
-	constexpr StringHandle menuPauseStringHandle = static_cast<StringHandle>(Res::Strings::Id::MENU_PAUSE);
-
-	mPlatform.renderDevice->EnableBlending(true);
-	Renderer2D::DrawText(
-		mFontHandle,
-		Localization::GetString(menuPauseStringHandle),
-		{ 16.0f, 16.0f, 0.9f },
-		24.0f,
-		{ 1.0f, 1.0f, 1.0f, 1.0f });
-	Renderer2D::Flush();
-	mPlatform.renderDevice->EnableBlending(false);
 
 	Renderer2D::EndScene();
 
@@ -463,5 +456,53 @@ entt::entity Game::CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<Sprite>(paladin, tileSetHandle, bluePaladinFrameIndex);
 	mRegistry.emplace<PlayerTeam>(paladin);
 	mRegistry.emplace<Stats>(paladin, bluePaladinMovementCost);
+	return paladin;
+}
+
+entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redArcherFrameIndex = 120;
+	constexpr uint8_t redArcherMovementCost = 6;
+
+	entt::entity archer = mRegistry.create();
+	mRegistry.emplace<GridPosition>(archer, cell);
+	mRegistry.emplace<Sprite>(archer, tileSetHandle, redArcherFrameIndex);
+	mRegistry.emplace<EnemyTeam>(archer);
+	mRegistry.emplace<Stats>(archer, redArcherMovementCost);
+	return archer;
+}
+
+entt::entity Game::CreateEnemyTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redSpearFrameIndex = 121;
+	constexpr uint8_t redSpearMovementCost = 7;
+
+	entt::entity spearman = mRegistry.create();
+	mRegistry.emplace<GridPosition>(spearman, cell);
+	mRegistry.emplace<Sprite>(spearman, tileSetHandle, redSpearFrameIndex);
+	mRegistry.emplace<EnemyTeam>(spearman);
+	mRegistry.emplace<Stats>(spearman, redSpearMovementCost);
+	return spearman;
+}
+
+entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redKnightFrameIndex = 122;
+	constexpr uint8_t redKnightMovementCost = 5;
+
+	entt::entity knight = mRegistry.create();
+	mRegistry.emplace<GridPosition>(knight, cell);
+	mRegistry.emplace<Sprite>(knight, tileSetHandle, redKnightFrameIndex);
+	mRegistry.emplace<EnemyTeam>(knight);
+	mRegistry.emplace<Stats>(knight, redKnightMovementCost);
+	return knight;
+}
+
+entt::entity Game::CreateEnemyTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redPaladinFrameIndex = 123;
+	constexpr uint8_t redPaladinMovementCost = 8;
+
+	entt::entity paladin = mRegistry.create();
+	mRegistry.emplace<GridPosition>(paladin, cell);
+	mRegistry.emplace<Sprite>(paladin, tileSetHandle, redPaladinFrameIndex);
+	mRegistry.emplace<EnemyTeam>(paladin);
+	mRegistry.emplace<Stats>(paladin, redPaladinMovementCost);
 	return paladin;
 }
