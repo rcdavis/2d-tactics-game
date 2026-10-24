@@ -14,9 +14,12 @@ struct Sprite {
 	uint16_t frameIndex = 0;
 };
 
-struct Stats {
+struct UnitExperience {
 	uint8_t level = 1;
+	uint8_t experience = 0;
+};
 
+struct Stats {
 	int8_t curHp = 0;
 	int8_t maxHp = 0;
 

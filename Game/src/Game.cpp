@@ -414,8 +414,12 @@ void Game::FocusCamera(const glm::ivec2& cell) {
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueArcherFrameIndex = 113;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
 		.curHp = 18,
 		.maxHp = 18,
 		.strength = 4,
@@ -443,6 +447,7 @@ entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueArcherFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
@@ -451,8 +456,12 @@ entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSet
 entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueSoldierFrameIndex = 114;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 4,
@@ -480,6 +489,7 @@ entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueSoldierFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
@@ -488,8 +498,12 @@ entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSe
 entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueKnightFrameIndex = 115;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 5,
@@ -517,6 +531,7 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueKnightFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
@@ -525,8 +540,12 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueCavalierFrameIndex = 116;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 5,
@@ -554,6 +573,7 @@ entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileS
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueCavalierFrameIndex);
 	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	return unit;
@@ -562,8 +582,12 @@ entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileS
 entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redArcherFrameIndex = 120;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
 		.curHp = 18,
 		.maxHp = 18,
 		.strength = 4,
@@ -580,6 +604,7 @@ entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, redArcherFrameIndex);
 	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	return unit;
 }
@@ -587,8 +612,12 @@ entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetH
 entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redSoldierFrameIndex = 121;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 4,
@@ -605,6 +634,7 @@ entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, redSoldierFrameIndex);
 	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	return unit;
 }
@@ -612,8 +642,12 @@ entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSet
 entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redKnightFrameIndex = 122;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 5,
@@ -630,6 +664,7 @@ entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, redKnightFrameIndex);
 	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	return unit;
 }
@@ -637,8 +672,12 @@ entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetH
 entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redCavalierFrameIndex = 123;
 
-	Stats stats {
+	UnitExperience unitExperience {
 		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
 		.curHp = 20,
 		.maxHp = 20,
 		.strength = 5,
@@ -655,6 +694,7 @@ entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<GridPosition>(unit, cell);
 	mRegistry.emplace<Sprite>(unit, tileSetHandle, redCavalierFrameIndex);
 	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	return unit;
 }
