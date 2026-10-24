@@ -235,7 +235,7 @@ void Game::UpdateSelectCharacterState(const float elapsedTime) {
 	FocusCamera(mCursorPos);
 
 	if (mActionMap.IsPressed(Action::OpenStatsMenu)) {
-		auto view = mRegistry.view<GridPosition, PlayerTeam>();
+		auto view = mRegistry.view<GridPosition>();
 		for (auto entity : view) {
 			const auto& gridPosition = view.get<GridPosition>(entity);
 			if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
