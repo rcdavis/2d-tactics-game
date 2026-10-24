@@ -206,82 +206,108 @@ void Game::Run() {
 }
 
 void Game::Update(const float elapsedTime) {
-	UpdateCursor(elapsedTime);
-	FocusCamera(mCursorPos);
-
-	if (mActionMap.IsPressed(Action::OpenStatsMenu)) {
-		// TODO: Implement open stats menu functionality.
-		LOG_INFO("Open stats menu action pressed");
-	}
-
 	switch (mState) {
 	case State::SelectCharacter:
-	{
-		if (mActionMap.IsPressed(Action::Select)) {
-			auto view = mRegistry.view<GridPosition, PlayerTeam>();
-			for (auto entity : view) {
-				const auto& gridPosition = view.get<GridPosition>(entity);
-				if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
-					mSelectedCharacter = entity;
-					mState = State::MovementZone;
-					break;
-				}
-			}
-		}
-	}
-	break;
+		UpdateSelectCharacterState(elapsedTime);
+		break;
 
 	case State::MovementZone:
-	{
-		if (mActionMap.IsPressed(Action::Select)) {
-			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
-			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-			const auto tiles = mTilePathing.FindMovementZone(
-				selectedCharPos.cell.y,
-				selectedCharPos.cell.x,
-				stats.movement);
-			for (const TilePathing::Cell& cell : tiles) {
-				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
-					bool isOccupied = false;
-					auto positionedEntities = mRegistry.view<GridPosition>();
-					for (const auto entity : positionedEntities) {
-						if (entity == mSelectedCharacter) {
-							continue;
-						}
-
-						const auto& gridPosition = positionedEntities.get<GridPosition>(entity);
-						if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
-							isOccupied = true;
-							break;
-						}
-					}
-
-					if (!isOccupied) {
-						selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
-					}
-					break;
-				}
-			}
-
-			mSelectedCharacter = entt::null;
-			mState = State::SelectCharacter;
-		} else if (mActionMap.IsPressed(Action::Cancel)) {
-			mSelectedCharacter = entt::null;
-			mState = State::SelectCharacter;
-		}
-	}
-	break;
+		UpdateMovementZoneState(elapsedTime);
+		break;
 
 	case State::MovingCharacter:
-	{
-		// TODO: Implement moving character state functionality.
-	}
-	break;
+		UpdateMovingCharacterState(elapsedTime);
+		break;
+
+	case State::StatsMenu:
+		UpdateStatsMenuState(elapsedTime);
+		break;
 	}
 
 	if (mActionMap.IsPressed(Action::Pause)) {
 		// TODO: Implement pause menu functionality.
 		Close();
+	}
+}
+
+void Game::UpdateSelectCharacterState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
+	if (mActionMap.IsPressed(Action::OpenStatsMenu)) {
+		auto view = mRegistry.view<GridPosition, PlayerTeam>();
+		for (auto entity : view) {
+			const auto& gridPosition = view.get<GridPosition>(entity);
+			if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+				mSelectedCharacter = entity;
+				mState = State::StatsMenu;
+				break;
+			}
+		}
+	} else if (mActionMap.IsPressed(Action::Select)) {
+		auto view = mRegistry.view<GridPosition, PlayerTeam>();
+		for (auto entity : view) {
+			const auto& gridPosition = view.get<GridPosition>(entity);
+			if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+				mSelectedCharacter = entity;
+				mState = State::MovementZone;
+				break;
+			}
+		}
+	}
+}
+
+void Game::UpdateMovementZoneState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+		const auto tiles = mTilePathing.FindMovementZone(
+			selectedCharPos.cell.y,
+			selectedCharPos.cell.x,
+			stats.movement);
+		for (const TilePathing::Cell& cell : tiles) {
+			if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
+				bool isOccupied = false;
+				auto positionedEntities = mRegistry.view<GridPosition>();
+				for (const auto entity : positionedEntities) {
+					if (entity == mSelectedCharacter) {
+						continue;
+					}
+
+					const auto& gridPosition = positionedEntities.get<GridPosition>(entity);
+					if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+						isOccupied = true;
+						break;
+					}
+				}
+
+				if (!isOccupied) {
+					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+				}
+				break;
+			}
+		}
+
+		mSelectedCharacter = entt::null;
+		mState = State::SelectCharacter;
+	} else if (mActionMap.IsPressed(Action::Cancel)) {
+		mSelectedCharacter = entt::null;
+		mState = State::SelectCharacter;
+	}
+}
+
+void Game::UpdateMovingCharacterState(const float elapsedTime) {
+	// TODO: Implement moving character state functionality.
+}
+
+void Game::UpdateStatsMenuState(const float elapsedTime) {
+	// TODO: Implement stats menu state functionality.
+	if (mActionMap.IsPressed(Action::Cancel)) {
+		mState = State::SelectCharacter;
+		mSelectedCharacter = entt::null;
 	}
 }
 
