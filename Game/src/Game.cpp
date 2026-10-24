@@ -304,7 +304,6 @@ void Game::UpdateMovingCharacterState(const float elapsedTime) {
 }
 
 void Game::UpdateStatsMenuState(const float elapsedTime) {
-	// TODO: Implement stats menu state functionality.
 	if (mActionMap.IsPressed(Action::Cancel)) {
 		mState = State::SelectCharacter;
 		mSelectedCharacter = entt::null;
@@ -339,7 +338,6 @@ void Game::Render() {
 
 	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
 		Renderer2D::Flush();
-
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
@@ -370,7 +368,19 @@ void Game::Render() {
 		}
 
 		Renderer2D::Flush();
+		mPlatform.renderDevice->EnableBlending(false);
+	}
 
+	if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
+		Renderer2D::Flush();
+		mPlatform.renderDevice->EnableBlending(true);
+
+		Renderer2D::DrawQuad(
+			{ 100.0f, 50.0f, 0.9f },
+			{ 600.0f, 500.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.75f });
+
+		Renderer2D::Flush();
 		mPlatform.renderDevice->EnableBlending(false);
 	}
 
