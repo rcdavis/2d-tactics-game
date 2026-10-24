@@ -37,6 +37,7 @@ private:
 	void UpdateStatsMenuState(const float elapsedTime);
 
 	void Render();
+	void RenderStatsMenu();
 
 	void OnResize(uint16_t width, uint16_t height);
 

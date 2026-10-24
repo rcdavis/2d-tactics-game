@@ -372,64 +372,68 @@ void Game::Render() {
 	}
 
 	if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
-		Renderer2D::Flush();
-		mPlatform.renderDevice->EnableBlending(true);
-
-		Renderer2D::DrawQuad(
-			{ 100.0f, 50.0f, 0.8f },
-			{ 600.0f, 500.0f },
-			{ 0.0f, 0.0f, 0.0f, 0.75f });
-
-		char buffer[32] { 0 };
-		constexpr std::array<StringHandle, 11> statNames = {
-			static_cast<StringHandle>(Res::Strings::Id::MENU_LEVEL),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_EXP),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_HP),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_STRENGTH),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_MAGIC),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_SKILL),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_SPEED),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_LUCK),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_DEFENSE),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_RESISTANCE),
-			static_cast<StringHandle>(Res::Strings::Id::MENU_MOVEMENT)
-		};
-
-		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-		const auto& unitExp = mRegistry.get<UnitExperience>(mSelectedCharacter);
-		const std::array<int, 11> statValues = {
-			unitExp.level,
-			unitExp.experience,
-			stats.curHp,
-			stats.strength,
-			stats.magic,
-			stats.skill,
-			stats.speed,
-			stats.luck,
-			stats.defense,
-			stats.resistance,
-			stats.movement
-		};
-
-		for (size_t i = 0; i < statNames.size(); ++i) {
-			const float y = 100.0f + i * 25.0f;
-			const char* const strName = Localization::GetString(statNames[i]);
-			snprintf(buffer, sizeof(buffer), "%s: %d", strName, statValues[i]);
-			Renderer2D::DrawText(
-				mFontHandle,
-				buffer,
-				{ 120.0f, y, 0.9f },
-				16.0f,
-				{1.0f, 1.0f, 1.0f, 1.0f});
-		}
-
-		Renderer2D::Flush();
-		mPlatform.renderDevice->EnableBlending(false);
+		RenderStatsMenu();
 	}
 
 	Renderer2D::EndScene();
 
 	Renderer2D::Present();
+}
+
+void Game::RenderStatsMenu() {
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	Renderer2D::DrawQuad(
+		{ 100.0f, 50.0f, 0.8f },
+		{ 600.0f, 500.0f },
+		{ 0.0f, 0.0f, 0.0f, 0.75f });
+
+	char buffer[32] { 0 };
+	constexpr std::array<StringHandle, 11> statNames = {
+		static_cast<StringHandle>(Res::Strings::Id::MENU_LEVEL),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_EXP),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_HP),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_STRENGTH),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_MAGIC),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_SKILL),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_SPEED),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_LUCK),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_DEFENSE),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_RESISTANCE),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_MOVEMENT)
+	};
+
+	const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+	const auto& unitExp = mRegistry.get<UnitExperience>(mSelectedCharacter);
+	const std::array<int, 11> statValues = {
+		unitExp.level,
+		unitExp.experience,
+		stats.curHp,
+		stats.strength,
+		stats.magic,
+		stats.skill,
+		stats.speed,
+		stats.luck,
+		stats.defense,
+		stats.resistance,
+		stats.movement
+	};
+
+	for (size_t i = 0; i < statNames.size(); ++i) {
+		const float y = 100.0f + i * 25.0f;
+		const char* const strName = Localization::GetString(statNames[i]);
+		snprintf(buffer, sizeof(buffer), "%s: %d", strName, statValues[i]);
+		Renderer2D::DrawText(
+			mFontHandle,
+			buffer,
+			{ 120.0f, y, 0.9f },
+			16.0f,
+			{1.0f, 1.0f, 1.0f, 1.0f});
+	}
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
 }
 
 void Game::OnResize(uint16_t width, uint16_t height) {
