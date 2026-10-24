@@ -1,6 +1,15 @@
 {
 	"MENU_PAUSE": "Pause",
 	"MENU_QUIT": "Quit",
+	"MENU_STATS": "Stats",
+	"MENU_STRENGTH": "Strength",
+	"MENU_MAGIC": "Magic",
+	"MENU_SKILL": "Skill",
+	"MENU_SPEED": "Speed",
+	"MENU_LUCK": "Luck",
+	"MENU_DEFENSE": "Defense",
+	"MENU_RESISTANCE": "Resistance",
+	"MENU_MOVEMENT": "Movement",
 	"ITEM_COUNT": {
 		"one": "There is {count} item",
 		"other": "There are {count} items"
