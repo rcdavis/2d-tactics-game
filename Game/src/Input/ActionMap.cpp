@@ -16,6 +16,7 @@ const char* ActionToString(Action action) {
 		case Action::MoveDown:  return "MoveDown";
 		case Action::Select:    return "Select";
 		case Action::Cancel:    return "Cancel";
+		case Action::OpenStatsMenu: return "OpenStatsMenu";
 		case Action::Pause:     return "Pause";
 		case Action::Count:     return "Count";
 		default:                return "Unknown";
@@ -29,6 +30,7 @@ Action StringToAction(const char* const actionName) {
 	if (strcmp(actionName, "MoveDown") == 0)  return Action::MoveDown;
 	if (strcmp(actionName, "Select") == 0)    return Action::Select;
 	if (strcmp(actionName, "Cancel") == 0)    return Action::Cancel;
+	if (strcmp(actionName, "OpenStatsMenu") == 0) return Action::OpenStatsMenu;
 	if (strcmp(actionName, "Pause") == 0)     return Action::Pause;
 	if (strcmp(actionName, "Count") == 0)     return Action::Count;
 	return Action::Count; // Default to Count if unknown
@@ -164,6 +166,8 @@ ActionMap ActionMap::CreateDefault() {
 
 	map.Bind(Action::Select, KeyBinding{KeyCode::Enter});
 	map.Bind(Action::Select, KeyBinding{KeyCode::F});
+
+	map.Bind(Action::OpenStatsMenu, KeyBinding{KeyCode::R});
 
 	map.Bind(Action::Cancel, KeyBinding{KeyCode::D});
 

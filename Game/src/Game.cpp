@@ -209,6 +209,11 @@ void Game::Update(const float elapsedTime) {
 	UpdateCursor(elapsedTime);
 	FocusCamera(mCursorPos);
 
+	if (mActionMap.IsPressed(Action::OpenStatsMenu)) {
+		// TODO: Implement open stats menu functionality.
+		LOG_INFO("Open stats menu action pressed");
+	}
+
 	switch (mState) {
 	case State::SelectCharacter:
 	{
