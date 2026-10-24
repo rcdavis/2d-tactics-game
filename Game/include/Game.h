@@ -40,14 +40,14 @@ private:
 	void FocusCamera(const glm::ivec2& cell);
 
 	entt::entity CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle);
 
 	entt::entity CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreateEnemyTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreateEnemyTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle);
 
 private:
 	Platform mPlatform;
