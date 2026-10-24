@@ -114,14 +114,14 @@ bool Game::Init() {
 	mTilePathing.Init(tileMapHandle);
 
 	CreatePlayerTeamArcher({7, 8}, tileSetHandle);
-	CreatePlayerTeamSpearman({0, 0}, tileSetHandle);
+	CreatePlayerTeamSoldier({0, 0}, tileSetHandle);
 	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
-	CreatePlayerTeamPaladin({5, 5}, tileSetHandle);
+	CreatePlayerTeamCavalier({5, 5}, tileSetHandle);
 
 	CreateEnemyTeamArcher({20, 8}, tileSetHandle);
-	CreateEnemyTeamSpearman({22, 0}, tileSetHandle);
+	CreateEnemyTeamSoldier({22, 0}, tileSetHandle);
 	CreateEnemyTeamKnight({22, 22}, tileSetHandle);
-	CreateEnemyTeamPaladin({25, 5}, tileSetHandle);
+	CreateEnemyTeamCavalier({25, 5}, tileSetHandle);
 
 	mState = State::SelectCharacter;
 	mSelectedCharacter = entt::null;
@@ -234,7 +234,7 @@ void Game::Update(const float elapsedTime) {
 			const auto tiles = mTilePathing.FindMovementZone(
 				selectedCharPos.cell.y,
 				selectedCharPos.cell.x,
-				stats.movementCost);
+				stats.movement);
 			for (const TilePathing::Cell& cell : tiles) {
 				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
 					bool isOccupied = false;
@@ -317,7 +317,7 @@ void Game::Render() {
 		const auto movementZone = mTilePathing.FindMovementZone(
 			gridPosition.cell.y,
 			gridPosition.cell.x,
-			stats.movementCost);
+			stats.movement);
 		for (const TilePathing::Cell& cell : movementZone) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
@@ -330,7 +330,7 @@ void Game::Render() {
 			gridPosition.cell.x,
 			mCursorPos.y,
 			mCursorPos.x,
-			stats.movementCost);
+			stats.movement);
 		for (const TilePathing::Cell& cell : tilePath) {
 			Renderer2D::DrawQuad(
 				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },
@@ -413,96 +413,288 @@ void Game::FocusCamera(const glm::ivec2& cell) {
 
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueArcherFrameIndex = 113;
-	constexpr uint8_t blueArcherMovementCost = 6;
 
-	entt::entity archer = mRegistry.create();
-	mRegistry.emplace<GridPosition>(archer, cell);
-	mRegistry.emplace<Sprite>(archer, tileSetHandle, blueArcherFrameIndex);
-	mRegistry.emplace<PlayerTeam>(archer);
-	mRegistry.emplace<Stats>(archer, blueArcherMovementCost);
-	return archer;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
+		.curHp = 18,
+		.maxHp = 18,
+		.strength = 4,
+		.magic = 0,
+		.skill = 6,
+		.speed = 3,
+		.luck = 0,
+		.defense = 4,
+		.resistance = 0,
+		.movement = 6,
+	};
+
+	GrowthRates growthRates {
+		.hp = 60,
+		.strength = 40,
+		.magic = 10,
+		.skill = 60,
+		.speed = 55,
+		.luck = 30,
+		.defense = 40,
+		.resistance = 40,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueArcherFrameIndex);
+	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	return unit;
 }
 
-entt::entity Game::CreatePlayerTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t blueSpearFrameIndex = 114;
-	constexpr uint8_t blueSpearMovementCost = 7;
+entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueSoldierFrameIndex = 114;
 
-	entt::entity spearman = mRegistry.create();
-	mRegistry.emplace<GridPosition>(spearman, cell);
-	mRegistry.emplace<Sprite>(spearman, tileSetHandle, blueSpearFrameIndex);
-	mRegistry.emplace<PlayerTeam>(spearman);
-	mRegistry.emplace<Stats>(spearman, blueSpearMovementCost);
-	return spearman;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 4,
+		.magic = 0,
+		.skill = 4,
+		.speed = 4,
+		.luck = 0,
+		.defense = 4,
+		.resistance = 0,
+		.movement = 6,
+	};
+
+	GrowthRates growthRates {
+		.hp = 80,
+		.strength = 40,
+		.magic = 15,
+		.skill = 50,
+		.speed = 45,
+		.luck = 25,
+		.defense = 40,
+		.resistance = 35,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueSoldierFrameIndex);
+	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	return unit;
 }
 
 entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueKnightFrameIndex = 115;
-	constexpr uint8_t blueKnightMovementCost = 5;
 
-	entt::entity knight = mRegistry.create();
-	mRegistry.emplace<GridPosition>(knight, cell);
-	mRegistry.emplace<Sprite>(knight, tileSetHandle, blueKnightFrameIndex);
-	mRegistry.emplace<PlayerTeam>(knight);
-	mRegistry.emplace<Stats>(knight, blueKnightMovementCost);
-	return knight;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 5,
+		.magic = 0,
+		.skill = 2,
+		.speed = 0,
+		.luck = 0,
+		.defense = 9,
+		.resistance = 0,
+		.movement = 5,
+	};
+
+	GrowthRates growthRates {
+		.hp = 75,
+		.strength = 50,
+		.magic = 20,
+		.skill = 45,
+		.speed = 30,
+		.luck = 25,
+		.defense = 60,
+		.resistance = 45,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueKnightFrameIndex);
+	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	return unit;
 }
 
-entt::entity Game::CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t bluePaladinFrameIndex = 116;
-	constexpr uint8_t bluePaladinMovementCost = 8;
+entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t blueCavalierFrameIndex = 116;
 
-	entt::entity paladin = mRegistry.create();
-	mRegistry.emplace<GridPosition>(paladin, cell);
-	mRegistry.emplace<Sprite>(paladin, tileSetHandle, bluePaladinFrameIndex);
-	mRegistry.emplace<PlayerTeam>(paladin);
-	mRegistry.emplace<Stats>(paladin, bluePaladinMovementCost);
-	return paladin;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 0,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 5,
+		.magic = 0,
+		.skill = 2,
+		.speed = 5,
+		.luck = 0,
+		.defense = 6,
+		.resistance = 0,
+		.movement = 8,
+	};
+
+	GrowthRates growthRates {
+		.hp = 70,
+		.strength = 45,
+		.magic = 15,
+		.skill = 40,
+		.speed = 50,
+		.luck = 30,
+		.defense = 45,
+		.resistance = 40,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueCavalierFrameIndex);
+	mRegistry.emplace<PlayerTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redArcherFrameIndex = 120;
-	constexpr uint8_t redArcherMovementCost = 6;
 
-	entt::entity archer = mRegistry.create();
-	mRegistry.emplace<GridPosition>(archer, cell);
-	mRegistry.emplace<Sprite>(archer, tileSetHandle, redArcherFrameIndex);
-	mRegistry.emplace<EnemyTeam>(archer);
-	mRegistry.emplace<Stats>(archer, redArcherMovementCost);
-	return archer;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
+		.curHp = 18,
+		.maxHp = 18,
+		.strength = 4,
+		.magic = 0,
+		.skill = 6,
+		.speed = 3,
+		.luck = 0,
+		.defense = 4,
+		.resistance = 0,
+		.movement = 6,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, redArcherFrameIndex);
+	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	return unit;
 }
 
-entt::entity Game::CreateEnemyTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redSpearFrameIndex = 121;
-	constexpr uint8_t redSpearMovementCost = 7;
+entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redSoldierFrameIndex = 121;
 
-	entt::entity spearman = mRegistry.create();
-	mRegistry.emplace<GridPosition>(spearman, cell);
-	mRegistry.emplace<Sprite>(spearman, tileSetHandle, redSpearFrameIndex);
-	mRegistry.emplace<EnemyTeam>(spearman);
-	mRegistry.emplace<Stats>(spearman, redSpearMovementCost);
-	return spearman;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 4,
+		.magic = 0,
+		.skill = 4,
+		.speed = 4,
+		.luck = 0,
+		.defense = 4,
+		.resistance = 0,
+		.movement = 6,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, redSoldierFrameIndex);
+	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redKnightFrameIndex = 122;
-	constexpr uint8_t redKnightMovementCost = 5;
 
-	entt::entity knight = mRegistry.create();
-	mRegistry.emplace<GridPosition>(knight, cell);
-	mRegistry.emplace<Sprite>(knight, tileSetHandle, redKnightFrameIndex);
-	mRegistry.emplace<EnemyTeam>(knight);
-	mRegistry.emplace<Stats>(knight, redKnightMovementCost);
-	return knight;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 5,
+		.magic = 0,
+		.skill = 2,
+		.speed = 0,
+		.luck = 0,
+		.defense = 9,
+		.resistance = 0,
+		.movement = 5,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, redKnightFrameIndex);
+	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	return unit;
 }
 
-entt::entity Game::CreateEnemyTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redPaladinFrameIndex = 123;
-	constexpr uint8_t redPaladinMovementCost = 8;
+entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
+	constexpr uint16_t redCavalierFrameIndex = 123;
 
-	entt::entity paladin = mRegistry.create();
-	mRegistry.emplace<GridPosition>(paladin, cell);
-	mRegistry.emplace<Sprite>(paladin, tileSetHandle, redPaladinFrameIndex);
-	mRegistry.emplace<EnemyTeam>(paladin);
-	mRegistry.emplace<Stats>(paladin, redPaladinMovementCost);
-	return paladin;
+	UnitExperience unitExperience {
+		.level = 1,
+		.experience = 50,
+	};
+
+	Stats stats {
+		.curHp = 20,
+		.maxHp = 20,
+		.strength = 5,
+		.magic = 0,
+		.skill = 2,
+		.speed = 5,
+		.luck = 0,
+		.defense = 6,
+		.resistance = 0,
+		.movement = 8,
+	};
+
+	entt::entity unit = mRegistry.create();
+	mRegistry.emplace<GridPosition>(unit, cell);
+	mRegistry.emplace<Sprite>(unit, tileSetHandle, redCavalierFrameIndex);
+	mRegistry.emplace<EnemyTeam>(unit);
+	mRegistry.emplace<UnitExperience>(unit, unitExperience);
+	mRegistry.emplace<Stats>(unit, stats);
+	return unit;
 }
