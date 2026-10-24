@@ -17,6 +17,7 @@ public:
 		SelectCharacter,
 		MovementZone,
 		MovingCharacter,
+		StatsMenu,
 	};
 
 public:
@@ -30,7 +31,13 @@ private:
 	void Shutdown();
 
 	void Update(const float elapsedTime);
+	void UpdateSelectCharacterState(const float elapsedTime);
+	void UpdateMovementZoneState(const float elapsedTime);
+	void UpdateMovingCharacterState(const float elapsedTime);
+	void UpdateStatsMenuState(const float elapsedTime);
+
 	void Render();
+	void RenderStatsMenu();
 
 	void OnResize(uint16_t width, uint16_t height);
 

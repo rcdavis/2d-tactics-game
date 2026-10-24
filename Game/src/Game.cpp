@@ -206,77 +206,107 @@ void Game::Run() {
 }
 
 void Game::Update(const float elapsedTime) {
-	UpdateCursor(elapsedTime);
-	FocusCamera(mCursorPos);
-
 	switch (mState) {
 	case State::SelectCharacter:
-	{
-		if (mActionMap.IsPressed(Action::Select)) {
-			auto view = mRegistry.view<GridPosition, PlayerTeam>();
-			for (auto entity : view) {
-				const auto& gridPosition = view.get<GridPosition>(entity);
-				if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
-					mSelectedCharacter = entity;
-					mState = State::MovementZone;
-					break;
-				}
-			}
-		}
-	}
-	break;
+		UpdateSelectCharacterState(elapsedTime);
+		break;
 
 	case State::MovementZone:
-	{
-		if (mActionMap.IsPressed(Action::Select)) {
-			auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
-			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
-			const auto tiles = mTilePathing.FindMovementZone(
-				selectedCharPos.cell.y,
-				selectedCharPos.cell.x,
-				stats.movement);
-			for (const TilePathing::Cell& cell : tiles) {
-				if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
-					bool isOccupied = false;
-					auto positionedEntities = mRegistry.view<GridPosition>();
-					for (const auto entity : positionedEntities) {
-						if (entity == mSelectedCharacter) {
-							continue;
-						}
-
-						const auto& gridPosition = positionedEntities.get<GridPosition>(entity);
-						if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
-							isOccupied = true;
-							break;
-						}
-					}
-
-					if (!isOccupied) {
-						selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
-					}
-					break;
-				}
-			}
-
-			mSelectedCharacter = entt::null;
-			mState = State::SelectCharacter;
-		} else if (mActionMap.IsPressed(Action::Cancel)) {
-			mSelectedCharacter = entt::null;
-			mState = State::SelectCharacter;
-		}
-	}
-	break;
+		UpdateMovementZoneState(elapsedTime);
+		break;
 
 	case State::MovingCharacter:
-	{
-		// TODO: Implement moving character state functionality.
-	}
-	break;
+		UpdateMovingCharacterState(elapsedTime);
+		break;
+
+	case State::StatsMenu:
+		UpdateStatsMenuState(elapsedTime);
+		break;
 	}
 
 	if (mActionMap.IsPressed(Action::Pause)) {
 		// TODO: Implement pause menu functionality.
 		Close();
+	}
+}
+
+void Game::UpdateSelectCharacterState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
+	if (mActionMap.IsPressed(Action::OpenStatsMenu)) {
+		auto view = mRegistry.view<GridPosition>();
+		for (auto entity : view) {
+			const auto& gridPosition = view.get<GridPosition>(entity);
+			if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+				mSelectedCharacter = entity;
+				mState = State::StatsMenu;
+				break;
+			}
+		}
+	} else if (mActionMap.IsPressed(Action::Select)) {
+		auto view = mRegistry.view<GridPosition, PlayerTeam>();
+		for (auto entity : view) {
+			const auto& gridPosition = view.get<GridPosition>(entity);
+			if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+				mSelectedCharacter = entity;
+				mState = State::MovementZone;
+				break;
+			}
+		}
+	}
+}
+
+void Game::UpdateMovementZoneState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+		const auto tiles = mTilePathing.FindMovementZone(
+			selectedCharPos.cell.y,
+			selectedCharPos.cell.x,
+			stats.movement);
+		for (const TilePathing::Cell& cell : tiles) {
+			if (cell.col == mCursorPos.x && cell.row == mCursorPos.y) {
+				bool isOccupied = false;
+				auto positionedEntities = mRegistry.view<GridPosition>();
+				for (const auto entity : positionedEntities) {
+					if (entity == mSelectedCharacter) {
+						continue;
+					}
+
+					const auto& gridPosition = positionedEntities.get<GridPosition>(entity);
+					if (gridPosition.cell.x == mCursorPos.x && gridPosition.cell.y == mCursorPos.y) {
+						isOccupied = true;
+						break;
+					}
+				}
+
+				if (!isOccupied) {
+					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+				}
+				break;
+			}
+		}
+
+		mSelectedCharacter = entt::null;
+		mState = State::SelectCharacter;
+	} else if (mActionMap.IsPressed(Action::Cancel)) {
+		mSelectedCharacter = entt::null;
+		mState = State::SelectCharacter;
+	}
+}
+
+void Game::UpdateMovingCharacterState(const float elapsedTime) {
+	// TODO: Implement moving character state functionality.
+}
+
+void Game::UpdateStatsMenuState(const float elapsedTime) {
+	if (mActionMap.IsPressed(Action::Cancel)) {
+		mState = State::SelectCharacter;
+		mSelectedCharacter = entt::null;
 	}
 }
 
@@ -308,7 +338,6 @@ void Game::Render() {
 
 	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
 		Renderer2D::Flush();
-
 		mPlatform.renderDevice->EnableBlending(true);
 
 		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
@@ -339,13 +368,72 @@ void Game::Render() {
 		}
 
 		Renderer2D::Flush();
-
 		mPlatform.renderDevice->EnableBlending(false);
+	}
+
+	if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
+		RenderStatsMenu();
 	}
 
 	Renderer2D::EndScene();
 
 	Renderer2D::Present();
+}
+
+void Game::RenderStatsMenu() {
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	Renderer2D::DrawQuad(
+		{ 100.0f, 50.0f, 0.8f },
+		{ 600.0f, 500.0f },
+		{ 0.0f, 0.0f, 0.0f, 0.75f });
+
+	char buffer[32] { 0 };
+	constexpr std::array<StringHandle, 11> statNames = {
+		static_cast<StringHandle>(Res::Strings::Id::MENU_LEVEL),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_EXP),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_HP),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_STRENGTH),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_MAGIC),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_SKILL),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_SPEED),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_LUCK),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_DEFENSE),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_RESISTANCE),
+		static_cast<StringHandle>(Res::Strings::Id::MENU_MOVEMENT)
+	};
+
+	const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+	const auto& unitExp = mRegistry.get<UnitExperience>(mSelectedCharacter);
+	const std::array<int, 11> statValues = {
+		unitExp.level,
+		unitExp.experience,
+		stats.curHp,
+		stats.strength,
+		stats.magic,
+		stats.skill,
+		stats.speed,
+		stats.luck,
+		stats.defense,
+		stats.resistance,
+		stats.movement
+	};
+
+	for (size_t i = 0; i < statNames.size(); ++i) {
+		const float y = 100.0f + i * 25.0f;
+		const char* const strName = Localization::GetString(statNames[i]);
+		snprintf(buffer, sizeof(buffer), "%s: %d", strName, statValues[i]);
+		Renderer2D::DrawText(
+			mFontHandle,
+			buffer,
+			{ 120.0f, y, 0.9f },
+			16.0f,
+			{1.0f, 1.0f, 1.0f, 1.0f});
+	}
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
 }
 
 void Game::OnResize(uint16_t width, uint16_t height) {
