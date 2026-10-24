@@ -19,3 +19,4 @@ struct Stats {
 };
 
 struct PlayerTeam {};
+struct EnemyTeam {};

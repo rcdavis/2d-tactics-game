@@ -44,6 +44,11 @@ private:
 	entt::entity CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
 	entt::entity CreatePlayerTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle);
 
+	entt::entity CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreateEnemyTeamSpearman(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
+	entt::entity CreateEnemyTeamPaladin(glm::ivec2 cell, TileSetHandle tileSetHandle);
+
 private:
 	Platform mPlatform;
 	ActionMap mActionMap;
