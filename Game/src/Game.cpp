@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include "StringHandle.h"
 #include "Utils/Log.h"
 
 #include "PlatformEvent.h"
@@ -23,8 +24,18 @@
 #include "StringIds.h"
 #include "ItemIds.h"
 #include "Items/ItemDatabase.h"
+#include "glm/ext/vector_float2.hpp"
 
 #include <filesystem>
+
+namespace {
+	enum class ActionMenuOption : uint8_t {
+		Attack,
+		Item,
+		Wait,
+		Count
+	};
+}
 
 Game::~Game() {
 	Shutdown();
@@ -227,6 +238,10 @@ void Game::Update(const float elapsedTime) {
 		UpdateMovingCharacterState(elapsedTime);
 		break;
 
+	case State::ActionSelectMenu:
+		UpdateActionSelectMenuState(elapsedTime);
+		break;
+
 	case State::StatsMenu:
 		UpdateStatsMenuState(elapsedTime);
 		break;
@@ -293,9 +308,12 @@ void Game::UpdateMovementZoneState(const float elapsedTime) {
 				}
 
 				if (!isOccupied) {
+					mPrevSelectedCharacterCell = selectedCharPos.cell;
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+					mCurSelection = 0;
+					mState = State::ActionSelectMenu;
+					return; // Exit early to stay in ActionSelectMenu state
 				}
-				break;
 			}
 		}
 
@@ -309,6 +327,51 @@ void Game::UpdateMovementZoneState(const float elapsedTime) {
 
 void Game::UpdateMovingCharacterState(const float elapsedTime) {
 	// TODO: Implement moving character state functionality.
+}
+
+void Game::UpdateActionSelectMenuState(const float elapsedTime) {
+	if (mActionMap.IsPressed(Action::MoveUp)) {
+		if (mCurSelection > 0) {
+			--mCurSelection;
+		}
+	} else if (mActionMap.IsPressed(Action::MoveDown)) {
+		if (mCurSelection < static_cast<uint8_t>(ActionMenuOption::Count) - 1) {
+			++mCurSelection;
+		}
+	}
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		switch (static_cast<ActionMenuOption>(mCurSelection)) {
+		case ActionMenuOption::Attack:
+			// TODO: Implement attack action
+			LOG_INFO("Attack action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+			break;
+
+		case ActionMenuOption::Item:
+			// TODO: Implement item action
+			LOG_INFO("Item action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+			break;
+
+		case ActionMenuOption::Wait:
+		{
+			LOG_INFO("Wait action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+		}
+		break;
+
+		default:
+			break;
+		}
+	} else if (mActionMap.IsPressed(Action::Cancel)) {
+		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+		selectedCharPos.cell = mPrevSelectedCharacterCell;
+		mState = State::MovementZone;
+	}
 }
 
 void Game::UpdateStatsMenuState(const float elapsedTime) {
@@ -377,10 +440,10 @@ void Game::Render() {
 
 		Renderer2D::Flush();
 		mPlatform.renderDevice->EnableBlending(false);
-	}
-
-	if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
+	} else if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
 		RenderStatsMenu();
+	} else if (mState == State::ActionSelectMenu && mSelectedCharacter != entt::null) {
+		RenderActionSelectMenu();
 	}
 
 	Renderer2D::EndScene();
@@ -463,6 +526,54 @@ void Game::RenderStatsMenu() {
 			16.0f,
 			{1.0f, 1.0f, 1.0f, 1.0f});
 	}
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
+}
+
+void Game::RenderActionSelectMenu() {
+	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	const auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+
+	const glm::vec2 actionMenuPos = {
+		selectedCharPos.cell.x * tileMap->tileWidth + 16.0f,
+		selectedCharPos.cell.y * tileMap->tileHeight
+	};
+
+	Renderer2D::DrawQuad(
+		{ actionMenuPos.x, actionMenuPos.y, 0.7f },
+		{ 64.0f, 80.0f },
+		{ 0.0f, 0.0f, 0.0f, 0.75f });
+
+	char buffer[32] {};
+	constexpr std::array<StringHandle, static_cast<size_t>(ActionMenuOption::Count)> actionMenuOptions = {
+		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_ATTACK),
+		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_ITEM),
+		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_WAIT),
+	};
+	for (size_t i = 0; i < actionMenuOptions.size(); ++i) {
+		const float y = actionMenuPos.y + i * 25.0f;
+		const char* const optionText = Localization::GetString(actionMenuOptions[i]);
+		snprintf(buffer, sizeof(buffer), "%s", optionText);
+		Renderer2D::DrawText(
+			mFontHandle,
+			buffer,
+			{ actionMenuPos.x + 8.0f, y, 0.8f },
+			16.0f,
+			{1.0f, 1.0f, 1.0f, 1.0f});
+	}
+
+	Renderer2D::DrawTexturedQuad(
+		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
+		{ 64.0f, 25.0f },
+		{ 1.0f, 0.0f, 1.0f, 1.0f },
+		selectionRingTextureHandle);
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(false);

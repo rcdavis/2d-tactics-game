@@ -17,6 +17,7 @@ public:
 		SelectCharacter,
 		MovementZone,
 		MovingCharacter,
+		ActionSelectMenu,
 		StatsMenu,
 	};
 
@@ -34,10 +35,12 @@ private:
 	void UpdateSelectCharacterState(const float elapsedTime);
 	void UpdateMovementZoneState(const float elapsedTime);
 	void UpdateMovingCharacterState(const float elapsedTime);
+	void UpdateActionSelectMenuState(const float elapsedTime);
 	void UpdateStatsMenuState(const float elapsedTime);
 
 	void Render();
 	void RenderStatsMenu();
+	void RenderActionSelectMenu();
 
 	void OnResize(uint16_t width, uint16_t height);
 
@@ -69,8 +72,11 @@ private:
 
 	// Cursor position in column and row
 	glm::ivec2 mCursorPos {0, 0};
+	glm::ivec2 mPrevSelectedCharacterCell {0, 0};
 
 	float mTimeSinceKeyPressed = 0.0f;
+
+	uint8_t mCurSelection = 0;
 
 	FontHandle mFontHandle = InvalidFontHandle;
 
