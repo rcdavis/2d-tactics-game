@@ -17,6 +17,9 @@
 		"one": "There is {count} item",
 		"other": "There are {count} items"
 	},
+	"ACTION_MENU_ATTACK": "Attack",
+	"ACTION_MENU_ITEM": "Item",
+	"ACTION_MENU_WAIT": "Wait",
 	"IRON_LANCE": "Iron Lance",
 	"IRON_BOW": "Iron Bow",
 	"VULNERARY": "Vulnerary"
