@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 
+#include "Items/ItemDef.h"
 #include "Tiles/TileHandle.h"
 #include "glm/ext/vector_int2.hpp"
 
@@ -47,3 +49,9 @@ struct GrowthRates {
 
 struct PlayerTeam {};
 struct EnemyTeam {};
+
+struct Inventory {
+	static constexpr uint8_t MaxItems = 5;
+	std::array<ItemInstance, MaxItems> items;
+	uint8_t equippedWeaponSlot = 0;
+};
