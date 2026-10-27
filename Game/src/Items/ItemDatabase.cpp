@@ -51,4 +51,25 @@ namespace ItemDatabase {
 	const ItemDef* GetItemDef(ItemHandle id) {
 		return s_ItemDefs.data() + id;
 	}
+
+	ItemInstance CreateItemInstance(ItemHandle id) {
+		const ItemDef* const itemDef = GetItemDef(id);
+
+		if (const WeaponData* const weaponData = std::get_if<WeaponData>(&itemDef->data)) {
+			return ItemInstance {
+				.id = id,
+				.usesLeft = weaponData->maxDurability
+			};
+		} else if (const ConsumableData* const consumableData = std::get_if<ConsumableData>(&itemDef->data)) {
+			return ItemInstance {
+				.id = id,
+				.usesLeft = consumableData->maxUses
+			};
+		}
+
+		return ItemInstance {
+			.id = id,
+			.usesLeft = 0
+		};
+	}
 }

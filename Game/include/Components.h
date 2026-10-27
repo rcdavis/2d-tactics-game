@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <array>
 
-#include "Items/ItemHandle.h"
+#include "Items/ItemDef.h"
 #include "Tiles/TileHandle.h"
 #include "glm/ext/vector_int2.hpp"
 
@@ -49,11 +49,6 @@ struct GrowthRates {
 
 struct PlayerTeam {};
 struct EnemyTeam {};
-
-struct ItemInstance {
-	ItemHandle id = InvalidItemHandle;
-	uint8_t usesLeft = 0;
-};
 
 struct Inventory {
 	static constexpr uint8_t MaxItems = 5;

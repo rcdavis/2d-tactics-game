@@ -35,3 +35,8 @@ struct ItemDef {
 	ItemType type = ItemType::Weapon;
 	std::variant<WeaponData, ConsumableData> data;
 };
+
+struct ItemInstance {
+	ItemHandle id = InvalidItemHandle;
+	uint8_t usesLeft = 0;
+};
