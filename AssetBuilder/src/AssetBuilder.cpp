@@ -17,6 +17,7 @@ void AssetBuilder::BuildAssets(const std::filesystem::path& inputDir, const std:
 	BuildShaders(inputDir, generatedDir);
 	BuildTileMaps(inputDir, outputDir, generatedDir);
 	BuildStrings(inputDir, outputDir, generatedDir);
+	BuildItems(inputDir, outputDir, generatedDir);
 }
 
 void AssetBuilder::BuildTextures(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -97,6 +98,30 @@ void AssetBuilder::BuildStrings(const std::filesystem::path& inputDir, const std
 		std::vector<ParsedStringEntry> stringData;
 		ParseStringData(mStringFiles[0], stringData);
 		CreateStringIdHeader(generatedDir, stringData);
+	}
+}
+
+void AssetBuilder::BuildItems(const std::filesystem::path& inputDir, const std::filesystem::path& outputDir, const std::filesystem::path& generatedDir) {
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(inputDir / "items")) {
+		if (entry.is_regular_file()) {
+			const auto& path = entry.path();
+			if (path.extension() == ".json") {
+				mItemFiles.push_back(path);
+				std::cout << "Found item file: " << path << std::endl;
+			}
+		}
+	}
+
+	const auto itemsOutputDir = outputDir / "items";
+	std::filesystem::create_directories(itemsOutputDir);
+
+	for (const auto& itemFile : mItemFiles)
+		ConvertItemFileToBinary(itemFile, itemsOutputDir);
+
+	if (!mItemFiles.empty()) {
+		ItemData itemData;
+		ParseItemData(mItemFiles[0], itemData);
+		CreateItemIdHeader(generatedDir, itemData);
 	}
 }
 
@@ -243,6 +268,30 @@ void AssetBuilder::ConvertStringFileToBinary(const std::filesystem::path& string
 	file.write((const char*)stringPool.data(), stringPool.size() * sizeof(char));
 
 	std::cout << "Converted string file to binary successfully: " << stringFilePath << " -> " << outputBinaryPath << std::endl;
+}
+
+void AssetBuilder::ConvertItemFileToBinary(const std::filesystem::path& itemFilePath, const std::filesystem::path& outputDir) {
+	ItemData itemData;
+	if (!ParseItemData(itemFilePath, itemData)) {
+		std::cerr << "Failed to get item data: " << itemFilePath << std::endl;
+		return;
+	}
+
+	const auto outputBinaryPath = outputDir / (itemFilePath.stem().string() + ".itmbin");
+	std::ofstream file(outputBinaryPath, std::ios::binary);
+	if (!file) {
+		std::cerr << "Failed to create output binary file: " << outputBinaryPath << std::endl;
+		return;
+	}
+
+	// Write item data to binary file (implementation depends on your binary format)
+	// Example: write number of weapons and consumables
+	uint32_t weaponCount = static_cast<uint32_t>(itemData.weapons.size());
+	uint32_t consumableCount = static_cast<uint32_t>(itemData.consumables.size());
+	//file.write((const char*)&weaponCount, sizeof(uint32_t));
+	//file.write((const char*)&consumableCount, sizeof(uint32_t));
+
+	std::cout << "Converted item file to binary successfully: " << itemFilePath << " -> " << outputBinaryPath << std::endl;
 }
 
 void AssetBuilder::CreateTextureIdHeader(const std::filesystem::path& inputDir, const std::filesystem::path& generatedDir) {
@@ -520,6 +569,12 @@ void AssetBuilder::CreateStringIdHeader(
 	std::cout << "Generated string ID header at " << headerPath << std::endl;
 }
 
+void AssetBuilder::CreateItemIdHeader(
+		const std::filesystem::path& generatedDir,
+		const ItemData& itemData)
+{
+
+}
 
 bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData) {
 	pugi::xml_document doc;
@@ -646,9 +701,12 @@ bool AssetBuilder::ParseStringData(const std::filesystem::path& stringFilePath, 
 		return false;
 	}
 
-	nlohmann::json root;
-	file >> root;
+	const nlohmann::json root = nlohmann::json::parse(file, nullptr, false);
 	file.close();
+	if (root.is_discarded()) {
+		std::cerr << "Failed to parse string file " << stringFilePath << std::endl;
+		return false;
+	}
 
 	for (const auto& [key, value] : root.items()) {
 		ParsedStringEntry parsedEntry;
@@ -671,6 +729,52 @@ bool AssetBuilder::ParseStringData(const std::filesystem::path& stringFilePath, 
 		}
 
 		outStringData.push_back(parsedEntry);
+	}
+
+	return true;
+}
+
+bool AssetBuilder::ParseItemData(const std::filesystem::path& itemFilePath, ItemData& outItemData) {
+	std::ifstream file(itemFilePath);
+	if (!file) {
+		std::cerr << "Failed to open item file " << itemFilePath << std::endl;
+		return false;
+	}
+
+	const nlohmann::json root = nlohmann::json::parse(file, nullptr, false);
+	file.close();
+	if (root.is_discarded()) {
+		std::cerr << "Failed to parse item file " << itemFilePath << std::endl;
+		return false;
+	}
+
+	const auto weaponArray = root["weapons"];
+	if (weaponArray.is_array()) {
+		for (const auto& weaponJson : weaponArray) {
+			WeaponData weaponData;
+			weaponData.name = weaponJson["name"].get<std::string>();
+			weaponData.id = weaponJson["id"].get<uint8_t>();
+			weaponData.might = weaponJson["might"].get<uint8_t>();
+			weaponData.hit = weaponJson["hit"].get<uint8_t>();
+			weaponData.crit = weaponJson["crit"].get<uint8_t>();
+			weaponData.minRange = weaponJson["minRange"].get<uint8_t>();
+			weaponData.maxRange = weaponJson["maxRange"].get<uint8_t>();
+			weaponData.maxDurability = weaponJson["maxDurability"].get<uint8_t>();
+			outItemData.weapons.push_back(weaponData);
+		}
+	}
+
+	const auto consumableArray = root["consumables"];
+	if (consumableArray.is_array()) {
+		for (const auto& consumableJson : consumableArray) {
+			ConsumableData consumableData;
+			consumableData.id = consumableJson["id"].get<uint8_t>();
+			consumableData.name = consumableJson["name"].get<std::string>();
+			consumableData.effect = StringToEffect(consumableJson["effect"].get<std::string>().c_str());
+			consumableData.amount = consumableJson["amount"].get<uint8_t>();
+			consumableData.maxUses = consumableJson["maxUses"].get<uint8_t>();
+			outItemData.consumables.push_back(consumableData);
+		}
 	}
 
 	return true;

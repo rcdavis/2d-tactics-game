@@ -2,6 +2,7 @@ project(AssetBuilder)
 
 add_executable(AssetBuilder
     src/AssetBuilder.cpp
+    src/ItemData.cpp
     src/Main.cpp
     src/StringData.cpp
 )
