@@ -28,6 +28,15 @@
 
 #include <filesystem>
 
+namespace {
+	enum class ActionMenuOption : uint8_t {
+		Attack,
+		Item,
+		Wait,
+		Count
+	};
+}
+
 Game::~Game() {
 	Shutdown();
 }
@@ -301,6 +310,7 @@ void Game::UpdateMovementZoneState(const float elapsedTime) {
 				if (!isOccupied) {
 					mPrevSelectedCharacterCell = selectedCharPos.cell;
 					selectedCharPos.cell = { mCursorPos.x, mCursorPos.y };
+					mCurSelection = 0;
 					mState = State::ActionSelectMenu;
 					return; // Exit early to stay in ActionSelectMenu state
 				}
@@ -320,7 +330,44 @@ void Game::UpdateMovingCharacterState(const float elapsedTime) {
 }
 
 void Game::UpdateActionSelectMenuState(const float elapsedTime) {
-	if (mActionMap.IsPressed(Action::Cancel)) {
+	if (mActionMap.IsPressed(Action::MoveUp)) {
+		if (mCurSelection > 0) {
+			--mCurSelection;
+		}
+	} else if (mActionMap.IsPressed(Action::MoveDown)) {
+		if (mCurSelection < static_cast<uint8_t>(ActionMenuOption::Count) - 1) {
+			++mCurSelection;
+		}
+	}
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		switch (static_cast<ActionMenuOption>(mCurSelection)) {
+		case ActionMenuOption::Attack:
+			// TODO: Implement attack action
+			LOG_INFO("Attack action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+			break;
+
+		case ActionMenuOption::Item:
+			// TODO: Implement item action
+			LOG_INFO("Item action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+			break;
+
+		case ActionMenuOption::Wait:
+		{
+			LOG_INFO("Wait action selected");
+			mState = State::SelectCharacter;
+			mSelectedCharacter = entt::null;
+		}
+		break;
+
+		default:
+			break;
+		}
+	} else if (mActionMap.IsPressed(Action::Cancel)) {
 		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 		selectedCharPos.cell = mPrevSelectedCharacterCell;
 		mState = State::MovementZone;

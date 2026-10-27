@@ -76,6 +76,8 @@ private:
 
 	float mTimeSinceKeyPressed = 0.0f;
 
+	uint8_t mCurSelection = 0;
+
 	FontHandle mFontHandle = InvalidFontHandle;
 
 	State mState = State::SelectCharacter;
