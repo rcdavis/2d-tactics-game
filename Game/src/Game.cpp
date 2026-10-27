@@ -552,10 +552,10 @@ void Game::RenderActionSelectMenu() {
 		{ 0.0f, 0.0f, 0.0f, 0.75f });
 
 	char buffer[32] {};
-	constexpr std::array<StringHandle, 3> actionMenuOptions = {
+	constexpr std::array<StringHandle, static_cast<size_t>(ActionMenuOption::Count)> actionMenuOptions = {
 		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_ATTACK),
 		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_ITEM),
-		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_WAIT)
+		static_cast<StringHandle>(Res::Strings::Id::ACTION_MENU_WAIT),
 	};
 	for (size_t i = 0; i < actionMenuOptions.size(); ++i) {
 		const float y = actionMenuPos.y + i * 25.0f;
