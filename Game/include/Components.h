@@ -53,5 +53,5 @@ struct EnemyTeam {};
 struct Inventory {
 	static constexpr uint8_t MaxItems = 5;
 	std::array<ItemInstance, MaxItems> items;
-	ItemHandle equippedWeapon = InvalidItemHandle;
+	uint8_t equippedWeaponSlot = 0;
 };
