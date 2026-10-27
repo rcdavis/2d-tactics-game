@@ -22,6 +22,7 @@
 #include "Localization.h"
 #include "StringIds.h"
 #include "Items/ItemDatabase.h"
+#include "Items/ItemDef.h"
 
 #include <filesystem>
 
@@ -96,6 +97,12 @@ bool Game::Init() {
 	}
 
 	Rng::Init();
+
+	// HACK: Load the item database with a null path for now, should be replaced with actual path later
+	if (!ItemDatabase::Load(nullptr)) {
+		LOG_ERROR("Failed to initialize item database");
+		return false;
+	}
 
 	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
@@ -503,6 +510,9 @@ void Game::FocusCamera(const glm::ivec2& cell) {
 
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueArcherFrameIndex = 113;
+	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(1);
+	const ItemDef* const ironBowItemDef = ItemDatabase::GetItemDef(ironBowItemHandle);
+	const WeaponData* const ironBowWeaponData = std::get_if<WeaponData>(&ironBowItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -540,11 +550,23 @@ entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironBowItemHandle,
+				.usesLeft = ironBowWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueSoldierFrameIndex = 114;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -582,11 +604,23 @@ entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueKnightFrameIndex = 115;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -624,11 +658,23 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueCavalierFrameIndex = 116;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -666,11 +712,23 @@ entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileS
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redArcherFrameIndex = 120;
+	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(1);
+	const ItemDef* const ironBowItemDef = ItemDatabase::GetItemDef(ironBowItemHandle);
+	const WeaponData* const ironBowWeaponData = std::get_if<WeaponData>(&ironBowItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -696,11 +754,23 @@ entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<EnemyTeam>(unit);
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironBowItemHandle,
+				.usesLeft = ironBowWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redSoldierFrameIndex = 121;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -726,11 +796,23 @@ entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<EnemyTeam>(unit);
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redKnightFrameIndex = 122;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -756,11 +838,23 @@ entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<EnemyTeam>(unit);
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
 
 entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t redCavalierFrameIndex = 123;
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(0);
+	const ItemDef* const ironLanceItemDef = ItemDatabase::GetItemDef(ironLanceItemHandle);
+	const WeaponData* const ironLanceWeaponData = std::get_if<WeaponData>(&ironLanceItemDef->data);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -786,5 +880,14 @@ entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<EnemyTeam>(unit);
 	mRegistry.emplace<UnitExperience>(unit, unitExperience);
 	mRegistry.emplace<Stats>(unit, stats);
+	mRegistry.emplace<Inventory>(unit, Inventory {
+		.items = {
+			ItemInstance {
+				.id = ironLanceItemHandle,
+				.usesLeft = ironLanceWeaponData->maxDurability
+			}
+		}
+	});
+
 	return unit;
 }
