@@ -33,12 +33,12 @@ private:
 		const std::vector<ParsedStringEntry>& stringData);
 	void CreateItemIdHeader(
 		const std::filesystem::path& generatedDir,
-		const ItemData& itemData);
+		const ParsedItemData& itemData);
 
 	bool ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData);
 	bool ParseTileMapData(const std::filesystem::path& tileMapPath, TileMapData& outTileMapData);
 	bool ParseStringData(const std::filesystem::path& stringFilePath, std::vector<ParsedStringEntry>& outStringData);
-	bool ParseItemData(const std::filesystem::path& itemFilePath, ItemData& outItemData);
+	bool ParseItemData(const std::filesystem::path& itemFilePath, ParsedItemData& outItemData);
 
 private:
 	std::vector<std::filesystem::path> mTextures;

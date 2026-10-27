@@ -1,10 +1,12 @@
 #include "AssetBuilder.h"
 
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <cstring>
 #include <regex>
 
+#include "ItemData.h"
 #include "TileMapData.h"
 #include "pugixml.hpp"
 #include "nlohmann/json.hpp"
@@ -119,7 +121,7 @@ void AssetBuilder::BuildItems(const std::filesystem::path& inputDir, const std::
 		ConvertItemFileToBinary(itemFile, itemsOutputDir);
 
 	if (!mItemFiles.empty()) {
-		ItemData itemData;
+		ParsedItemData itemData;
 		ParseItemData(mItemFiles[0], itemData);
 		CreateItemIdHeader(generatedDir, itemData);
 	}
@@ -271,7 +273,7 @@ void AssetBuilder::ConvertStringFileToBinary(const std::filesystem::path& string
 }
 
 void AssetBuilder::ConvertItemFileToBinary(const std::filesystem::path& itemFilePath, const std::filesystem::path& outputDir) {
-	ItemData itemData;
+	ParsedItemData itemData;
 	if (!ParseItemData(itemFilePath, itemData)) {
 		std::cerr << "Failed to get item data: " << itemFilePath << std::endl;
 		return;
@@ -284,12 +286,63 @@ void AssetBuilder::ConvertItemFileToBinary(const std::filesystem::path& itemFile
 		return;
 	}
 
-	// Write item data to binary file (implementation depends on your binary format)
-	// Example: write number of weapons and consumables
-	uint32_t weaponCount = static_cast<uint32_t>(itemData.weapons.size());
-	uint32_t consumableCount = static_cast<uint32_t>(itemData.consumables.size());
-	//file.write((const char*)&weaponCount, sizeof(uint32_t));
-	//file.write((const char*)&consumableCount, sizeof(uint32_t));
+	if (mStringFiles.empty()) {
+		std::cerr << "No string files available to generate item names." << std::endl;
+		return;
+	}
+
+	std::vector<ParsedStringEntry> stringData;
+	ParseStringData(mStringFiles[0], stringData);
+
+	std::vector<WeaponData> weapons;
+	weapons.reserve(itemData.weapons.size());
+	for (const auto& weapon : itemData.weapons) {
+		uint8_t nameId = 0;
+		for (size_t i = 0; i < stringData.size(); ++i) {
+			if (stringData[i].key == weapon.name) {
+				nameId = i;
+				break;
+			}
+		}
+		weapons.push_back(WeaponData {
+			.id = weapon.id,
+			.nameId = nameId,
+			.might = weapon.might,
+			.hit = weapon.hit,
+			.crit = weapon.crit,
+			.minRange = weapon.minRange,
+			.maxRange = weapon.maxRange,
+			.maxDurability = weapon.maxDurability,
+		});
+	}
+
+	std::vector<ConsumableData> consumables;
+	consumables.reserve(itemData.consumables.size());
+	for (const auto& consumable : itemData.consumables) {
+		uint8_t nameId = 0;
+		for (size_t i = 0; i < stringData.size(); ++i) {
+			if (stringData[i].key == consumable.name) {
+				nameId = i;
+				break;
+			}
+		}
+		consumables.push_back(ConsumableData {
+			.id = consumable.id,
+			.nameId = nameId,
+			.effect = consumable.effect,
+			.amount = consumable.amount,
+			.maxUses = consumable.maxUses,
+		});
+	}
+
+	const ItemBinHeader header {
+		.magic = {'I', 'T', 'M', 'B'},
+		.weaponCount = static_cast<uint16_t>(weapons.size()),
+		.consumableCount = static_cast<uint16_t>(consumables.size())
+	};
+	file.write((const char*)&header, sizeof(ItemBinHeader));
+	file.write((const char*)weapons.data(), weapons.size() * sizeof(WeaponData));
+	file.write((const char*)consumables.data(), consumables.size() * sizeof(ConsumableData));
 
 	std::cout << "Converted item file to binary successfully: " << itemFilePath << " -> " << outputBinaryPath << std::endl;
 }
@@ -571,7 +624,7 @@ void AssetBuilder::CreateStringIdHeader(
 
 void AssetBuilder::CreateItemIdHeader(
 		const std::filesystem::path& generatedDir,
-		const ItemData& itemData)
+		const ParsedItemData& itemData)
 {
 
 }
@@ -734,7 +787,7 @@ bool AssetBuilder::ParseStringData(const std::filesystem::path& stringFilePath, 
 	return true;
 }
 
-bool AssetBuilder::ParseItemData(const std::filesystem::path& itemFilePath, ItemData& outItemData) {
+bool AssetBuilder::ParseItemData(const std::filesystem::path& itemFilePath, ParsedItemData& outItemData) {
 	std::ifstream file(itemFilePath);
 	if (!file) {
 		std::cerr << "Failed to open item file " << itemFilePath << std::endl;
@@ -751,7 +804,7 @@ bool AssetBuilder::ParseItemData(const std::filesystem::path& itemFilePath, Item
 	const auto weaponArray = root["weapons"];
 	if (weaponArray.is_array()) {
 		for (const auto& weaponJson : weaponArray) {
-			WeaponData weaponData;
+			ParsedWeaponData weaponData;
 			weaponData.name = weaponJson["name"].get<std::string>();
 			weaponData.id = weaponJson["id"].get<uint8_t>();
 			weaponData.might = weaponJson["might"].get<uint8_t>();
@@ -767,7 +820,7 @@ bool AssetBuilder::ParseItemData(const std::filesystem::path& itemFilePath, Item
 	const auto consumableArray = root["consumables"];
 	if (consumableArray.is_array()) {
 		for (const auto& consumableJson : consumableArray) {
-			ConsumableData consumableData;
+			ParsedConsumableData consumableData;
 			consumableData.id = consumableJson["id"].get<uint8_t>();
 			consumableData.name = consumableJson["name"].get<std::string>();
 			consumableData.effect = StringToEffect(consumableJson["effect"].get<std::string>().c_str());
