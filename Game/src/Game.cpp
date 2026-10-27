@@ -532,6 +532,7 @@ void Game::RenderStatsMenu() {
 }
 
 void Game::RenderActionSelectMenu() {
+	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
@@ -546,7 +547,7 @@ void Game::RenderActionSelectMenu() {
 	};
 
 	Renderer2D::DrawQuad(
-		{ actionMenuPos.x, actionMenuPos.y, 0.8f },
+		{ actionMenuPos.x, actionMenuPos.y, 0.7f },
 		{ 64.0f, 80.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.75f });
 
@@ -563,10 +564,16 @@ void Game::RenderActionSelectMenu() {
 		Renderer2D::DrawText(
 			mFontHandle,
 			buffer,
-			{ actionMenuPos.x + 8.0f, y, 0.9f },
+			{ actionMenuPos.x + 8.0f, y, 0.8f },
 			16.0f,
 			{1.0f, 1.0f, 1.0f, 1.0f});
 	}
+
+	Renderer2D::DrawTexturedQuad(
+		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
+		{ 64.0f, 25.0f },
+		{ 1.0f, 0.0f, 1.0f, 1.0f },
+		selectionRingTextureHandle);
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(false);
