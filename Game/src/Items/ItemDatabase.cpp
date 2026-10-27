@@ -4,11 +4,43 @@
 
 #include <vector>
 
+// HACK: Loading dummy item definitions for now.
+#include "StringIds.h"
+
 namespace ItemDatabase {
 	static std::vector<ItemDef> s_ItemDefs;
 
 	bool Load(const char* const filePath) {
 		// TODO: Implement item database loading logic.
+		// HACK: Loading dummy item definitions for now.
+		s_ItemDefs.push_back(ItemDef {
+			.id = 0,
+			.nameHandle = static_cast<StringHandle>(Res::Strings::Id::IRON_LANCE),
+			.type = ItemType::Weapon,
+			.data = WeaponData {
+				.might = 7,
+				.hit = 80,
+				.crit = 0,
+				.minRange = 1,
+				.maxRange = 1,
+				.maxDurability = 45,
+			}
+		});
+
+		s_ItemDefs.push_back(ItemDef {
+			.id = 0,
+			.nameHandle = static_cast<StringHandle>(Res::Strings::Id::IRON_BOW),
+			.type = ItemType::Weapon,
+			.data = WeaponData {
+				.might = 6,
+				.hit = 85,
+				.crit = 0,
+				.minRange = 2,
+				.maxRange = 2,
+				.maxDurability = 45,
+			}
+		});
+
 		return true;
 	}
 
