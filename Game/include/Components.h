@@ -1,22 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <variant>
 #include <array>
 
-#include "StringHandle.h"
+#include "Items/ItemHandle.h"
 #include "Tiles/TileHandle.h"
 #include "glm/ext/vector_int2.hpp"
-
-using ItemId = uint16_t;
-
-constexpr ItemId InvalidItemId = static_cast<ItemId>(-1);
-
-enum class ItemType : uint8_t {
-	Weapon,
-	Consumable,
-	Count,
-};
 
 struct GridPosition {
 	glm::ivec2 cell {0, 0};
@@ -61,41 +50,13 @@ struct GrowthRates {
 struct PlayerTeam {};
 struct EnemyTeam {};
 
-struct WeaponData {
-	uint8_t might = 0;
-	uint8_t hit = 0;
-	uint8_t crit = 0;
-	uint8_t minRange = 0;
-	uint8_t maxRange = 0;
-	uint8_t maxDurability = 0;
-};
-
-struct ConsumableData {
-	enum class Effect : uint8_t {
-		Heal,
-		Buff,
-		Debuff
-	};
-
-	Effect effect = Effect::Heal;
-	uint8_t amount = 0;
-	uint8_t maxUses = 0;
-};
-
-struct ItemDef {
-	ItemId id = InvalidItemId;
-	StringHandle nameHandle = InvalidStringHandle;
-	ItemType type = ItemType::Weapon;
-	std::variant<WeaponData, ConsumableData> data;
-};
-
 struct ItemInstance {
-	ItemId id = InvalidItemId;
+	ItemHandle id = InvalidItemHandle;
 	uint8_t usesLeft = 0;
 };
 
 struct Inventory {
 	static constexpr uint8_t MaxItems = 5;
 	std::array<ItemInstance, MaxItems> items;
-	ItemId equippedWeapon = InvalidItemId;
+	ItemHandle equippedWeapon = InvalidItemHandle;
 };

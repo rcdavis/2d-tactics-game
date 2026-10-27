@@ -21,6 +21,7 @@
 #include "Rng.h"
 #include "Localization.h"
 #include "StringIds.h"
+#include "Items/ItemDatabase.h"
 
 #include <filesystem>
 
@@ -151,6 +152,7 @@ bool Game::Init() {
 void Game::Shutdown() {
 	LOG_INFO("Shutting down game");
 
+	ItemDatabase::Destroy();
 	Localization::Destroy();
 
 	mTilePathing.Destroy();
