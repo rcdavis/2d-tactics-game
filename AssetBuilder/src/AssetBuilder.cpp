@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstring>
 #include <regex>
+#include <vector>
 
 #include "ItemData.h"
 #include "TileMapData.h"
@@ -626,7 +627,44 @@ void AssetBuilder::CreateItemIdHeader(
 		const std::filesystem::path& generatedDir,
 		const ParsedItemData& itemData)
 {
+	const auto headerPath = generatedDir / "ItemIds.h";
+	std::ofstream file(headerPath);
+	if (!file) {
+		std::cerr << "Failed to create item ID header at " << headerPath << std::endl;
+		return;
+	}
 
+	std::vector<std::pair<uint8_t, std::string>> ids;
+	ids.reserve(itemData.weapons.size() + itemData.consumables.size());
+	for (const auto& weapon : itemData.weapons) {
+		ids.push_back({weapon.id, weapon.name});
+	}
+	for (const auto& consumable : itemData.consumables) {
+		ids.push_back({consumable.id, consumable.name});
+	}
+
+	std::sort(ids.begin(), ids.end(), [](const auto& a, const auto& b) {
+		return a.first < b.first;
+	});
+
+	file << "////////////////////////////////////////////////////////////////////////\n";
+	file << "// This file is auto-generated. Do not modify directly.\n";
+	file << "////////////////////////////////////////////////////////////////////////\n";
+	file << "#pragma once\n\n";
+	file << "#include <cstdint>\n\n";
+
+	file << "namespace Res::Items {\n";
+
+	file << "\tenum class Id : uint8_t {\n";
+	for (const auto& entry : ids) {
+		file << "\t\t" << entry.second << ",\n";
+	}
+	file << "\t\tCount\n";
+	file << "\t};\n";
+
+	file << "} // namespace Res::Items\n";
+
+	std::cout << "Generated item ID header at " << headerPath << std::endl;
 }
 
 bool AssetBuilder::ParseTileSetData(const std::filesystem::path& tileSetPath, TileSetData& outTileSetData) {
