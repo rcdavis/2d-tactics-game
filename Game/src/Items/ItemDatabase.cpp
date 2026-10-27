@@ -28,7 +28,7 @@ namespace ItemDatabase {
 		});
 
 		s_ItemDefs.push_back(ItemDef {
-			.id = 0,
+			.id = 1,
 			.nameHandle = static_cast<StringHandle>(Res::Strings::Id::IRON_BOW),
 			.type = ItemType::Weapon,
 			.data = WeaponData {
