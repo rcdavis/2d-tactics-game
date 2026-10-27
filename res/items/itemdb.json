@@ -1,0 +1,33 @@
+{
+	"weapons": [
+		{
+			"id": 0,
+			"name": "IRON_LANCE",
+			"might": 7,
+			"hit": 80,
+			"crit": 0,
+			"minRange": 1,
+			"maxRange": 1,
+			"maxDurability": 45
+		},
+		{
+			"id": 1,
+			"name": "IRON_BOW",
+			"might": 6,
+			"hit": 85,
+			"crit": 0,
+			"minRange": 2,
+			"maxRange": 2,
+			"maxDurability": 45
+		}
+	],
+	"consumables": [
+		{
+			"id": 2,
+			"name": "VULNERARY",
+			"effect": "heal",
+			"amount": 10,
+			"maxUses": 3
+		}
+	]
+}
