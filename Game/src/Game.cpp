@@ -22,7 +22,6 @@
 #include "Localization.h"
 #include "StringIds.h"
 #include "Items/ItemDatabase.h"
-#include "Items/ItemDef.h"
 
 #include <filesystem>
 
@@ -313,7 +312,7 @@ void Game::UpdateMovingCharacterState(const float elapsedTime) {
 }
 
 void Game::UpdateStatsMenuState(const float elapsedTime) {
-	if (mActionMap.IsPressed(Action::Cancel)) {
+	if (mActionMap.IsPressed(Action::Cancel) || mActionMap.IsPressed(Action::OpenStatsMenu)) {
 		mState = State::SelectCharacter;
 		mSelectedCharacter = entt::null;
 	}
@@ -415,6 +414,7 @@ void Game::RenderStatsMenu() {
 
 	const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 	const auto& unitExp = mRegistry.get<UnitExperience>(mSelectedCharacter);
+	const auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
 	const std::array<int, 11> statValues = {
 		unitExp.level,
 		unitExp.experience,
@@ -437,6 +437,29 @@ void Game::RenderStatsMenu() {
 			mFontHandle,
 			buffer,
 			{ 120.0f, y, 0.9f },
+			16.0f,
+			{1.0f, 1.0f, 1.0f, 1.0f});
+	}
+
+	for (size_t i = 0; i < inventory.items.size(); ++i) {
+		const float y = 100.0f + i * 25.0f;
+		const ItemInstance& item = inventory.items[i];
+		if (item.id == InvalidItemHandle)
+			continue;
+
+		const ItemDef* const itemDef = ItemDatabase::GetItemDef(item.id);
+		const char* const itemName = Localization::GetString(itemDef->nameHandle);
+		uint8_t maxUses = 0;
+		if (const WeaponData* const weaponData = std::get_if<WeaponData>(&itemDef->data))
+			maxUses = weaponData->maxDurability;
+		else if (const ConsumableData* const consumableData = std::get_if<ConsumableData>(&itemDef->data))
+			maxUses = consumableData->maxUses;
+
+		snprintf(buffer, sizeof(buffer), "%s: %d/%d", itemName, item.usesLeft, maxUses);
+		Renderer2D::DrawText(
+			mFontHandle,
+			buffer,
+			{ 320.0f, y, 0.9f },
 			16.0f,
 			{1.0f, 1.0f, 1.0f, 1.0f});
 	}
