@@ -1,45 +1,91 @@
 #include "Items/ItemDatabase.h"
 
 #include "Items/ItemDef.h"
+#include "Utils/Log.h"
 
+#include <fstream>
 #include <vector>
 
-// HACK: Loading dummy item definitions for now.
-#include "StringIds.h"
+namespace {
+	struct ItemBinHeader {
+		char magic[4] {};
+		uint16_t weaponCount = 0;
+		uint16_t consumableCount = 0;
+	};
+
+	struct ParsedWeaponData {
+		uint8_t id = 0;
+		uint8_t nameId = 0;
+		uint8_t might = 0;
+		uint8_t hit = 0;
+		uint8_t crit = 0;
+		uint8_t minRange = 0;
+		uint8_t maxRange = 0;
+		uint8_t maxDurability = 0;
+	};
+
+	struct ParsedConsumableData {
+		uint8_t id = 0;
+		uint8_t nameId = 0;
+		uint8_t effect = 0;
+		uint8_t amount = 0;
+		uint8_t maxUses = 0;
+	};
+}
 
 namespace ItemDatabase {
 	static std::vector<ItemDef> s_ItemDefs;
 
 	bool Load(const char* const filePath) {
-		// TODO: Implement item database loading logic.
-		// HACK: Loading dummy item definitions for now.
-		s_ItemDefs.push_back(ItemDef {
-			.id = 0,
-			.nameHandle = static_cast<StringHandle>(Res::Strings::Id::IRON_LANCE),
-			.type = ItemType::Weapon,
-			.data = WeaponData {
-				.might = 7,
-				.hit = 80,
-				.crit = 0,
-				.minRange = 1,
-				.maxRange = 1,
-				.maxDurability = 45,
-			}
-		});
+		std::ifstream file(filePath, std::ios::binary);
+		if (!file) {
+			LOG_ERROR("Failed to open item database file: {}", filePath);
+			return false;
+		}
 
-		s_ItemDefs.push_back(ItemDef {
-			.id = 1,
-			.nameHandle = static_cast<StringHandle>(Res::Strings::Id::IRON_BOW),
-			.type = ItemType::Weapon,
-			.data = WeaponData {
-				.might = 6,
-				.hit = 85,
-				.crit = 0,
-				.minRange = 2,
-				.maxRange = 2,
-				.maxDurability = 45,
-			}
-		});
+		ItemBinHeader header;
+		file.read(reinterpret_cast<char*>(&header), sizeof(header));
+
+		if (strncmp(header.magic, "ITMB", 4) != 0) {
+			LOG_ERROR("Invalid item database file: {}", filePath);
+			return false;
+		}
+
+		std::vector<ParsedWeaponData> parsedWeapons(header.weaponCount);
+		file.read(reinterpret_cast<char*>(parsedWeapons.data()), sizeof(ParsedWeaponData) * header.weaponCount);
+
+		std::vector<ParsedConsumableData> parsedConsumables(header.consumableCount);
+		file.read(reinterpret_cast<char*>(parsedConsumables.data()), sizeof(ParsedConsumableData) * header.consumableCount);
+
+		s_ItemDefs.reserve(header.weaponCount + header.consumableCount);
+		for (const ParsedWeaponData& weapon : parsedWeapons) {
+			s_ItemDefs.push_back(ItemDef {
+				.id = weapon.id,
+				.nameHandle = static_cast<StringHandle>(weapon.nameId),
+				.type = ItemType::Weapon,
+				.data = WeaponData {
+					.might = weapon.might,
+					.hit = weapon.hit,
+					.crit = weapon.crit,
+					.minRange = weapon.minRange,
+					.maxRange = weapon.maxRange,
+					.maxDurability = weapon.maxDurability,
+				}
+			});
+		}
+
+		for (const ParsedConsumableData& consumable : parsedConsumables) {
+			s_ItemDefs.push_back(ItemDef {
+				.id = consumable.id,
+				.nameHandle = static_cast<StringHandle>(consumable.nameId),
+				.type = ItemType::Consumable,
+				.data = ConsumableData {
+					.effect = static_cast<ConsumableData::Effect>(consumable.effect),
+					.amount = consumable.amount,
+					.maxUses = consumable.maxUses,
+				}
+			});
+		}
 
 		return true;
 	}
