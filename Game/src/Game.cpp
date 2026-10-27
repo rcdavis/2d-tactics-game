@@ -97,8 +97,7 @@ bool Game::Init() {
 
 	Rng::Init();
 
-	// HACK: Load the item database with a null path for now, should be replaced with actual path later
-	if (!ItemDatabase::Load(nullptr)) {
+	if (!ItemDatabase::Load("res/items/itemdb.itmbin")) {
 		LOG_ERROR("Failed to initialize item database");
 		return false;
 	}
