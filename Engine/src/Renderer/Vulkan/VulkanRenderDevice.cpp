@@ -2,6 +2,10 @@
 
 #include "IWindow.h"
 #include "Renderer/IVertexArray.h"
+#include "Renderer/Vulkan/VulkanBuffer.h"
+#include "Renderer/Vulkan/VulkanShader.h"
+#include "Renderer/Vulkan/VulkanTexture.h"
+#include "Renderer/Vulkan/VulkanVertexArray.h"
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_vulkan.h"
 #include "Utils/Log.h"
@@ -227,9 +231,11 @@ void VulkanRenderDevice::DrawIndexed(
 	if (!mFrameStarted || !vertexArray)
 		return;
 	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
-	(void)count;
+	if (count == 0)
+		return;
+	vertexArray->Bind();
+	vkCmdDrawIndexed(mCommandBuffers[mImageIndex], count, 1, 0, 0, 0);
 	(void)size;
-	LOG_WARN("Vulkan indexed drawing requires Vulkan vertex-array resources");
 }
 
 void VulkanRenderDevice::Present() {
@@ -239,28 +245,54 @@ void VulkanRenderDevice::Present() {
 }
 
 ITexture* VulkanRenderDevice::CreateTexture() const {
-	LOG_ERROR("Vulkan textures are not implemented");
-    return nullptr;
+	return new VulkanTexture(const_cast<VulkanRenderDevice*>(this));
 }
 
 IShader* VulkanRenderDevice::CreateShader() const {
-	LOG_ERROR("Vulkan shaders are not implemented");
-    return nullptr;
+	return new VulkanShader(const_cast<VulkanRenderDevice*>(this));
 }
 
 IVertexArray* VulkanRenderDevice::CreateVertexArray() const {
-	LOG_ERROR("Vulkan vertex arrays are not implemented");
-    return nullptr;
+	return new VulkanVertexArray(const_cast<VulkanRenderDevice*>(this));
 }
 
 IVertexBuffer* VulkanRenderDevice::CreateVertexBuffer() const {
-	LOG_ERROR("Vulkan vertex buffers are not implemented");
-    return nullptr;
+	return new VulkanVertexBuffer(const_cast<VulkanRenderDevice*>(this));
 }
 
 IIndexBuffer* VulkanRenderDevice::CreateIndexBuffer() const {
-	LOG_ERROR("Vulkan index buffers are not implemented");
-    return nullptr;
+	return new VulkanIndexBuffer(const_cast<VulkanRenderDevice*>(this));
+}
+
+bool VulkanRenderDevice::ExecuteImmediate(
+	const std::function<void(VkCommandBuffer)>& command) const {
+	if (!mDevice || !mCommandPool || !mGraphicsQueue)
+		return false;
+	VkCommandBufferAllocateInfo allocation{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+	allocation.commandPool = mCommandPool;
+	allocation.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocation.commandBufferCount = 1;
+	VkCommandBuffer buffer = VK_NULL_HANDLE;
+	if (!Check(vkAllocateCommandBuffers(mDevice, &allocation, &buffer), "upload command allocation"))
+		return false;
+	VkCommandBufferBeginInfo begin{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+	begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	if (!Check(vkBeginCommandBuffer(buffer, &begin), "upload command begin")) {
+		vkFreeCommandBuffers(mDevice, mCommandPool, 1, &buffer);
+		return false;
+	}
+	command(buffer);
+	if (!Check(vkEndCommandBuffer(buffer), "upload command end")) {
+		vkFreeCommandBuffers(mDevice, mCommandPool, 1, &buffer);
+		return false;
+	}
+	VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
+	submit.commandBufferCount = 1;
+	submit.pCommandBuffers = &buffer;
+	const bool success = Check(vkQueueSubmit(mGraphicsQueue, 1, &submit, VK_NULL_HANDLE),
+		"upload submission") && Check(vkQueueWaitIdle(mGraphicsQueue), "upload completion");
+	vkFreeCommandBuffers(mDevice, mCommandPool, 1, &buffer);
+	return success;
 }
 
 bool VulkanRenderDevice::BeginFrame() {

@@ -8,7 +8,11 @@ add_library(Engine STATIC
     src/Renderer/OpenGL/GLShader.cpp
     src/Renderer/OpenGL/GLTexture.cpp
     src/Renderer/OpenGL/GLVertexArray.cpp
+    src/Renderer/Vulkan/VulkanBuffer.cpp
     src/Renderer/Vulkan/VulkanRenderDevice.cpp
+    src/Renderer/Vulkan/VulkanShader.cpp
+    src/Renderer/Vulkan/VulkanTexture.cpp
+    src/Renderer/Vulkan/VulkanVertexArray.cpp
     src/Renderer/Buffer.cpp
     src/Renderer/Camera2D.cpp
     src/Renderer/FontSystem.cpp

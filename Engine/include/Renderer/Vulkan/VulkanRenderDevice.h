@@ -5,6 +5,7 @@
 #include <volk.h>
 
 #include <array>
+#include <functional>
 #include <vector>
 
 class VulkanRenderDevice : public IRenderDevice {
@@ -44,6 +45,15 @@ public:
 
 	[[nodiscard("Returned pointer will leak memory if not handled")]]
 	IIndexBuffer* CreateIndexBuffer() const override;
+
+	VkDevice GetDevice() const { return mDevice; }
+	VkPhysicalDevice GetPhysicalDevice() const { return mPhysicalDevice; }
+	VkCommandPool GetCommandPool() const { return mCommandPool; }
+	VkQueue GetGraphicsQueue() const { return mGraphicsQueue; }
+	VkCommandBuffer GetCurrentCommandBuffer() const {
+		return mFrameStarted ? mCommandBuffers[mImageIndex] : VK_NULL_HANDLE;
+	}
+	bool ExecuteImmediate(const std::function<void(VkCommandBuffer)>& command) const;
 
 private:
 	bool CreateSwapchain();
