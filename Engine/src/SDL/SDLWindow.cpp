@@ -21,8 +21,10 @@ bool SDLWindow::Init(const WindowCreateInfo& info) {
 #ifdef DEBUG
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
+	} else if (info.graphicsAPI == GraphicsAPI::Vulkan) {
+		windowFlags |= SDL_WINDOW_VULKAN;
 	} else {
-		LOG_ERROR("Unsupported graphics API. Only supporting OpenGL for now.");
+		LOG_ERROR("Unsupported graphics API");
 		return false;
 	}
 

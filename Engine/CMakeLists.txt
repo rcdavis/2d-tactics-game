@@ -68,4 +68,5 @@ target_link_libraries(Engine PRIVATE
 
 target_link_libraries(Engine PUBLIC
     nlohmann_json::nlohmann_json
+    volk
 )
