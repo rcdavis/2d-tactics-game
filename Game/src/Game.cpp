@@ -50,7 +50,7 @@ bool Game::Init() {
 		.title = "2D Tactics Game",
 		.width = 800,
 		.height = 600,
-		.graphicsAPI = GraphicsAPI::OpenGL,
+		.graphicsAPI = GraphicsAPI::Vulkan,
 		.isResizable = false,
 		.isFullscreen = false,
 		.useVSync = true,
