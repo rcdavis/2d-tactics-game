@@ -47,15 +47,15 @@ bool VulkanTexture::InitPixels(const void* data, uint16_t width, uint16_t height
 	VkDevice device = mDevice->GetDevice();
 	const VkDeviceSize size = static_cast<VkDeviceSize>(width) * height * 4;
 	VkBuffer staging = VK_NULL_HANDLE;
-	VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-	if (!VulkanMemory::CreateBuffer(device, mDevice->GetPhysicalDevice(), size,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging, stagingMemory))
+	VmaAllocation stagingAllocation = VK_NULL_HANDLE;
+	if (!VulkanMemory::CreateBuffer(mDevice->GetAllocator(), size,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY, staging,
+		stagingAllocation))
 		return false;
 	void* mapped = nullptr;
-	vkMapMemory(device, stagingMemory, 0, size, 0, &mapped);
+	vmaMapMemory(mDevice->GetAllocator(), stagingAllocation, &mapped);
 	std::memcpy(mapped, data, static_cast<size_t>(size));
-	vkUnmapMemory(device, stagingMemory);
+	vmaUnmapMemory(mDevice->GetAllocator(), stagingAllocation);
 
 	VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -67,23 +67,11 @@ bool VulkanTexture::InitPixels(const void* data, uint16_t width, uint16_t height
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	if (vkCreateImage(device, &imageInfo, nullptr, &mImage) != VK_SUCCESS) {
-		vkDestroyBuffer(device, staging, nullptr);
-		vkFreeMemory(device, stagingMemory, nullptr);
-		return false;
-	}
-	VkMemoryRequirements requirements{};
-	vkGetImageMemoryRequirements(device, mImage, &requirements);
-	VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-	allocation.allocationSize = requirements.size;
-	allocation.memoryTypeIndex = VulkanMemory::FindType(mDevice->GetPhysicalDevice(),
-		requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	if (allocation.memoryTypeIndex == UINT32_MAX ||
-		vkAllocateMemory(device, &allocation, nullptr, &mMemory) != VK_SUCCESS ||
-		vkBindImageMemory(device, mImage, mMemory, 0) != VK_SUCCESS) {
-		Destroy();
-		vkDestroyBuffer(device, staging, nullptr);
-		vkFreeMemory(device, stagingMemory, nullptr);
+	VmaAllocationCreateInfo imageAllocation{};
+	imageAllocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	if (vmaCreateImage(mDevice->GetAllocator(), &imageInfo, &imageAllocation,
+		&mImage, &mAllocation, nullptr) != VK_SUCCESS) {
+		vmaDestroyBuffer(mDevice->GetAllocator(), staging, stagingAllocation);
 		return false;
 	}
 	const bool uploaded = mDevice->ExecuteImmediate([&](VkCommandBuffer command) {
@@ -107,8 +95,7 @@ bool VulkanTexture::InitPixels(const void* data, uint16_t width, uint16_t height
 		vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &toTransfer);
 	});
-	vkDestroyBuffer(device, staging, nullptr);
-	vkFreeMemory(device, stagingMemory, nullptr);
+	vmaDestroyBuffer(mDevice->GetAllocator(), staging, stagingAllocation);
 	if (!uploaded)
 		return false;
 
@@ -139,12 +126,11 @@ void VulkanTexture::Destroy() {
 	VkDevice device = mDevice->GetDevice();
 	if (mSampler) vkDestroySampler(device, mSampler, nullptr);
 	if (mImageView) vkDestroyImageView(device, mImageView, nullptr);
-	if (mImage) vkDestroyImage(device, mImage, nullptr);
-	if (mMemory) vkFreeMemory(device, mMemory, nullptr);
+	if (mImage) vmaDestroyImage(mDevice->GetAllocator(), mImage, mAllocation);
 	mSampler = VK_NULL_HANDLE;
 	mImageView = VK_NULL_HANDLE;
 	mImage = VK_NULL_HANDLE;
-	mMemory = VK_NULL_HANDLE;
+	mAllocation = VK_NULL_HANDLE;
 	mWidth = 0;
 	mHeight = 0;
 }

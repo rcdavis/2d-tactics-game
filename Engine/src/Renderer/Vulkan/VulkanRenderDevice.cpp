@@ -124,6 +124,19 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 	volkLoadDevice(mDevice);
 	vkGetDeviceQueue(mDevice, mGraphicsQueueFamily, 0, &mGraphicsQueue);
 	vkGetDeviceQueue(mDevice, mPresentQueueFamily, 0, &mPresentQueue);
+	VmaVulkanFunctions vulkanFunctions{};
+	vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+	vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+	VmaAllocatorCreateInfo allocatorInfo{};
+	allocatorInfo.instance = mInstance;
+	allocatorInfo.physicalDevice = mPhysicalDevice;
+	allocatorInfo.device = mDevice;
+	allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+	if (vmaCreateAllocator(&allocatorInfo, &mAllocator) != VK_SUCCESS) {
+		LOG_ERROR("Failed to create Vulkan memory allocator");
+		return false;
+	}
 
 	VkCommandPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -158,6 +171,8 @@ void VulkanRenderDevice::Shutdown() {
 		}
 		DestroySwapchain();
 		vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+		vmaDestroyAllocator(mAllocator);
+		mAllocator = VK_NULL_HANDLE;
 		vkDestroyDevice(mDevice, nullptr);
 	}
 	if (mSurface && mInstance)

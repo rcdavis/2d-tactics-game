@@ -2,7 +2,7 @@
 
 #include "Renderer/ITexture.h"
 
-#include <volk.h>
+#include "Renderer/Vulkan/VulkanMemory.h"
 
 class VulkanRenderDevice;
 
@@ -25,7 +25,7 @@ private:
 	bool InitPixels(const void* data, uint16_t width, uint16_t height, uint32_t channels);
 	VulkanRenderDevice* mDevice = nullptr;
 	VkImage mImage = VK_NULL_HANDLE;
-	VkDeviceMemory mMemory = VK_NULL_HANDLE;
+	VmaAllocation mAllocation = VK_NULL_HANDLE;
 	VkImageView mImageView = VK_NULL_HANDLE;
 	VkSampler mSampler = VK_NULL_HANDLE;
 	uint16_t mWidth = 0;

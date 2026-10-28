@@ -1,8 +1,13 @@
 #pragma once
 
+#ifndef VK_NO_PROTOTYPES
+#define VK_NO_PROTOTYPES
+#endif
+
 #include "Renderer/IRenderDevice.h"
 
 #include <volk.h>
+#include <vk_mem_alloc.h>
 
 #include <array>
 #include <functional>
@@ -47,6 +52,7 @@ public:
 	IIndexBuffer* CreateIndexBuffer() const override;
 
 	VkDevice GetDevice() const { return mDevice; }
+	VmaAllocator GetAllocator() const { return mAllocator; }
 	VkPhysicalDevice GetPhysicalDevice() const { return mPhysicalDevice; }
 	VkCommandPool GetCommandPool() const { return mCommandPool; }
 	VkQueue GetGraphicsQueue() const { return mGraphicsQueue; }
@@ -65,6 +71,7 @@ private:
 	VkSurfaceKHR mSurface = VK_NULL_HANDLE;
 	VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 	VkDevice mDevice = VK_NULL_HANDLE;
+	VmaAllocator mAllocator = VK_NULL_HANDLE;
 	VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 	VkQueue mPresentQueue = VK_NULL_HANDLE;
 	VkCommandPool mCommandPool = VK_NULL_HANDLE;

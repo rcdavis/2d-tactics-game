@@ -2,7 +2,7 @@
 
 #include "Renderer/Buffer.h"
 
-#include <volk.h>
+#include "Renderer/Vulkan/VulkanMemory.h"
 
 class VulkanRenderDevice;
 
@@ -24,7 +24,7 @@ public:
 private:
 	VulkanRenderDevice* mDevice = nullptr;
 	VkBuffer mBuffer = VK_NULL_HANDLE;
-	VkDeviceMemory mMemory = VK_NULL_HANDLE;
+	VmaAllocation mAllocation = VK_NULL_HANDLE;
 	VkDeviceSize mSize = 0;
 	BufferLayout mLayout;
 };
@@ -45,6 +45,6 @@ public:
 private:
 	VulkanRenderDevice* mDevice = nullptr;
 	VkBuffer mBuffer = VK_NULL_HANDLE;
-	VkDeviceMemory mMemory = VK_NULL_HANDLE;
+	VmaAllocation mAllocation = VK_NULL_HANDLE;
 	uint32_t mCount = 0;
 };
