@@ -66,7 +66,7 @@ target_link_libraries(Engine PUBLIC
     spdlog::spdlog
     glm::glm
     nlohmann_json::nlohmann_json
-    volk
+    volk::volk
     GPUOpen::VulkanMemoryAllocator
 )
 
