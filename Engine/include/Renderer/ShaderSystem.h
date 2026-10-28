@@ -12,5 +12,7 @@ namespace ShaderSystem {
 
 	ShaderHandle Load(const char* const vertexFilepath, const char* const fragmentFilepath);
 
+	ShaderHandle Load(const char* const spvFilepath);
+
 	IShader* GetShader(ShaderHandle id);
 }

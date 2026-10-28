@@ -52,6 +52,25 @@ namespace ShaderSystem {
 		return static_cast<ShaderHandle>(std::size(s_Shaders) - 1);
 	}
 
+	ShaderHandle Load(const char* const spvFilepath) {
+		for (size_t i = 0; i < std::size(s_ShaderPaths); ++i) {
+			if (s_ShaderPaths[i].first == spvFilepath) {
+				return static_cast<ShaderHandle>(i);
+			}
+		}
+
+		IShader* shader = s_RenderDevice->CreateShader();
+		if (!shader->Init(spvFilepath)) {
+			LOG_ERROR("Failed to create shader for file \"{}\"", spvFilepath);
+			delete shader;
+			return InvalidShaderHandle;
+		}
+
+		s_Shaders.push_back(shader);
+		s_ShaderPaths.push_back({spvFilepath, ""});
+		return static_cast<ShaderHandle>(std::size(s_Shaders) - 1);
+	}
+
 	IShader* GetShader(ShaderHandle id) {
 		assert(id >= 0 && static_cast<size_t>(id) < std::size(s_Shaders));
 		return s_Shaders[id];

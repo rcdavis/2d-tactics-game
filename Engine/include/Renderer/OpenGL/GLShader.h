@@ -10,6 +10,7 @@ public:
 	virtual ~GLShader() override;
 
 	virtual bool Init(const char* const vertexFilepath, const char* const fragmentFilepath) override;
+	virtual bool Init(const char* const spvFilepath) override;
 	virtual void Destroy() override;
 
 	virtual void Bind() override;

@@ -12,6 +12,7 @@ public:
 	~VulkanShader() override;
 
 	bool Init(const char* vertexFilepath, const char* fragmentFilepath) override;
+	bool Init(const char* const spvFilepath) override;
 	void Destroy() override;
 	void Bind() override {}
 	void Unbind() override {}

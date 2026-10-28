@@ -95,6 +95,10 @@ bool GLShader::Init(const char* const vertexFilepath, const char* const fragment
 	return true;
 }
 
+bool GLShader::Init(const char* const spvFilepath) {
+	return false;
+}
+
 void GLShader::Destroy() {
 	if (mId) {
 		glDeleteProgram(mId);

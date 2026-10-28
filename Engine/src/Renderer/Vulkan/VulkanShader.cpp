@@ -44,6 +44,19 @@ bool VulkanShader::Init(const char* vertexFilepath, const char* fragmentFilepath
 	return true;
 }
 
+bool VulkanShader::Init(const char* const spvFilepath) {
+	Destroy();
+	if (!LoadModule(spvFilepath, mVertexModule))
+		return false;
+	// A combined SPIR-V file contains both entry points, while the pipeline
+	// interface keeps separate modules for the vertex and fragment stages.
+	if (!LoadModule(spvFilepath, mFragmentModule)) {
+		Destroy();
+		return false;
+	}
+	return true;
+}
+
 void VulkanShader::Destroy() {
 	if (!mDevice)
 		return;
