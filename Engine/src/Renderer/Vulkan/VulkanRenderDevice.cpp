@@ -128,7 +128,13 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 		queueCount = 2;
 	}
 	const char* deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	// The shader indexes its sampler array with a per-primitive value
+	VkPhysicalDeviceVulkan12Features features12{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+	features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+	VkPhysicalDeviceFeatures2 features2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+	features2.pNext = &features12;
 	VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+	deviceInfo.pNext = &features2;
 	deviceInfo.queueCreateInfoCount = queueCount;
 	deviceInfo.pQueueCreateInfos = queues.data();
 	deviceInfo.enabledExtensionCount = 1;
@@ -166,8 +172,6 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 		if (!Check(vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mImageAvailableSemaphores[i]),
 			"semaphore creation") ||
-			!Check(vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]),
-				"semaphore creation") ||
 			!Check(vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFences[i]),
 				"fence creation"))
 			return false;
@@ -184,7 +188,6 @@ void VulkanRenderDevice::Shutdown() {
 		DestroyDrawResources();
 		for (size_t i = 0; i < mImageAvailableSemaphores.size(); ++i) {
 			vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
-			vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
 			vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
 		}
 		DestroySwapchain();
@@ -637,12 +640,12 @@ void VulkanRenderDevice::EndFrame() {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &mCommandBuffers[mImageIndex];
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &mRenderFinishedSemaphores[mCurrentFrame];
+	submitInfo.pSignalSemaphores = &mRenderFinishedSemaphores[mImageIndex];
 	if (Check(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]),
 		"queue submission")) {
 		VkPresentInfoKHR presentInfo{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &mRenderFinishedSemaphores[mCurrentFrame];
+		presentInfo.pWaitSemaphores = &mRenderFinishedSemaphores[mImageIndex];
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &mSwapchain;
 		presentInfo.pImageIndices = &mImageIndex;
@@ -747,17 +750,26 @@ bool VulkanRenderDevice::CreateSwapchain() {
 	depthInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	VmaAllocationCreateInfo depthAllocation{};
 	depthAllocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	if (!Check(vmaCreateImage(mAllocator, &depthInfo, &depthAllocation, &mDepthImage,
-		&mDepthAllocation, nullptr), "depth image creation"))
-		return false;
-	VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-	depthViewInfo.image = mDepthImage;
-	depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	depthViewInfo.format = VK_FORMAT_D32_SFLOAT;
-	depthViewInfo.subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1};
-	if (!Check(vkCreateImageView(mDevice, &depthViewInfo, nullptr, &mDepthView),
-		"depth image view creation"))
-		return false;
+	mDepthImages.assign(mSwapchainImages.size(), VK_NULL_HANDLE);
+	mDepthAllocations.assign(mSwapchainImages.size(), VK_NULL_HANDLE);
+	mDepthViews.assign(mSwapchainImages.size(), VK_NULL_HANDLE);
+	mRenderFinishedSemaphores.assign(mSwapchainImages.size(), VK_NULL_HANDLE);
+	for (size_t i = 0; i < mSwapchainImages.size(); ++i) {
+		if (!Check(vmaCreateImage(mAllocator, &depthInfo, &depthAllocation, &mDepthImages[i],
+			&mDepthAllocations[i], nullptr), "depth image creation"))
+			return false;
+		VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+		depthViewInfo.image = mDepthImages[i];
+		depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		depthViewInfo.format = VK_FORMAT_D32_SFLOAT;
+		depthViewInfo.subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1};
+		VkSemaphoreCreateInfo semaphoreInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+		if (!Check(vkCreateImageView(mDevice, &depthViewInfo, nullptr, &mDepthViews[i]),
+			"depth image view creation") ||
+			!Check(vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]),
+				"semaphore creation"))
+			return false;
+	}
 
 	VkAttachmentDescription attachments[2]{};
 	attachments[0] = attachment;
@@ -798,7 +810,7 @@ bool VulkanRenderDevice::CreateSwapchain() {
 	for (size_t i = 0; i < mFramebuffers.size(); ++i) {
 		VkFramebufferCreateInfo framebufferInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
 		framebufferInfo.renderPass = mRenderPass;
-		const VkImageView framebufferViews[] = {mSwapchainImageViews[i], mDepthView};
+		const VkImageView framebufferViews[] = {mSwapchainImageViews[i], mDepthViews[i]};
 		framebufferInfo.attachmentCount = 2;
 		framebufferInfo.pAttachments = framebufferViews;
 		framebufferInfo.width = mSwapchainExtent.width;
@@ -822,13 +834,16 @@ void VulkanRenderDevice::DestroySwapchain() {
 		vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
 	if (mRenderPass)
 		vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
-	if (mDepthView)
-		vkDestroyImageView(mDevice, mDepthView, nullptr);
-	if (mDepthImage)
-		vmaDestroyImage(mAllocator, mDepthImage, mDepthAllocation);
-	mDepthView = VK_NULL_HANDLE;
-	mDepthImage = VK_NULL_HANDLE;
-	mDepthAllocation = VK_NULL_HANDLE;
+	for (auto view : mDepthViews)
+		if (view) vkDestroyImageView(mDevice, view, nullptr);
+	for (size_t i = 0; i < mDepthImages.size(); ++i)
+		if (mDepthImages[i]) vmaDestroyImage(mAllocator, mDepthImages[i], mDepthAllocations[i]);
+	for (auto semaphore : mRenderFinishedSemaphores)
+		if (semaphore) vkDestroySemaphore(mDevice, semaphore, nullptr);
+	mDepthViews.clear();
+	mDepthImages.clear();
+	mDepthAllocations.clear();
+	mRenderFinishedSemaphores.clear();
 	for (auto view : mSwapchainImageViews)
 		vkDestroyImageView(mDevice, view, nullptr);
 	if (mSwapchain)

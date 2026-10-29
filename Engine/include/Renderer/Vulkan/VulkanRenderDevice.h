@@ -98,13 +98,15 @@ private:
 	std::vector<VkFence> mImagesInFlight;
 	VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;
 	VkRenderPass mRenderPass = VK_NULL_HANDLE;
-	VkImage mDepthImage = VK_NULL_HANDLE;
-	VmaAllocation mDepthAllocation = VK_NULL_HANDLE;
-	VkImageView mDepthView = VK_NULL_HANDLE;
+	// One depth buffer and render-finished semaphore per swapchain image so
+	// frames in flight never share them
+	std::vector<VkImage> mDepthImages;
+	std::vector<VmaAllocation> mDepthAllocations;
+	std::vector<VkImageView> mDepthViews;
+	std::vector<VkSemaphore> mRenderFinishedSemaphores;
 	VkFormat mSwapchainFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D mSwapchainExtent{};
 	std::array<VkSemaphore, 2> mImageAvailableSemaphores{};
-	std::array<VkSemaphore, 2> mRenderFinishedSemaphores{};
 	std::array<VkFence, 2> mInFlightFences{};
 	uint32_t mCurrentFrame = 0;
 	uint32_t mImageIndex = 0;

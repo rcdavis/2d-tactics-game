@@ -45,10 +45,10 @@ float4 fragmentMain(FragmentInput input) : SV_Target {
 	// Negative texture indices mark MTSDF text.
 	if (input.texIndex < 0) {
 		int atlasIndex = -input.texIndex;
-		float3 msd = u_Textures[atlasIndex].Sample(input.texCoord).rgb;
+		float3 msd = u_Textures[NonUniformResourceIndex(atlasIndex)].Sample(input.texCoord).rgb;
 		int textureWidth;
 		int textureHeight;
-		u_Textures[atlasIndex].GetDimensions(textureWidth, textureHeight);
+		u_Textures[NonUniformResourceIndex(atlasIndex)].GetDimensions(textureWidth, textureHeight);
 		float2 unitRange = float2(MsdfPxRange) / float2(textureWidth, textureHeight);
 		float2 screenTexSize = float2(1.0) / fwidth(input.texCoord);
 		float screenPxRange = max(0.5 * dot(unitRange, screenTexSize), 1.0);
@@ -59,7 +59,7 @@ float4 fragmentMain(FragmentInput input) : SV_Target {
 		return float4(input.color.rgb, alpha);
 	}
 
-	float4 finalColor = u_Textures[input.texIndex].Sample(input.texCoord) * input.color;
+	float4 finalColor = u_Textures[NonUniformResourceIndex(input.texIndex)].Sample(input.texCoord) * input.color;
 	if (finalColor.a < 0.1)
 		discard;
 	return finalColor;
