@@ -7,6 +7,7 @@ public:
 	virtual ~IShader() = default;
 
 	virtual bool Init(const char* const vertexFilepath, const char* const fragmentFilepath) = 0;
+	virtual bool Init(const char* const spvFilepath) = 0;
 	virtual void Destroy() = 0;
 
 	virtual void Bind() = 0;

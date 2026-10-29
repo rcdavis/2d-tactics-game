@@ -8,6 +8,12 @@ add_library(Engine STATIC
     src/Renderer/OpenGL/GLShader.cpp
     src/Renderer/OpenGL/GLTexture.cpp
     src/Renderer/OpenGL/GLVertexArray.cpp
+    src/Renderer/Vulkan/VulkanBuffer.cpp
+    src/Renderer/Vulkan/VulkanRenderDevice.cpp
+    src/Renderer/Vulkan/VulkanShader.cpp
+    src/Renderer/Vulkan/VulkanTexture.cpp
+    src/Renderer/Vulkan/VulkanVertexArray.cpp
+    src/Renderer/Vulkan/VmaImplementation.cpp
     src/Renderer/Buffer.cpp
     src/Renderer/Camera2D.cpp
     src/Renderer/FontSystem.cpp
@@ -59,12 +65,11 @@ target_compile_features(Engine PRIVATE cxx_std_20)
 target_link_libraries(Engine PUBLIC
     spdlog::spdlog
     glm::glm
+    nlohmann_json::nlohmann_json
+    volk::volk
+    GPUOpen::VulkanMemoryAllocator
 )
 
 target_link_libraries(Engine PRIVATE
     SDL3::SDL3-static
-)
-
-target_link_libraries(Engine PUBLIC
-    nlohmann_json::nlohmann_json
 )

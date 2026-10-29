@@ -50,7 +50,7 @@ bool Game::Init() {
 		.title = "2D Tactics Game",
 		.width = 800,
 		.height = 600,
-		.graphicsAPI = GraphicsAPI::OpenGL,
+		.graphicsAPI = GraphicsAPI::Vulkan,
 		.isResizable = false,
 		.isFullscreen = false,
 		.useVSync = true,
@@ -97,12 +97,20 @@ bool Game::Init() {
 		}
 	}
 
-	constexpr uint32_t numShaderPaths = static_cast<uint32_t>(Res::Shaders::Vertex::Paths.size());
-	for (uint32_t i = 0; i < numShaderPaths; ++i) {
-		const char* vs = Res::Shaders::Vertex::GetPath(static_cast<Res::Shaders::Vertex::Id>(i));
-		const char* fs = Res::Shaders::Fragment::GetPath(static_cast<Res::Shaders::Fragment::Id>(i));
-		if (ShaderSystem::Load(vs, fs) == InvalidShaderHandle) {
-			LOG_ERROR("Failed to load shader: {} {}", vs, fs);
+	if constexpr (windowCreateInfo.graphicsAPI == GraphicsAPI::OpenGL) {
+		constexpr uint32_t numShaderPaths = static_cast<uint32_t>(Res::Shaders::Vertex::Paths.size());
+		for (uint32_t i = 0; i < numShaderPaths; ++i) {
+			const char* vs = Res::Shaders::Vertex::GetPath(static_cast<Res::Shaders::Vertex::Id>(i));
+			const char* fs = Res::Shaders::Fragment::GetPath(static_cast<Res::Shaders::Fragment::Id>(i));
+			if (ShaderSystem::Load(vs, fs) == InvalidShaderHandle) {
+				LOG_ERROR("Failed to load shader: {} {}", vs, fs);
+				return false;
+			}
+		}
+	} else {
+		// HACK: Currently only loading a single shader for Vulkan, should load all necessary shaders properly
+		if (ShaderSystem::Load("res/shaders/TextureQuad.spv") == InvalidShaderHandle) {
+			LOG_ERROR("Failed to load shader: res/shaders/TextureQuad.spv");
 			return false;
 		}
 	}

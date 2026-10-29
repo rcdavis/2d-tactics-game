@@ -52,6 +52,37 @@ endforeach()
 add_custom_target(CopyShaders ALL DEPENDS ${COPIED_SHADERS})
 add_dependencies(Game CopyShaders)
 
+# Compile combined Slang shaders to SPIR-V
+find_program(SLANGC_EXECUTABLE
+    NAMES slangc
+    HINTS ENV VULKAN_SDK
+    PATH_SUFFIXES bin
+    REQUIRED
+)
+
+set(TEXTURE_QUAD_SLANG ${CMAKE_SOURCE_DIR}/res/shaders/TextureQuad.slang)
+set(TEXTURE_QUAD_SPV ${CMAKE_BINARY_DIR}/Game/res/shaders/TextureQuad.spv)
+
+add_custom_command(
+    OUTPUT ${TEXTURE_QUAD_SPV}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/Game/res/shaders
+    COMMAND ${SLANGC_EXECUTABLE}
+        -lang slang
+        -target spirv
+        -entry vertexMain
+        -stage vertex
+        -entry fragmentMain
+        -stage fragment
+        -o ${TEXTURE_QUAD_SPV}
+        ${TEXTURE_QUAD_SLANG}
+    DEPENDS ${TEXTURE_QUAD_SLANG}
+    COMMENT "Compiling TextureQuad.slang to SPIR-V"
+    VERBATIM
+)
+
+add_custom_target(CompileSlangShaders ALL DEPENDS ${TEXTURE_QUAD_SPV})
+add_dependencies(Game CompileSlangShaders)
+
 # Copy fonts to the build directory
 file(GLOB_RECURSE FONT_FILES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/res/fonts/*.json"
