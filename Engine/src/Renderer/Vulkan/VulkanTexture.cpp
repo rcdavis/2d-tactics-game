@@ -136,5 +136,6 @@ void VulkanTexture::Destroy() {
 }
 
 void VulkanTexture::Bind(uint32_t slot) {
-	(void)slot;
+	if (mDevice)
+		mDevice->BindTexture(slot, this);
 }

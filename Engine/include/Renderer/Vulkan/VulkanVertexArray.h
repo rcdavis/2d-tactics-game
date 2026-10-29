@@ -16,6 +16,7 @@ public:
 	void SetVertexBuffer(const IVertexBuffer* vertexBuffer) override;
 	void SetIndexBuffer(const IIndexBuffer* indexBuffer) override;
 	uint32_t GetIndexCount() const override;
+	const IVertexBuffer* GetVertexBuffer() const { return mVertexBuffer; }
 
 private:
 	VulkanRenderDevice* mDevice = nullptr;

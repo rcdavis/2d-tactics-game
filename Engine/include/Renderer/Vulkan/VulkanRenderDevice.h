@@ -11,7 +11,12 @@
 
 #include <array>
 #include <functional>
+#include <unordered_map>
 #include <vector>
+
+class VulkanShader;
+class VulkanTexture;
+class BufferLayout;
 
 class VulkanRenderDevice : public IRenderDevice {
 public:
@@ -61,9 +66,17 @@ public:
 	}
 	bool ExecuteImmediate(const std::function<void(VkCommandBuffer)>& command) const;
 
+	static constexpr uint32_t MaxTextureSlots = 32;
+	void SetBoundShader(const VulkanShader* shader) { mBoundShader = shader; }
+	void BindTexture(uint32_t slot, const VulkanTexture* texture);
+	void OnShaderDestroyed(const VulkanShader* shader);
+
 private:
 	bool CreateSwapchain();
 	void DestroySwapchain();
+	bool CreateDrawResources();
+	void DestroyDrawResources();
+	VkPipeline GetPipeline(const VulkanShader& shader, const BufferLayout& layout);
 	bool BeginFrame();
 	void EndFrame();
 
@@ -95,6 +108,21 @@ private:
 	bool mVsync = false;
 	float mClearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	bool mInitialized = false;
+
+	static constexpr uint32_t MaxFramesInFlight = 2;
+	static constexpr uint32_t MaxDrawsPerFrame = 512;
+	VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+	VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
+	std::array<VkDescriptorPool, MaxFramesInFlight> mDescriptorPools{};
+	std::array<VkBuffer, MaxFramesInFlight> mUniformBuffers{};
+	std::array<VmaAllocation, MaxFramesInFlight> mUniformAllocations{};
+	std::array<void*, MaxFramesInFlight> mUniformMapped{};
+	VkDeviceSize mUniformStride = 0;
+	uint32_t mDrawIndex = 0;
+	std::unordered_map<const VulkanShader*, VkPipeline> mPipelines;
+	const VulkanShader* mBoundShader = nullptr;
+	std::array<const VulkanTexture*, MaxTextureSlots> mBoundTextures{};
+	int mViewport[4] = {0, 0, 0, 0};
 	uint32_t mWindowWidth = 0;
 	uint32_t mWindowHeight = 0;
 };

@@ -3,6 +3,10 @@
 #include "Renderer/Vulkan/VulkanRenderDevice.h"
 #include "Utils/Log.h"
 
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/matrix.hpp"
+
+#include <cstring>
 #include <fstream>
 #include <vector>
 
@@ -60,13 +64,24 @@ bool VulkanShader::Init(const char* const spvFilepath) {
 void VulkanShader::Destroy() {
 	if (!mDevice)
 		return;
+	mDevice->OnShaderDestroyed(this);
 	if (mVertexModule) vkDestroyShaderModule(mDevice->GetDevice(), mVertexModule, nullptr);
 	if (mFragmentModule) vkDestroyShaderModule(mDevice->GetDevice(), mFragmentModule, nullptr);
 	mVertexModule = VK_NULL_HANDLE;
 	mFragmentModule = VK_NULL_HANDLE;
 }
 
+void VulkanShader::Bind() {
+	if (mDevice)
+		mDevice->SetBoundShader(this);
+}
+
+void VulkanShader::Unbind() {
+	if (mDevice)
+		mDevice->SetBoundShader(nullptr);
+}
+
 void VulkanShader::SetMat4(const char* name, const glm::mat4& value) {
-	(void)name;
-	(void)value;
+	if (std::strcmp(name, "u_ViewProjection") == 0)
+		mViewProjection = glm::transpose(value);
 }

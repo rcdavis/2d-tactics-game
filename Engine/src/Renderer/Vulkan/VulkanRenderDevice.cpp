@@ -3,6 +3,7 @@
 #include "IWindow.h"
 #include "Renderer/IVertexArray.h"
 #include "Renderer/Vulkan/VulkanBuffer.h"
+#include "Renderer/Vulkan/VulkanMemory.h"
 #include "Renderer/Vulkan/VulkanShader.h"
 #include "Renderer/Vulkan/VulkanTexture.h"
 #include "Renderer/Vulkan/VulkanVertexArray.h"
@@ -22,6 +23,20 @@ namespace {
 		return false;
 	}
 
+	VkFormat ToVkFormat(BufferElementType type) {
+		switch (type) {
+		case BufferElementType::Float: return VK_FORMAT_R32_SFLOAT;
+		case BufferElementType::Float2: return VK_FORMAT_R32G32_SFLOAT;
+		case BufferElementType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+		case BufferElementType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case BufferElementType::Int:
+		case BufferElementType::Bool: return VK_FORMAT_R32_SINT;
+		case BufferElementType::Int2: return VK_FORMAT_R32G32_SINT;
+		case BufferElementType::Int3: return VK_FORMAT_R32G32B32_SINT;
+		case BufferElementType::Int4: return VK_FORMAT_R32G32B32A32_SINT;
+		default: return VK_FORMAT_UNDEFINED;
+		}
+	}
 }
 
 VulkanRenderDevice::~VulkanRenderDevice() {
@@ -52,7 +67,7 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.pEngineName = "2dTacticsGame";
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.apiVersion = VK_API_VERSION_1_2;
 	VkInstanceCreateInfo instanceInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
 	instanceInfo.pApplicationInfo = &appInfo;
 	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
@@ -157,6 +172,8 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 				"fence creation"))
 			return false;
 	}
+	if (!CreateDrawResources())
+		return false;
 	mInitialized = true;
 	return true;
 }
@@ -164,6 +181,7 @@ bool VulkanRenderDevice::Init(IWindow* window) {
 void VulkanRenderDevice::Shutdown() {
 	if (mDevice) {
 		vkDeviceWaitIdle(mDevice);
+		DestroyDrawResources();
 		for (size_t i = 0; i < mImageAvailableSemaphores.size(); ++i) {
 			vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
 			vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
@@ -209,11 +227,10 @@ void VulkanRenderDevice::EnableDepthTest(bool enable) {
 }
 
 void VulkanRenderDevice::SetViewport(int x, int y, int width, int height) {
-	if (!mFrameStarted)
-		return;
-	VkViewport viewport{static_cast<float>(x), static_cast<float>(y),
-		static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f};
-	vkCmdSetViewport(mCommandBuffers[mImageIndex], 0, 1, &viewport);
+	mViewport[0] = x;
+	mViewport[1] = y;
+	mViewport[2] = width;
+	mViewport[3] = height;
 }
 
 void VulkanRenderDevice::SetClearColor(float r, float g, float b, float a) {
@@ -243,14 +260,269 @@ void VulkanRenderDevice::DrawIndexed(
 	IVertexArray* vertexArray,
 	uint32_t indexCount,
 	DrawIndexSize size) {
-	if (!mFrameStarted || !vertexArray)
+	(void)size;
+	const VkCommandBuffer command = GetCurrentCommandBuffer();
+	if (!command || !vertexArray || !mBoundShader)
 		return;
 	const uint32_t count = indexCount ? indexCount : vertexArray->GetIndexCount();
-	if (count == 0)
+	const auto* vertexBuffer = static_cast<VulkanVertexArray*>(vertexArray)->GetVertexBuffer();
+	const VulkanTexture* fallback = mBoundTextures[0];
+	if (count == 0 || !vertexBuffer || !fallback || mDrawIndex >= MaxDrawsPerFrame) {
+		if (mDrawIndex >= MaxDrawsPerFrame)
+			LOG_ERROR("Exceeded the maximum number of Vulkan draws per frame");
+		mBoundTextures.fill(nullptr);
 		return;
+	}
+	const VkPipeline pipeline = GetPipeline(*mBoundShader, vertexBuffer->GetLayout());
+	if (!pipeline) {
+		mBoundTextures.fill(nullptr);
+		return;
+	}
+
+	VkDescriptorSetAllocateInfo allocateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+	allocateInfo.descriptorPool = mDescriptorPools[mCurrentFrame];
+	allocateInfo.descriptorSetCount = 1;
+	allocateInfo.pSetLayouts = &mDescriptorSetLayout;
+	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+	if (!Check(vkAllocateDescriptorSets(mDevice, &allocateInfo, &descriptorSet),
+		"descriptor set allocation")) {
+		mBoundTextures.fill(nullptr);
+		return;
+	}
+
+	const VkDeviceSize uniformOffset = mUniformStride * mDrawIndex++;
+	auto* uniformData = static_cast<char*>(mUniformMapped[mCurrentFrame]) + uniformOffset;
+	std::memcpy(uniformData, &mBoundShader->GetViewProjection(), sizeof(glm::mat4));
+	vmaFlushAllocation(mAllocator, mUniformAllocations[mCurrentFrame], uniformOffset,
+		sizeof(glm::mat4));
+
+	// Every sampler in the array must be valid, so unused slots reuse the white texture
+	std::array<VkDescriptorImageInfo, MaxTextureSlots> imageInfos{};
+	for (uint32_t i = 0; i < MaxTextureSlots; ++i) {
+		const VulkanTexture* texture = mBoundTextures[i] ? mBoundTextures[i] : fallback;
+		imageInfos[i] = {texture->GetSampler(), texture->GetImageView(),
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+	}
+	VkDescriptorBufferInfo bufferInfo{mUniformBuffers[mCurrentFrame], 0, sizeof(glm::mat4)};
+	VkWriteDescriptorSet writes[2]{};
+	writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writes[0].dstSet = descriptorSet;
+	writes[0].dstBinding = 0;
+	writes[0].descriptorCount = MaxTextureSlots;
+	writes[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	writes[0].pImageInfo = imageInfos.data();
+	writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writes[1].dstSet = descriptorSet;
+	writes[1].dstBinding = 1;
+	writes[1].descriptorCount = 1;
+	writes[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	writes[1].pBufferInfo = &bufferInfo;
+	vkUpdateDescriptorSets(mDevice, 2, writes, 0, nullptr);
+	mBoundTextures.fill(nullptr);
+
+	vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	VkViewport viewport{static_cast<float>(mViewport[0]), static_cast<float>(mViewport[1]),
+		static_cast<float>(mViewport[2]), static_cast<float>(mViewport[3]), 0.0f, 1.0f};
+	if (mViewport[2] <= 0 || mViewport[3] <= 0) {
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(mSwapchainExtent.width);
+		viewport.height = static_cast<float>(mSwapchainExtent.height);
+	}
+	vkCmdSetViewport(command, 0, 1, &viewport);
+	VkRect2D scissor{{0, 0}, mSwapchainExtent};
+	vkCmdSetScissor(command, 0, 1, &scissor);
+	const uint32_t dynamicOffset = static_cast<uint32_t>(uniformOffset);
+	vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+		&descriptorSet, 1, &dynamicOffset);
 	vertexArray->Bind();
-	vkCmdDrawIndexed(mCommandBuffers[mImageIndex], count, 1, 0, 0, 0);
-	(void)size;
+	vkCmdDrawIndexed(command, count, 1, 0, 0, 0);
+}
+
+void VulkanRenderDevice::BindTexture(uint32_t slot, const VulkanTexture* texture) {
+	if (slot < MaxTextureSlots)
+		mBoundTextures[slot] = texture;
+}
+
+void VulkanRenderDevice::OnShaderDestroyed(const VulkanShader* shader) {
+	if (mBoundShader == shader)
+		mBoundShader = nullptr;
+	const auto it = mPipelines.find(shader);
+	if (it == mPipelines.end())
+		return;
+	if (mDevice) {
+		vkDeviceWaitIdle(mDevice);
+		vkDestroyPipeline(mDevice, it->second, nullptr);
+	}
+	mPipelines.erase(it);
+}
+
+bool VulkanRenderDevice::CreateDrawResources() {
+	VkDescriptorSetLayoutBinding bindings[2]{};
+	bindings[0].binding = 0;
+	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[0].descriptorCount = MaxTextureSlots;
+	bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[1].binding = 1;
+	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	bindings[1].descriptorCount = 1;
+	bindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	VkDescriptorSetLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+	layoutInfo.bindingCount = 2;
+	layoutInfo.pBindings = bindings;
+	if (!Check(vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &mDescriptorSetLayout),
+		"descriptor set layout creation"))
+		return false;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &mDescriptorSetLayout;
+	if (!Check(vkCreatePipelineLayout(mDevice, &pipelineLayoutInfo, nullptr, &mPipelineLayout),
+		"pipeline layout creation"))
+		return false;
+
+	VkPhysicalDeviceProperties properties{};
+	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
+	const VkDeviceSize alignment = std::max<VkDeviceSize>(
+		properties.limits.minUniformBufferOffsetAlignment, 1);
+	mUniformStride = (sizeof(glm::mat4) + alignment - 1) / alignment * alignment;
+
+	for (uint32_t i = 0; i < MaxFramesInFlight; ++i) {
+		VkDescriptorPoolSize poolSizes[2]{};
+		poolSizes[0] = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			MaxDrawsPerFrame * MaxTextureSlots};
+		poolSizes[1] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, MaxDrawsPerFrame};
+		VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+		poolInfo.maxSets = MaxDrawsPerFrame;
+		poolInfo.poolSizeCount = 2;
+		poolInfo.pPoolSizes = poolSizes;
+		if (!Check(vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPools[i]),
+			"descriptor pool creation"))
+			return false;
+		if (!VulkanMemory::CreateBuffer(mAllocator, mUniformStride * MaxDrawsPerFrame,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU,
+			mUniformBuffers[i], mUniformAllocations[i])) {
+			LOG_ERROR("Failed to create Vulkan uniform buffer");
+			return false;
+		}
+		if (!Check(vmaMapMemory(mAllocator, mUniformAllocations[i], &mUniformMapped[i]),
+			"uniform buffer mapping"))
+			return false;
+	}
+	return true;
+}
+
+void VulkanRenderDevice::DestroyDrawResources() {
+	for (auto& [shader, pipeline] : mPipelines)
+		vkDestroyPipeline(mDevice, pipeline, nullptr);
+	mPipelines.clear();
+	for (uint32_t i = 0; i < MaxFramesInFlight; ++i) {
+		if (mDescriptorPools[i])
+			vkDestroyDescriptorPool(mDevice, mDescriptorPools[i], nullptr);
+		if (mUniformBuffers[i]) {
+			if (mUniformMapped[i])
+				vmaUnmapMemory(mAllocator, mUniformAllocations[i]);
+			vmaDestroyBuffer(mAllocator, mUniformBuffers[i], mUniformAllocations[i]);
+		}
+		mDescriptorPools[i] = VK_NULL_HANDLE;
+		mUniformBuffers[i] = VK_NULL_HANDLE;
+		mUniformAllocations[i] = VK_NULL_HANDLE;
+		mUniformMapped[i] = nullptr;
+	}
+	if (mPipelineLayout)
+		vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+	if (mDescriptorSetLayout)
+		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
+	mPipelineLayout = VK_NULL_HANDLE;
+	mDescriptorSetLayout = VK_NULL_HANDLE;
+	mBoundShader = nullptr;
+}
+
+VkPipeline VulkanRenderDevice::GetPipeline(const VulkanShader& shader, const BufferLayout& layout) {
+	if (const auto it = mPipelines.find(&shader); it != mPipelines.end())
+		return it->second;
+
+	VkPipelineShaderStageCreateInfo stages[2]{};
+	stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	stages[0].module = shader.GetVertexModule();
+	stages[0].pName = "vertexMain";
+	stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	stages[1].module = shader.GetFragmentModule();
+	stages[1].pName = "fragmentMain";
+
+	VkVertexInputBindingDescription binding{0, layout.GetStride(), VK_VERTEX_INPUT_RATE_VERTEX};
+	std::vector<VkVertexInputAttributeDescription> attributes;
+	uint32_t location = 0;
+	for (const auto& element : layout)
+		attributes.push_back({location++, 0, ToVkFormat(element.type), element.offset});
+	VkPipelineVertexInputStateCreateInfo vertexInput{
+		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+	vertexInput.vertexBindingDescriptionCount = 1;
+	vertexInput.pVertexBindingDescriptions = &binding;
+	vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributes.size());
+	vertexInput.pVertexAttributeDescriptions = attributes.data();
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+		VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	VkPipelineViewportStateCreateInfo viewportState{
+		VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
+	viewportState.viewportCount = 1;
+	viewportState.scissorCount = 1;
+
+	VkPipelineRasterizationStateCreateInfo rasterization{
+		VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
+	rasterization.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterization.cullMode = VK_CULL_MODE_NONE;
+	rasterization.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterization.lineWidth = 1.0f;
+
+	VkPipelineMultisampleStateCreateInfo multisample{
+		VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+	multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	VkPipelineColorBlendAttachmentState blendAttachment{};
+	blendAttachment.blendEnable = VK_TRUE;
+	blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	blendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	blendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	blendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	blendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	blendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	VkPipelineColorBlendStateCreateInfo colorBlend{
+		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
+	colorBlend.attachmentCount = 1;
+	colorBlend.pAttachments = &blendAttachment;
+
+	const VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+	VkPipelineDynamicStateCreateInfo dynamicState{
+		VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
+	dynamicState.dynamicStateCount = 2;
+	dynamicState.pDynamicStates = dynamicStates;
+
+	VkGraphicsPipelineCreateInfo info{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
+	info.stageCount = 2;
+	info.pStages = stages;
+	info.pVertexInputState = &vertexInput;
+	info.pInputAssemblyState = &inputAssembly;
+	info.pViewportState = &viewportState;
+	info.pRasterizationState = &rasterization;
+	info.pMultisampleState = &multisample;
+	info.pColorBlendState = &colorBlend;
+	info.pDynamicState = &dynamicState;
+	info.layout = mPipelineLayout;
+	info.renderPass = mRenderPass;
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	if (!Check(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &info, nullptr, &pipeline),
+		"graphics pipeline creation"))
+		return VK_NULL_HANDLE;
+	mPipelines.emplace(&shader, pipeline);
+	return pipeline;
 }
 
 void VulkanRenderDevice::Present() {
@@ -316,12 +588,14 @@ bool VulkanRenderDevice::BeginFrame() {
 	VkFence fence = mInFlightFences[mCurrentFrame];
 	if (!Check(vkWaitForFences(mDevice, 1, &fence, VK_TRUE, UINT64_MAX), "fence wait"))
 		return false;
+	vkResetDescriptorPool(mDevice, mDescriptorPools[mCurrentFrame], 0);
+	mDrawIndex = 0;
 	uint32_t imageIndex = 0;
 	VkResult result = vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX,
 		mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		return false;
-	if (!Check(result, "swapchain image acquisition"))
+	if (result != VK_SUBOPTIMAL_KHR && !Check(result, "swapchain image acquisition"))
 		return false;
 	mImageIndex = imageIndex;
 	if (mImagesInFlight[mImageIndex] != VK_NULL_HANDLE &&
@@ -366,7 +640,7 @@ void VulkanRenderDevice::EndFrame() {
 		Check(vkQueuePresentKHR(mPresentQueue, &presentInfo), "presentation");
 	}
 	mFrameStarted = false;
-	mCurrentFrame = (mCurrentFrame + 1) % static_cast<uint32_t>(mCommandBuffers.size());
+	mCurrentFrame = (mCurrentFrame + 1) % MaxFramesInFlight;
 }
 
 bool VulkanRenderDevice::CreateSwapchain() {

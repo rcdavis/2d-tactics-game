@@ -108,6 +108,7 @@ bool Game::Init() {
 			}
 		}
 	} else {
+		// HACK: Currently only loading a single shader for Vulkan, should load all necessary shaders properly
 		if (ShaderSystem::Load("res/shaders/TextureQuad.spv") == InvalidShaderHandle) {
 			LOG_ERROR("Failed to load shader: res/shaders/TextureQuad.spv");
 			return false;
