@@ -29,6 +29,5 @@ private:
 	VulkanRenderDevice* mDevice = nullptr;
 	VkShaderModule mVertexModule = VK_NULL_HANDLE;
 	VkShaderModule mFragmentModule = VK_NULL_HANDLE;
-	// Stored transposed: the Slang shader reads the matrix as row-major
 	glm::mat4 mViewProjection {1.0f};
 };

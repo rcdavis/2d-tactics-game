@@ -3,9 +3,6 @@
 #include "Renderer/Vulkan/VulkanRenderDevice.h"
 #include "Utils/Log.h"
 
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/matrix.hpp"
-
 #include <cstring>
 #include <fstream>
 #include <vector>
@@ -82,6 +79,13 @@ void VulkanShader::Unbind() {
 }
 
 void VulkanShader::SetMat4(const char* name, const glm::mat4& value) {
-	if (std::strcmp(name, "u_ViewProjection") == 0)
-		mViewProjection = glm::transpose(value);
+	if (std::strcmp(name, "u_ViewProjection") == 0) {
+		// Convert from OpenGL clip space: flip Y and remap depth from [-1, 1] to [0, 1]
+		const glm::mat4 clipCorrection(
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, -1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.5f, 0.0f,
+			0.0f, 0.0f, 0.5f, 1.0f);
+		mViewProjection = clipCorrection * value;
+	}
 }

@@ -20,12 +20,21 @@ public:
 	void SetData(const void* data, uint32_t size) override;
 
 	VkBuffer GetBuffer() const { return mBuffer; }
+	VkDeviceSize GetBindOffset() const { return mBindOffset; }
 
 private:
+	// Dynamic buffers hold one region per frame in flight; each SetData appends
+	// within the current frame's region so earlier recorded draws keep their data.
+	static constexpr uint32_t DynamicRegions = 8;
 	VulkanRenderDevice* mDevice = nullptr;
 	VkBuffer mBuffer = VK_NULL_HANDLE;
 	VmaAllocation mAllocation = VK_NULL_HANDLE;
 	VkDeviceSize mSize = 0;
+	VkDeviceSize mRegionSize = 0;
+	VkDeviceSize mCursor = 0;
+	VkDeviceSize mBindOffset = 0;
+	uint64_t mFrameSerial = 0;
+	bool mDynamic = false;
 	BufferLayout mLayout;
 };
 

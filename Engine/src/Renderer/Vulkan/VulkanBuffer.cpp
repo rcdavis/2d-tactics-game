@@ -2,6 +2,7 @@
 
 #include "Renderer/Vulkan/VulkanMemory.h"
 #include "Renderer/Vulkan/VulkanRenderDevice.h"
+#include "Utils/Log.h"
 
 #include <cstring>
 #include <vector>
@@ -42,11 +43,15 @@ bool VulkanVertexBuffer::Init(BufferUsage usage, const BufferLayout& layout,
 	Destroy();
 	mLayout = layout;
 	mSize = size;
+	mRegionSize = size * DynamicRegions;
+	mDynamic = usage == BufferUsage::Dynamic;
 	if (!size)
 		return true;
 	if (data && usage == BufferUsage::Static)
 		return Upload(mDevice, data, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, mBuffer, mAllocation);
-	if (!VulkanMemory::CreateBuffer(mDevice->GetAllocator(), size,
+	const VkDeviceSize allocationSize = mDynamic ?
+		mRegionSize * VulkanRenderDevice::MaxFramesInFlight : size;
+	if (!VulkanMemory::CreateBuffer(mDevice->GetAllocator(), allocationSize,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, mBuffer, mAllocation))
 		return false;
 	if (data) {
@@ -66,15 +71,34 @@ void VulkanVertexBuffer::Destroy() {
 	mBuffer = VK_NULL_HANDLE;
 	mAllocation = VK_NULL_HANDLE;
 	mSize = 0;
+	mCursor = 0;
+	mBindOffset = 0;
 }
 
 void VulkanVertexBuffer::SetData(const void* data, uint32_t size) {
 	if (!mBuffer || !data || size > mSize)
 		return;
+	VkDeviceSize offset = 0;
+	if (mDynamic) {
+		if (mFrameSerial != mDevice->GetFrameSerial()) {
+			mFrameSerial = mDevice->GetFrameSerial();
+			mCursor = 0;
+		}
+		if (mCursor + size > mRegionSize) {
+			LOG_ERROR("Vulkan dynamic vertex buffer exceeded its per-frame capacity");
+			return;
+		}
+		offset = mDevice->GetFrameIndex() * mRegionSize + mCursor;
+		mCursor += (size + 15) & ~VkDeviceSize(15);
+		if (mCursor > mRegionSize)
+			mCursor = mRegionSize;
+	}
 	void* mapped = nullptr;
 	if (vmaMapMemory(mDevice->GetAllocator(), mAllocation, &mapped) == VK_SUCCESS) {
-		std::memcpy(mapped, data, size);
+		std::memcpy(static_cast<char*>(mapped) + offset, data, size);
+		vmaFlushAllocation(mDevice->GetAllocator(), mAllocation, offset, size);
 		vmaUnmapMemory(mDevice->GetAllocator(), mAllocation);
+		mBindOffset = offset;
 	}
 }
 

@@ -19,7 +19,7 @@ void VulkanVertexArray::Bind() const {
 	if (!mDevice || !mDevice->GetCurrentCommandBuffer() || !mVertexBuffer)
 		return;
 	const auto* vertexBuffer = static_cast<const VulkanVertexBuffer*>(mVertexBuffer);
-	VkDeviceSize offset = 0;
+	VkDeviceSize offset = vertexBuffer->GetBindOffset();
 	const VkBuffer buffer = vertexBuffer->GetBuffer();
 	vkCmdBindVertexBuffers(mDevice->GetCurrentCommandBuffer(), 0, 1,
 		&buffer, &offset);

@@ -590,6 +590,7 @@ bool VulkanRenderDevice::BeginFrame() {
 		return false;
 	vkResetDescriptorPool(mDevice, mDescriptorPools[mCurrentFrame], 0);
 	mDrawIndex = 0;
+	++mFrameSerial;
 	uint32_t imageIndex = 0;
 	VkResult result = vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX,
 		mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);

@@ -67,6 +67,9 @@ public:
 	bool ExecuteImmediate(const std::function<void(VkCommandBuffer)>& command) const;
 
 	static constexpr uint32_t MaxTextureSlots = 32;
+	static constexpr uint32_t MaxFramesInFlight = 2;
+	uint32_t GetFrameIndex() const { return mCurrentFrame; }
+	uint64_t GetFrameSerial() const { return mFrameSerial; }
 	void SetBoundShader(const VulkanShader* shader) { mBoundShader = shader; }
 	void BindTexture(uint32_t slot, const VulkanTexture* texture);
 	void OnShaderDestroyed(const VulkanShader* shader);
@@ -109,7 +112,6 @@ private:
 	float mClearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	bool mInitialized = false;
 
-	static constexpr uint32_t MaxFramesInFlight = 2;
 	static constexpr uint32_t MaxDrawsPerFrame = 512;
 	VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 	VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
@@ -119,6 +121,7 @@ private:
 	std::array<void*, MaxFramesInFlight> mUniformMapped{};
 	VkDeviceSize mUniformStride = 0;
 	uint32_t mDrawIndex = 0;
+	uint64_t mFrameSerial = 0;
 	std::unordered_map<const VulkanShader*, VkPipeline> mPipelines;
 	const VulkanShader* mBoundShader = nullptr;
 	std::array<const VulkanTexture*, MaxTextureSlots> mBoundTextures{};
