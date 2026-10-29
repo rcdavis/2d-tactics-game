@@ -98,6 +98,9 @@ private:
 	std::vector<VkFence> mImagesInFlight;
 	VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;
 	VkRenderPass mRenderPass = VK_NULL_HANDLE;
+	VkImage mDepthImage = VK_NULL_HANDLE;
+	VmaAllocation mDepthAllocation = VK_NULL_HANDLE;
+	VkImageView mDepthView = VK_NULL_HANDLE;
 	VkFormat mSwapchainFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D mSwapchainExtent{};
 	std::array<VkSemaphore, 2> mImageAvailableSemaphores{};

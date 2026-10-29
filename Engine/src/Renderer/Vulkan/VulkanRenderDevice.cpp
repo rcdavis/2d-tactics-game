@@ -243,14 +243,15 @@ void VulkanRenderDevice::SetClearColor(float r, float g, float b, float a) {
 void VulkanRenderDevice::Clear(ClearFlags flags) {
 	if (!mInitialized || !BeginFrame())
 		return;
-	VkClearValue clearValue{};
-	std::memcpy(clearValue.color.float32, mClearColor, sizeof(mClearColor));
+	VkClearValue clearValues[2]{};
+	std::memcpy(clearValues[0].color.float32, mClearColor, sizeof(mClearColor));
+	clearValues[1].depthStencil = {1.0f, 0};
 	VkRenderPassBeginInfo renderPassInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
 	renderPassInfo.renderPass = mRenderPass;
 	renderPassInfo.framebuffer = mFramebuffers[mImageIndex];
 	renderPassInfo.renderArea.extent = mSwapchainExtent;
-	renderPassInfo.clearValueCount = 1;
-	renderPassInfo.pClearValues = &clearValue;
+	renderPassInfo.clearValueCount = 2;
+	renderPassInfo.pClearValues = clearValues;
 	vkCmdBeginRenderPass(mCommandBuffers[mImageIndex], &renderPassInfo,
 		VK_SUBPASS_CONTENTS_INLINE);
 	(void)flags;
@@ -484,6 +485,12 @@ VkPipeline VulkanRenderDevice::GetPipeline(const VulkanShader& shader, const Buf
 		VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
 	multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
+	VkPipelineDepthStencilStateCreateInfo depthStencil{
+		VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
 	VkPipelineColorBlendAttachmentState blendAttachment{};
 	blendAttachment.blendEnable = VK_TRUE;
 	blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
@@ -513,6 +520,7 @@ VkPipeline VulkanRenderDevice::GetPipeline(const VulkanShader& shader, const Buf
 	info.pViewportState = &viewportState;
 	info.pRasterizationState = &rasterization;
 	info.pMultisampleState = &multisample;
+	info.pDepthStencilState = &depthStencil;
 	info.pColorBlendState = &colorBlend;
 	info.pDynamicState = &dynamicState;
 	info.layout = mPipelineLayout;
@@ -726,13 +734,60 @@ bool VulkanRenderDevice::CreateSwapchain() {
 	attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	VkAttachmentReference reference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+	VkImageCreateInfo depthInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+	depthInfo.imageType = VK_IMAGE_TYPE_2D;
+	depthInfo.extent = {mSwapchainExtent.width, mSwapchainExtent.height, 1};
+	depthInfo.mipLevels = 1;
+	depthInfo.arrayLayers = 1;
+	depthInfo.format = VK_FORMAT_D32_SFLOAT;
+	depthInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	depthInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	depthInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	VmaAllocationCreateInfo depthAllocation{};
+	depthAllocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	if (!Check(vmaCreateImage(mAllocator, &depthInfo, &depthAllocation, &mDepthImage,
+		&mDepthAllocation, nullptr), "depth image creation"))
+		return false;
+	VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+	depthViewInfo.image = mDepthImage;
+	depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	depthViewInfo.format = VK_FORMAT_D32_SFLOAT;
+	depthViewInfo.subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1};
+	if (!Check(vkCreateImageView(mDevice, &depthViewInfo, nullptr, &mDepthView),
+		"depth image view creation"))
+		return false;
+
+	VkAttachmentDescription attachments[2]{};
+	attachments[0] = attachment;
+	attachments[1].format = VK_FORMAT_D32_SFLOAT;
+	attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	VkAttachmentReference depthReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
 	VkSubpassDescription subpass{};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &reference;
+	subpass.pDepthStencilAttachment = &depthReference;
+	VkSubpassDependency dependency{};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	dependency.dstStageMask = dependency.srcStageMask;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	VkRenderPassCreateInfo renderPassInfo{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &attachment;
+	renderPassInfo.attachmentCount = 2;
+	renderPassInfo.pAttachments = attachments;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependency;
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 	if (!Check(vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &mRenderPass),
@@ -743,8 +798,9 @@ bool VulkanRenderDevice::CreateSwapchain() {
 	for (size_t i = 0; i < mFramebuffers.size(); ++i) {
 		VkFramebufferCreateInfo framebufferInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
 		framebufferInfo.renderPass = mRenderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = &mSwapchainImageViews[i];
+		const VkImageView framebufferViews[] = {mSwapchainImageViews[i], mDepthView};
+		framebufferInfo.attachmentCount = 2;
+		framebufferInfo.pAttachments = framebufferViews;
 		framebufferInfo.width = mSwapchainExtent.width;
 		framebufferInfo.height = mSwapchainExtent.height;
 		framebufferInfo.layers = 1;
@@ -766,6 +822,13 @@ void VulkanRenderDevice::DestroySwapchain() {
 		vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
 	if (mRenderPass)
 		vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+	if (mDepthView)
+		vkDestroyImageView(mDevice, mDepthView, nullptr);
+	if (mDepthImage)
+		vmaDestroyImage(mAllocator, mDepthImage, mDepthAllocation);
+	mDepthView = VK_NULL_HANDLE;
+	mDepthImage = VK_NULL_HANDLE;
+	mDepthAllocation = VK_NULL_HANDLE;
 	for (auto view : mSwapchainImageViews)
 		vkDestroyImageView(mDevice, view, nullptr);
 	if (mSwapchain)
