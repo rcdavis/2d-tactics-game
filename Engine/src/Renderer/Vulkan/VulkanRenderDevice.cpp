@@ -637,7 +637,9 @@ void VulkanRenderDevice::EndFrame() {
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &mSwapchain;
 		presentInfo.pImageIndices = &mImageIndex;
-		Check(vkQueuePresentKHR(mPresentQueue, &presentInfo), "presentation");
+		const VkResult presentResult = vkQueuePresentKHR(mPresentQueue, &presentInfo);
+		if (presentResult != VK_SUBOPTIMAL_KHR && presentResult != VK_ERROR_OUT_OF_DATE_KHR)
+			Check(presentResult, "presentation");
 	}
 	mFrameStarted = false;
 	mCurrentFrame = (mCurrentFrame + 1) % MaxFramesInFlight;
