@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include "Items/ItemDef.h"
 #include "StringHandle.h"
 #include "Utils/Log.h"
 
@@ -242,6 +243,10 @@ void Game::Update(const float elapsedTime) {
 		UpdateActionSelectMenuState(elapsedTime);
 		break;
 
+	case State::ActionItemSelectMenu:
+		UpdateActionItemSelectMenuState(elapsedTime);
+		break;
+
 	case State::StatsMenu:
 		UpdateStatsMenuState(elapsedTime);
 		break;
@@ -350,10 +355,8 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 			break;
 
 		case ActionMenuOption::Item:
-			// TODO: Implement item action
-			LOG_INFO("Item action selected");
-			mState = State::SelectCharacter;
-			mSelectedCharacter = entt::null;
+			mState = State::ActionItemSelectMenu;
+			mCurSelection = 0;
 			break;
 
 		case ActionMenuOption::Wait:
@@ -371,6 +374,42 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 		selectedCharPos.cell = mPrevSelectedCharacterCell;
 		mState = State::MovementZone;
+	}
+}
+
+void Game::UpdateActionItemSelectMenuState(const float elapsedTime) {
+	auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+
+	if (mActionMap.IsPressed(Action::MoveUp)) {
+		if (mCurSelection > 0) {
+			--mCurSelection;
+		}
+	} else if (mActionMap.IsPressed(Action::MoveDown)) {
+		if (mCurSelection < inventory.itemsCount - 1) {
+			++mCurSelection;
+		}
+	}
+
+	if (mActionMap.IsPressed(Action::Select)) {
+		ItemInstance& selectedItem = inventory.items[mCurSelection];
+		const ItemDef* const itemDef = ItemDatabase::GetItemDef(selectedItem.id);
+
+		if (const ConsumableData* const consumableData = std::get_if<ConsumableData>(&itemDef->data)) {
+			if (consumableData->effect == ConsumableData::Effect::Heal) {
+				auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+				stats.curHp += static_cast<int8_t>(consumableData->amount);
+				if (stats.curHp > stats.maxHp)
+					stats.curHp = stats.maxHp;
+			}
+			Inventory_ConsumeItemUse(inventory, mCurSelection);
+		}
+
+		mState = State::SelectCharacter;
+		mSelectedCharacter = entt::null;
+		mCurSelection = 0;
+	} else if (mActionMap.IsPressed(Action::Cancel)) {
+		mState = State::ActionSelectMenu;
+		mCurSelection = static_cast<uint8_t>(ActionMenuOption::Item);
 	}
 }
 
@@ -407,43 +446,47 @@ void Game::Render() {
 			sprite.tileSetHandle);
 	});
 
-	if (mState == State::MovementZone && mSelectedCharacter != entt::null) {
-		Renderer2D::Flush();
-		mPlatform.renderDevice->EnableBlending(true);
+	if (mSelectedCharacter != entt::null) {
+		if (mState == State::MovementZone) {
+			Renderer2D::Flush();
+			mPlatform.renderDevice->EnableBlending(true);
 
-		const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
-		const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
+			const auto& gridPosition = mRegistry.get<GridPosition>(mSelectedCharacter);
+			const auto& stats = mRegistry.get<Stats>(mSelectedCharacter);
 
-		const auto movementZone = mTilePathing.FindMovementZone(
-			gridPosition.cell.y,
-			gridPosition.cell.x,
-			stats.movement);
-		for (const TilePathing::Cell& cell : movementZone) {
-			Renderer2D::DrawQuad(
-				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
-				{ tileMap->tileWidth, tileMap->tileHeight },
-				{ 0.0f, 0.0f, 0.75f, 0.5f });
+			const auto movementZone = mTilePathing.FindMovementZone(
+				gridPosition.cell.y,
+				gridPosition.cell.x,
+				stats.movement);
+			for (const TilePathing::Cell& cell : movementZone) {
+				Renderer2D::DrawQuad(
+					{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
+					{ tileMap->tileWidth, tileMap->tileHeight },
+					{ 0.0f, 0.0f, 0.75f, 0.5f });
+			}
+
+			const auto tilePath = mTilePathing.FindPath(
+				gridPosition.cell.y,
+				gridPosition.cell.x,
+				mCursorPos.y,
+				mCursorPos.x,
+				stats.movement);
+			for (const TilePathing::Cell& cell : tilePath) {
+				Renderer2D::DrawQuad(
+					{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },
+					{ tileMap->tileWidth, tileMap->tileHeight },
+					{ 0.75f, 0.0f, 0.0f, 0.5f });
+			}
+
+			Renderer2D::Flush();
+			mPlatform.renderDevice->EnableBlending(false);
+		} else if (mState == State::StatsMenu) {
+			RenderStatsMenu();
+		} else if (mState == State::ActionSelectMenu) {
+			RenderActionSelectMenu();
+		} else if (mState == State::ActionItemSelectMenu) {
+			RenderActionItemSelectMenu();
 		}
-
-		const auto tilePath = mTilePathing.FindPath(
-			gridPosition.cell.y,
-			gridPosition.cell.x,
-			mCursorPos.y,
-			mCursorPos.x,
-			stats.movement);
-		for (const TilePathing::Cell& cell : tilePath) {
-			Renderer2D::DrawQuad(
-				{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.4f },
-				{ tileMap->tileWidth, tileMap->tileHeight },
-				{ 0.75f, 0.0f, 0.0f, 0.5f });
-		}
-
-		Renderer2D::Flush();
-		mPlatform.renderDevice->EnableBlending(false);
-	} else if (mState == State::StatsMenu && mSelectedCharacter != entt::null) {
-		RenderStatsMenu();
-	} else if (mState == State::ActionSelectMenu && mSelectedCharacter != entt::null) {
-		RenderActionSelectMenu();
 	}
 
 	Renderer2D::EndScene();
@@ -579,6 +622,62 @@ void Game::RenderActionSelectMenu() {
 	mPlatform.renderDevice->EnableBlending(false);
 }
 
+void Game::RenderActionItemSelectMenu() {
+	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr float BoxWidth = 150.0f;
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	const auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+	const auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+
+	const glm::vec2 actionMenuPos = {
+		selectedCharPos.cell.x * tileMap->tileWidth + 16.0f,
+		selectedCharPos.cell.y * tileMap->tileHeight
+	};
+
+	Renderer2D::DrawQuad(
+		{ actionMenuPos.x, actionMenuPos.y, 0.7f },
+		{ BoxWidth, 80.0f },
+		{ 0.0f, 0.0f, 0.0f, 0.75f }
+	);
+
+	char buffer[32] {};
+	for (uint8_t i = 0; i < inventory.itemsCount; ++i) {
+		const auto& item = inventory.items[i];
+		const ItemDef* const itemDef = ItemDatabase::GetItemDef(item.id);
+		const char* const itemName = Localization::GetString(itemDef->nameHandle);
+		const float y = actionMenuPos.y + i * 25.0f;
+
+		uint8_t maxUses = 0;
+		if (const WeaponData* const weaponData = std::get_if<WeaponData>(&itemDef->data))
+			maxUses = weaponData->maxDurability;
+		else if (const ConsumableData* const consumableData = std::get_if<ConsumableData>(&itemDef->data))
+			maxUses = consumableData->maxUses;
+
+		snprintf(buffer, sizeof(buffer), "%s %d/%d", itemName, item.usesLeft, maxUses);
+
+		Renderer2D::DrawText(
+			mFontHandle,
+			buffer,
+			{ actionMenuPos.x + 8.0f, y, 0.8f },
+			16.0f,
+			{1.0f, 1.0f, 1.0f, 1.0f});
+	}
+
+	Renderer2D::DrawTexturedQuad(
+		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
+		{ BoxWidth, 25.0f },
+		{ 1.0f, 0.0f, 1.0f, 1.0f },
+		selectionRingTextureHandle);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
+}
+
 void Game::OnResize(uint16_t width, uint16_t height) {
 	mPlatform.renderDevice->SetViewport(0, 0, width, height);
 }
@@ -645,6 +744,7 @@ void Game::FocusCamera(const glm::ivec2& cell) {
 entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
 	constexpr uint16_t blueArcherFrameIndex = 113;
 	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
+	constexpr ItemHandle vulneraryItemHandle = static_cast<ItemHandle>(Res::Items::Id::VULNERARY);
 
 	UnitExperience unitExperience {
 		.level = 1,
@@ -684,8 +784,10 @@ entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<GrowthRates>(unit, growthRates);
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
-			ItemDatabase::CreateItemInstance(ironBowItemHandle)
-		}
+			ItemDatabase::CreateItemInstance(ironBowItemHandle),
+			ItemDatabase::CreateItemInstance(vulneraryItemHandle)
+		},
+		.itemsCount = 2,
 	});
 
 	return unit;
@@ -734,7 +836,8 @@ entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -783,7 +886,8 @@ entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -832,7 +936,8 @@ entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileS
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -869,7 +974,8 @@ entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironBowItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -906,7 +1012,8 @@ entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSet
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -943,7 +1050,8 @@ entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetH
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle),
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;
@@ -980,7 +1088,8 @@ entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSe
 	mRegistry.emplace<Inventory>(unit, Inventory {
 		.items = {
 			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		}
+		},
+		.itemsCount = 1,
 	});
 
 	return unit;

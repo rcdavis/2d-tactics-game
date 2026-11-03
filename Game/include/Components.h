@@ -51,7 +51,13 @@ struct PlayerTeam {};
 struct EnemyTeam {};
 
 struct Inventory {
+	static constexpr uint8_t UnequippedWeaponSlot = -1;
 	static constexpr uint8_t MaxItems = 5;
 	std::array<ItemInstance, MaxItems> items;
-	uint8_t equippedWeaponSlot = 0;
+	uint8_t itemsCount = 0;
+	uint8_t equippedWeaponSlot = UnequippedWeaponSlot;
 };
+
+bool Inventory_AddItem(Inventory& inventory, const ItemInstance& item);
+
+void Inventory_ConsumeItemUse(Inventory& inventory, uint8_t itemSlot);

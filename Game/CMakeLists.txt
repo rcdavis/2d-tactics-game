@@ -3,6 +3,7 @@ project(Game)
 add_executable(Game
     src/Input/ActionMap.cpp
     src/Items/ItemDatabase.cpp
+    src/Components.cpp
     src/Game.cpp
     src/Main.cpp
 )
