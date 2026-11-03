@@ -18,6 +18,7 @@ public:
 		MovementZone,
 		MovingCharacter,
 		ActionSelectMenu,
+		ActionItemSelectMenu,
 		StatsMenu,
 	};
 
@@ -36,11 +37,13 @@ private:
 	void UpdateMovementZoneState(const float elapsedTime);
 	void UpdateMovingCharacterState(const float elapsedTime);
 	void UpdateActionSelectMenuState(const float elapsedTime);
+	void UpdateActionItemSelectMenuState(const float elapsedTime);
 	void UpdateStatsMenuState(const float elapsedTime);
 
 	void Render();
 	void RenderStatsMenu();
 	void RenderActionSelectMenu();
+	void RenderActionItemSelectMenu();
 
 	void OnResize(uint16_t width, uint16_t height);
 
