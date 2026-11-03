@@ -625,6 +625,7 @@ void Game::RenderActionSelectMenu() {
 void Game::RenderActionItemSelectMenu() {
 	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
 	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr float BoxWidth = 150.0f;
 	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
 
 	Renderer2D::Flush();
@@ -640,18 +641,28 @@ void Game::RenderActionItemSelectMenu() {
 
 	Renderer2D::DrawQuad(
 		{ actionMenuPos.x, actionMenuPos.y, 0.7f },
-		{ 100.0f, 80.0f },
+		{ BoxWidth, 80.0f },
 		{ 0.0f, 0.0f, 0.0f, 0.75f }
 	);
 
+	char buffer[32] {};
 	for (uint8_t i = 0; i < inventory.itemsCount; ++i) {
 		const auto& item = inventory.items[i];
 		const ItemDef* const itemDef = ItemDatabase::GetItemDef(item.id);
 		const char* const itemName = Localization::GetString(itemDef->nameHandle);
 		const float y = actionMenuPos.y + i * 25.0f;
+
+		uint8_t maxUses = 0;
+		if (const WeaponData* const weaponData = std::get_if<WeaponData>(&itemDef->data))
+			maxUses = weaponData->maxDurability;
+		else if (const ConsumableData* const consumableData = std::get_if<ConsumableData>(&itemDef->data))
+			maxUses = consumableData->maxUses;
+
+		snprintf(buffer, sizeof(buffer), "%s %d/%d", itemName, item.usesLeft, maxUses);
+
 		Renderer2D::DrawText(
 			mFontHandle,
-			itemName,
+			buffer,
 			{ actionMenuPos.x + 8.0f, y, 0.8f },
 			16.0f,
 			{1.0f, 1.0f, 1.0f, 1.0f});
@@ -659,7 +670,7 @@ void Game::RenderActionItemSelectMenu() {
 
 	Renderer2D::DrawTexturedQuad(
 		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
-		{ 100.0f, 25.0f },
+		{ BoxWidth, 25.0f },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
 		selectionRingTextureHandle);
 
