@@ -26,6 +26,7 @@
 #include "ItemIds.h"
 #include "Items/ItemDatabase.h"
 #include "glm/ext/vector_float2.hpp"
+#include "UnitFactory.h"
 
 #include <filesystem>
 
@@ -132,15 +133,51 @@ bool Game::Init() {
 
 	mTilePathing.Init(tileMapHandle);
 
-	CreatePlayerTeamArcher({7, 8}, tileSetHandle);
-	CreatePlayerTeamSoldier({0, 0}, tileSetHandle);
-	CreatePlayerTeamKnight({12, 12}, tileSetHandle);
-	CreatePlayerTeamCavalier({5, 5}, tileSetHandle);
+	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
+	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
+	constexpr ItemHandle vulneraryItemHandle = static_cast<ItemHandle>(Res::Items::Id::VULNERARY);
 
-	CreateEnemyTeamArcher({20, 8}, tileSetHandle);
-	CreateEnemyTeamSoldier({22, 0}, tileSetHandle);
-	CreateEnemyTeamKnight({22, 22}, tileSetHandle);
-	CreateEnemyTeamCavalier({25, 5}, tileSetHandle);
+	UnitFactory::CreateArcher(
+		mRegistry,
+		{7, 8},
+		UnitFactory::Team::Player,
+		std::array<ItemHandle, 2>{ironBowItemHandle, vulneraryItemHandle});
+	UnitFactory::CreateSoldier(
+		mRegistry,
+		{0, 0},
+		UnitFactory::Team::Player,
+		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+	UnitFactory::CreateKnight(
+		mRegistry,
+		{12, 12},
+		UnitFactory::Team::Player,
+		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+	UnitFactory::CreateCavalier(
+		mRegistry,
+		{5, 5},
+		UnitFactory::Team::Player,
+		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+
+	UnitFactory::CreateArcher(
+		mRegistry,
+		{20, 8},
+		UnitFactory::Team::Enemy,
+		std::array<ItemHandle, 1>{ironBowItemHandle});
+	UnitFactory::CreateSoldier(
+		mRegistry,
+		{22, 0},
+		UnitFactory::Team::Enemy,
+		std::array<ItemHandle, 1>{ironLanceItemHandle});
+	UnitFactory::CreateKnight(
+		mRegistry,
+		{22, 22},
+		UnitFactory::Team::Enemy,
+		std::array<ItemHandle, 1>{ironLanceItemHandle});
+	UnitFactory::CreateCavalier(
+		mRegistry,
+		{25, 5},
+		UnitFactory::Team::Enemy,
+		std::array<ItemHandle, 1>{ironLanceItemHandle});
 
 	mState = State::SelectCharacter;
 	mSelectedCharacter = entt::null;
@@ -739,358 +776,4 @@ void Game::FocusCamera(const glm::ivec2& cell) {
 		mCamera.position.y = 0.0f;
 	else if (mCamera.position.y + mCamera.height > worldEndPos.y)
 		mCamera.position.y = worldEndPos.y - mCamera.height;
-}
-
-entt::entity Game::CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t blueArcherFrameIndex = 113;
-	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
-	constexpr ItemHandle vulneraryItemHandle = static_cast<ItemHandle>(Res::Items::Id::VULNERARY);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 0,
-	};
-
-	Stats stats {
-		.curHp = 18,
-		.maxHp = 18,
-		.strength = 4,
-		.magic = 0,
-		.skill = 6,
-		.speed = 3,
-		.luck = 0,
-		.defense = 4,
-		.resistance = 0,
-		.movement = 6,
-	};
-
-	GrowthRates growthRates {
-		.hp = 60,
-		.strength = 40,
-		.magic = 10,
-		.skill = 60,
-		.speed = 55,
-		.luck = 30,
-		.defense = 40,
-		.resistance = 40,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueArcherFrameIndex);
-	mRegistry.emplace<PlayerTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<GrowthRates>(unit, growthRates);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironBowItemHandle),
-			ItemDatabase::CreateItemInstance(vulneraryItemHandle)
-		},
-		.itemsCount = 2,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t blueSoldierFrameIndex = 114;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 0,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 4,
-		.magic = 0,
-		.skill = 4,
-		.speed = 4,
-		.luck = 0,
-		.defense = 4,
-		.resistance = 0,
-		.movement = 6,
-	};
-
-	GrowthRates growthRates {
-		.hp = 80,
-		.strength = 40,
-		.magic = 15,
-		.skill = 50,
-		.speed = 45,
-		.luck = 25,
-		.defense = 40,
-		.resistance = 35,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueSoldierFrameIndex);
-	mRegistry.emplace<PlayerTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<GrowthRates>(unit, growthRates);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t blueKnightFrameIndex = 115;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 0,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 5,
-		.magic = 0,
-		.skill = 2,
-		.speed = 0,
-		.luck = 0,
-		.defense = 9,
-		.resistance = 0,
-		.movement = 5,
-	};
-
-	GrowthRates growthRates {
-		.hp = 75,
-		.strength = 50,
-		.magic = 20,
-		.skill = 45,
-		.speed = 30,
-		.luck = 25,
-		.defense = 60,
-		.resistance = 45,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueKnightFrameIndex);
-	mRegistry.emplace<PlayerTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<GrowthRates>(unit, growthRates);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t blueCavalierFrameIndex = 116;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 0,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 5,
-		.magic = 0,
-		.skill = 2,
-		.speed = 5,
-		.luck = 0,
-		.defense = 6,
-		.resistance = 0,
-		.movement = 8,
-	};
-
-	GrowthRates growthRates {
-		.hp = 70,
-		.strength = 45,
-		.magic = 15,
-		.skill = 40,
-		.speed = 50,
-		.luck = 30,
-		.defense = 45,
-		.resistance = 40,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, blueCavalierFrameIndex);
-	mRegistry.emplace<PlayerTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<GrowthRates>(unit, growthRates);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redArcherFrameIndex = 120;
-	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 50,
-	};
-
-	Stats stats {
-		.curHp = 18,
-		.maxHp = 18,
-		.strength = 4,
-		.magic = 0,
-		.skill = 6,
-		.speed = 3,
-		.luck = 0,
-		.defense = 4,
-		.resistance = 0,
-		.movement = 6,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, redArcherFrameIndex);
-	mRegistry.emplace<EnemyTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironBowItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redSoldierFrameIndex = 121;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 50,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 4,
-		.magic = 0,
-		.skill = 4,
-		.speed = 4,
-		.luck = 0,
-		.defense = 4,
-		.resistance = 0,
-		.movement = 6,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, redSoldierFrameIndex);
-	mRegistry.emplace<EnemyTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redKnightFrameIndex = 122;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 50,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 5,
-		.magic = 0,
-		.skill = 2,
-		.speed = 0,
-		.luck = 0,
-		.defense = 9,
-		.resistance = 0,
-		.movement = 5,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, redKnightFrameIndex);
-	mRegistry.emplace<EnemyTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle),
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
-}
-
-entt::entity Game::CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle) {
-	constexpr uint16_t redCavalierFrameIndex = 123;
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-
-	UnitExperience unitExperience {
-		.level = 1,
-		.experience = 50,
-	};
-
-	Stats stats {
-		.curHp = 20,
-		.maxHp = 20,
-		.strength = 5,
-		.magic = 0,
-		.skill = 2,
-		.speed = 5,
-		.luck = 0,
-		.defense = 6,
-		.resistance = 0,
-		.movement = 8,
-	};
-
-	entt::entity unit = mRegistry.create();
-	mRegistry.emplace<GridPosition>(unit, cell);
-	mRegistry.emplace<Sprite>(unit, tileSetHandle, redCavalierFrameIndex);
-	mRegistry.emplace<EnemyTeam>(unit);
-	mRegistry.emplace<UnitExperience>(unit, unitExperience);
-	mRegistry.emplace<Stats>(unit, stats);
-	mRegistry.emplace<Inventory>(unit, Inventory {
-		.items = {
-			ItemDatabase::CreateItemInstance(ironLanceItemHandle)
-		},
-		.itemsCount = 1,
-	});
-
-	return unit;
 }
