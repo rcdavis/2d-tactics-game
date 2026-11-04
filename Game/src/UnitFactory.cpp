@@ -138,7 +138,6 @@ namespace UnitFactory {
 	) {
 		constexpr uint16_t blueKnightFrameIndex = 115;
 		constexpr uint16_t redKnightFrameIndex = 122;
-
 		constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
 
 		UnitExperience unitExperience {
