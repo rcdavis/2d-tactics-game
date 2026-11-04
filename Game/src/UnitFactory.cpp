@@ -52,6 +52,11 @@ namespace UnitFactory {
 
 		entt::entity unit = registry.create();
 		registry.emplace<GridPosition>(unit, cell);
+		registry.emplace<UnitExperience>(unit, unitExperience);
+		registry.emplace<Stats>(unit, stats);
+		registry.emplace<GrowthRates>(unit, growthRates);
+		registry.emplace<Inventory>(unit, inventory);
+
 		if (team == Team::Player) {
 			registry.emplace<Sprite>(unit, tileSetHandle, blueArcherFrameIndex);
 			registry.emplace<PlayerTeam>(unit);
@@ -59,10 +64,6 @@ namespace UnitFactory {
 			registry.emplace<Sprite>(unit, tileSetHandle, redArcherFrameIndex);
 			registry.emplace<EnemyTeam>(unit);
 		}
-		registry.emplace<UnitExperience>(unit, unitExperience);
-		registry.emplace<Stats>(unit, stats);
-		registry.emplace<GrowthRates>(unit, growthRates);
-		registry.emplace<Inventory>(unit, inventory);
 
 		return unit;
 	}
@@ -113,6 +114,11 @@ namespace UnitFactory {
 
 		entt::entity unit = registry.create();
 		registry.emplace<GridPosition>(unit, cell);
+		registry.emplace<UnitExperience>(unit, unitExperience);
+		registry.emplace<Stats>(unit, stats);
+		registry.emplace<GrowthRates>(unit, growthRates);
+		registry.emplace<Inventory>(unit, inventory);
+
 		if (team == Team::Player) {
 			registry.emplace<Sprite>(unit, tileSetHandle, blueSoldierFrameIndex);
 			registry.emplace<PlayerTeam>(unit);
@@ -120,10 +126,6 @@ namespace UnitFactory {
 			registry.emplace<Sprite>(unit, tileSetHandle, redSoldierFrameIndex);
 			registry.emplace<EnemyTeam>(unit);
 		}
-		registry.emplace<UnitExperience>(unit, unitExperience);
-		registry.emplace<Stats>(unit, stats);
-		registry.emplace<GrowthRates>(unit, growthRates);
-		registry.emplace<Inventory>(unit, inventory);
 
 		return unit;
 	}
@@ -175,6 +177,11 @@ namespace UnitFactory {
 
 		entt::entity unit = registry.create();
 		registry.emplace<GridPosition>(unit, cell);
+		registry.emplace<UnitExperience>(unit, unitExperience);
+		registry.emplace<Stats>(unit, stats);
+		registry.emplace<GrowthRates>(unit, growthRates);
+		registry.emplace<Inventory>(unit, inventory);
+
 		if (team == Team::Player) {
 			registry.emplace<Sprite>(unit, tileSetHandle, blueKnightFrameIndex);
 			registry.emplace<PlayerTeam>(unit);
@@ -182,10 +189,6 @@ namespace UnitFactory {
 			registry.emplace<Sprite>(unit, tileSetHandle, redKnightFrameIndex);
 			registry.emplace<EnemyTeam>(unit);
 		}
-		registry.emplace<UnitExperience>(unit, unitExperience);
-		registry.emplace<Stats>(unit, stats);
-		registry.emplace<GrowthRates>(unit, growthRates);
-		registry.emplace<Inventory>(unit, inventory);
 
 		return unit;
 	}
@@ -236,6 +239,11 @@ namespace UnitFactory {
 
 		entt::entity unit = registry.create();
 		registry.emplace<GridPosition>(unit, cell);
+		registry.emplace<UnitExperience>(unit, unitExperience);
+		registry.emplace<Stats>(unit, stats);
+		registry.emplace<GrowthRates>(unit, growthRates);
+		registry.emplace<Inventory>(unit, inventory);
+
 		if (team == Team::Player) {
 			registry.emplace<Sprite>(unit, tileSetHandle, blueCavalierFrameIndex);
 			registry.emplace<PlayerTeam>(unit);
@@ -243,10 +251,6 @@ namespace UnitFactory {
 			registry.emplace<Sprite>(unit, tileSetHandle, redCavalierFrameIndex);
 			registry.emplace<EnemyTeam>(unit);
 		}
-		registry.emplace<UnitExperience>(unit, unitExperience);
-		registry.emplace<Stats>(unit, stats);
-		registry.emplace<GrowthRates>(unit, growthRates);
-		registry.emplace<Inventory>(unit, inventory);
 
 		return unit;
 	}
