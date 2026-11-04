@@ -280,6 +280,10 @@ void Game::Update(const float elapsedTime) {
 		UpdateActionSelectMenuState(elapsedTime);
 		break;
 
+	case State::ActionAttackSelectMenu:
+		UpdateActionAttackSelectMenuState(elapsedTime);
+		break;
+
 	case State::ActionItemSelectMenu:
 		UpdateActionItemSelectMenuState(elapsedTime);
 		break;
@@ -385,10 +389,8 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 	if (mActionMap.IsPressed(Action::Select)) {
 		switch (static_cast<ActionMenuOption>(mCurSelection)) {
 		case ActionMenuOption::Attack:
-			// TODO: Implement attack action
-			LOG_INFO("Attack action selected");
-			mState = State::SelectCharacter;
-			mSelectedCharacter = entt::null;
+			mState = State::ActionAttackSelectMenu;
+			mCurSelection = 0;
 			break;
 
 		case ActionMenuOption::Item:
@@ -412,6 +414,10 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 		selectedCharPos.cell = mPrevSelectedCharacterCell;
 		mState = State::MovementZone;
 	}
+}
+
+void Game::UpdateActionAttackSelectMenuState(const float elapsedTime) {
+	// TODO: Implement action attack select menu state functionality.
 }
 
 void Game::UpdateActionItemSelectMenuState(const float elapsedTime) {
@@ -657,6 +663,10 @@ void Game::RenderActionSelectMenu() {
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(false);
+}
+
+void Game::RenderActionAttackSelectMenu() {
+	// TODO: Implement rendering for the action attack select menu.
 }
 
 void Game::RenderActionItemSelectMenu() {

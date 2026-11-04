@@ -1,5 +1,18 @@
 #include "Components.h"
 
+uint8_t Stats_CalculateDamage(const WeaponData& weapon, const Stats& attacker, const Stats& defender) {
+	// TODO: Consider skill and hit percentage in damage calculation
+	if (weapon.damageType == WeaponData::DamageType::Physical) {
+		const int8_t damage = (attacker.strength + weapon.might) - defender.defense;
+		return damage > 0 ? damage : 0;
+	} else if (weapon.damageType == WeaponData::DamageType::Magical) {
+		const int8_t damage = (attacker.magic + weapon.might) - defender.resistance;
+		return damage > 0 ? damage : 0;
+	}
+
+	return 0;
+}
+
 bool Inventory_AddItem(Inventory& inventory, const ItemInstance& item) {
 	if (inventory.itemsCount >= Inventory::MaxItems)
 		return false;
