@@ -6,6 +6,7 @@ add_executable(Game
     src/Components.cpp
     src/Game.cpp
     src/Main.cpp
+    src/UnitFactory.cpp
 )
 
 # Copy textures to the build directory

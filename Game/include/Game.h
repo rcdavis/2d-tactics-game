@@ -4,7 +4,6 @@
 
 #include "Renderer/Camera2D.h"
 #include "Renderer/FontHandle.h"
-#include "Tiles/TileHandle.h"
 #include "Tiles/TilePathing.h"
 #include "Input/ActionMap.h"
 
@@ -51,16 +50,6 @@ private:
 
 	void UpdateCursor(const float elapsedTime);
 	void FocusCamera(const glm::ivec2& cell);
-
-	entt::entity CreatePlayerTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreatePlayerTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreatePlayerTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreatePlayerTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle);
-
-	entt::entity CreateEnemyTeamArcher(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreateEnemyTeamSoldier(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreateEnemyTeamKnight(glm::ivec2 cell, TileSetHandle tileSetHandle);
-	entt::entity CreateEnemyTeamCavalier(glm::ivec2 cell, TileSetHandle tileSetHandle);
 
 private:
 	Platform mPlatform;
