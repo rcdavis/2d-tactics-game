@@ -28,6 +28,12 @@ public:
 
 	std::vector<Cell> FindMovementZone(uint16_t startRow, uint16_t startCol, uint8_t movementRange);
 
+	std::vector<Cell> FindAttackZone(
+		uint16_t attackerRow,
+		uint16_t attackerCol,
+		uint8_t attackMinRange,
+		uint8_t attackMaxRange);
+
 	uint32_t Heuristic(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol) const;
 
 	Cell GetCell(uint16_t row, uint16_t col) const { return mCells[static_cast<uint32_t>(row) * mColumnCount + col]; }

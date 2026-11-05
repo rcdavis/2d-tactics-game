@@ -418,6 +418,24 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 
 void Game::UpdateActionAttackSelectMenuState(const float elapsedTime) {
 	// TODO: Implement action attack select menu state functionality.
+	const auto& attackerPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+	const auto& attackerStats = mRegistry.get<Stats>(mSelectedCharacter);
+	auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+	ItemInstance& equippedWeapon = inventory.items[inventory.equippedWeaponSlot];
+	const ItemDef* const equippedWeaponDef = ItemDatabase::GetItemDef(equippedWeapon.id);
+
+	const WeaponData* const equippedWeaponData = std::get_if<WeaponData>(&equippedWeaponDef->data);
+	if (!equippedWeaponData) {
+		LOG_ERROR("Equipped weapon id ({}) is not a valid weapon", equippedWeapon.id);
+		return;
+	}
+
+	auto attackZone = mTilePathing.FindAttackZone(
+		attackerPos.cell.y,
+		attackerPos.cell.x,
+		equippedWeaponData->minRange,
+		equippedWeaponData->maxRange
+	);
 }
 
 void Game::UpdateActionItemSelectMenuState(const float elapsedTime) {
@@ -527,6 +545,8 @@ void Game::Render() {
 			RenderStatsMenu();
 		} else if (mState == State::ActionSelectMenu) {
 			RenderActionSelectMenu();
+		} else if (mState == State::ActionAttackSelectMenu) {
+			RenderActionAttackSelectMenu();
 		} else if (mState == State::ActionItemSelectMenu) {
 			RenderActionItemSelectMenu();
 		}
@@ -666,7 +686,39 @@ void Game::RenderActionSelectMenu() {
 }
 
 void Game::RenderActionAttackSelectMenu() {
-	// TODO: Implement rendering for the action attack select menu.
+	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+
+	const auto& attackerPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+	const auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+	const ItemInstance equippedWeapon = inventory.items[inventory.equippedWeaponSlot];
+	const ItemDef* const equippedWeaponDef = ItemDatabase::GetItemDef(equippedWeapon.id);
+
+	const WeaponData* const equippedWeaponData = std::get_if<WeaponData>(&equippedWeaponDef->data);
+	if (!equippedWeaponData) {
+		LOG_ERROR("Equipped weapon id ({}) is not a valid weapon", equippedWeapon.id);
+		return;
+	}
+
+	const auto attackZone = mTilePathing.FindAttackZone(
+		attackerPos.cell.y,
+		attackerPos.cell.x,
+		equippedWeaponData->minRange,
+		equippedWeaponData->maxRange
+	);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	for (const TilePathing::Cell& cell : attackZone) {
+		Renderer2D::DrawQuad(
+			{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
+			{ tileMap->tileWidth, tileMap->tileHeight },
+			{ 1.0f, 0.0f, 0.0f, 0.5f });
+	}
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
 }
 
 void Game::RenderActionItemSelectMenu() {
