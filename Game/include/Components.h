@@ -58,6 +58,8 @@ struct Inventory {
 	uint8_t equippedWeaponSlot = UnequippedWeaponSlot;
 };
 
+uint8_t Stats_CalculateDamage(const WeaponData& weapon, const Stats& attacker, const Stats& defender);
+
 bool Inventory_AddItem(Inventory& inventory, const ItemInstance& item);
 
 void Inventory_ConsumeItemUse(Inventory& inventory, uint8_t itemSlot);

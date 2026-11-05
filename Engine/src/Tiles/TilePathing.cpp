@@ -209,6 +209,42 @@ std::vector<TilePathing::Cell> TilePathing::FindMovementZone(uint16_t startRow, 
 	return zone;
 }
 
+std::vector<TilePathing::Cell> TilePathing::FindAttackZone(
+	uint16_t attackerRow,
+	uint16_t attackerCol,
+	uint8_t attackMinRange,
+	uint8_t attackMaxRange
+) {
+	if (mCells == nullptr || attackerRow >= mRowCount || attackerCol >= mColumnCount)
+		return {};
+
+	const uint32_t startIndex = static_cast<uint32_t>(attackerRow) * mColumnCount + attackerCol;
+	if (mCells[startIndex].movementCost == 0)
+		return {};
+
+	std::vector<Cell> zone;
+	if (attackMinRange > attackMaxRange)
+		return zone;
+
+	// Only visit the diamond's bounding box, clamped to the map
+	const uint32_t rowBegin = attackerRow > attackMaxRange ? attackerRow - attackMaxRange : 0;
+	const uint32_t rowEnd = std::min<uint32_t>(mRowCount - 1, static_cast<uint32_t>(attackerRow) + attackMaxRange);
+	for (uint32_t row = rowBegin; row <= rowEnd; ++row) {
+		const uint32_t dRow = row > attackerRow ? row - attackerRow : attackerRow - row;
+		const uint32_t colSpan = attackMaxRange - dRow;
+		const uint32_t colBegin = attackerCol > colSpan ? attackerCol - colSpan : 0;
+		const uint32_t colEnd = std::min<uint32_t>(mColumnCount - 1, static_cast<uint32_t>(attackerCol) + colSpan);
+		for (uint32_t col = colBegin; col <= colEnd; ++col) {
+			const uint32_t index = row * mColumnCount + col;
+			const uint32_t distance = dRow + (col > attackerCol ? col - attackerCol : attackerCol - col);
+			if (distance >= attackMinRange)
+				zone.push_back(mCells[index]);
+		}
+	}
+
+	return zone;
+}
+
 uint32_t TilePathing::Heuristic(uint16_t startRow, uint16_t startCol, uint16_t endRow, uint16_t endCol) const {
 	const int32_t dRow = static_cast<int32_t>(endRow) - static_cast<int32_t>(startRow);
 	const int32_t dCol = static_cast<int32_t>(endCol) - static_cast<int32_t>(startCol);

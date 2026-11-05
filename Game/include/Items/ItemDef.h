@@ -11,6 +11,12 @@ enum class ItemType : uint8_t {
 };
 
 struct WeaponData {
+	enum class DamageType : uint8_t {
+		Physical,
+		Magical,
+	};
+
+	DamageType damageType = DamageType::Physical;
 	uint8_t might = 0;
 	uint8_t hit = 0;
 	uint8_t crit = 0;

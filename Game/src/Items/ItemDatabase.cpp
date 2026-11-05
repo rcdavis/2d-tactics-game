@@ -64,6 +64,8 @@ namespace ItemDatabase {
 				.nameHandle = static_cast<StringHandle>(weapon.nameId),
 				.type = ItemType::Weapon,
 				.data = WeaponData {
+					// TODO: Replace with a proper damage type based on the weapon data
+					.damageType = WeaponData::DamageType::Physical,
 					.might = weapon.might,
 					.hit = weapon.hit,
 					.crit = weapon.crit,
