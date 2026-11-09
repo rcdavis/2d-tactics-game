@@ -427,6 +427,9 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 }
 
 void Game::UpdateActionAttackSelectMenuState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
 	// TODO: Implement action attack select menu state functionality.
 	const auto& attackerPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 	const auto& attackerStats = mRegistry.get<Stats>(mSelectedCharacter);
@@ -440,12 +443,17 @@ void Game::UpdateActionAttackSelectMenuState(const float elapsedTime) {
 		return;
 	}
 
-	auto attackZone = mTilePathing.FindAttackZone(
+	const auto attackZone = mTilePathing.FindAttackZone(
 		attackerPos.cell.y,
 		attackerPos.cell.x,
 		equippedWeaponData->minRange,
 		equippedWeaponData->maxRange
 	);
+
+	if (mActionMap.IsPressed(Action::Cancel)) {
+		mState = State::ActionSelectMenu;
+		mCurSelection = static_cast<uint8_t>(ActionMenuOption::Attack);
+	}
 }
 
 void Game::UpdateActionItemSelectMenuState(const float elapsedTime) {
