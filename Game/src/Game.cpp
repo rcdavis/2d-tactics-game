@@ -37,6 +37,27 @@ namespace {
 		Wait,
 		Count
 	};
+
+	constexpr const char* ItemBinPath = "res/items/itemdb.itmbin";
+	constexpr const char* FontJsonPath = "res/fonts/MyFont.json";
+	constexpr const char* StringBinPath = "res/strings/en.strbin";
+	constexpr const char* PrefPathOrgName = "rcdavis";
+	constexpr const char* PrefPathAppName = "2d-tactics-game";
+	constexpr const char* InputBindingsFile = "bindings.json";
+
+	constexpr ShaderHandle QuadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
+
+	constexpr TextureHandle SelectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
+	constexpr TextureHandle FontTexture = static_cast<TextureHandle>(Res::Textures::Id::MyFont);
+
+	constexpr TileMapHandle ToenTileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
+	constexpr TileSetHandle ToenTileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
+
+	constexpr ItemHandle IronBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
+	constexpr ItemHandle IronLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
+	constexpr ItemHandle VulneraryItemHandle = static_cast<ItemHandle>(Res::Items::Id::VULNERARY);
+
+	constexpr float KeyDownInterval = 0.1f;
 }
 
 Game::~Game() {
@@ -44,10 +65,6 @@ Game::~Game() {
 }
 
 bool Game::Init() {
-	constexpr ShaderHandle quadShaderHandle = static_cast<ShaderHandle>(Res::Shaders::Vertex::Id::TextureQuad);
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
-
 	constexpr WindowCreateInfo windowCreateInfo {
 		.title = "2D Tactics Game",
 		.width = 800,
@@ -111,14 +128,14 @@ bool Game::Init() {
 
 	Rng::Init();
 
-	if (!ItemDatabase::Load("res/items/itemdb.itmbin")) {
+	if (!ItemDatabase::Load(ItemBinPath)) {
 		LOG_ERROR("Failed to initialize item database");
 		return false;
 	}
 
 	mCamera.Init(windowCreateInfo.width, windowCreateInfo.height);
 
-	if (!Renderer2D::Init(mPlatform.renderDevice, quadShaderHandle)) {
+	if (!Renderer2D::Init(mPlatform.renderDevice, QuadShaderHandle)) {
 		LOG_ERROR("Failed to initialize Renderer2D");
 		return false;
 	}
@@ -126,74 +143,67 @@ bool Game::Init() {
 	mPlatform.renderDevice->SetClearColor(1.0f, 0.0f, 1.0f, 1.0f);
 	mPlatform.renderDevice->EnableDepthTest(true);
 
-	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
-	mActionMap = ActionMap::LoadBindings(preferencesPath / "bindings.json");
+	const std::filesystem::path preferencesPath = mPlatform.GetPreferencesPath(PrefPathOrgName, PrefPathAppName);
+	mActionMap = ActionMap::LoadBindings(preferencesPath / InputBindingsFile);
 
 	mTimeSinceKeyPressed = 0.0f;
 
-	mTilePathing.Init(tileMapHandle);
-
-	constexpr ItemHandle ironBowItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_BOW);
-	constexpr ItemHandle ironLanceItemHandle = static_cast<ItemHandle>(Res::Items::Id::IRON_LANCE);
-	constexpr ItemHandle vulneraryItemHandle = static_cast<ItemHandle>(Res::Items::Id::VULNERARY);
+	mTilePathing.Init(ToenTileMapHandle);
 
 	UnitFactory::CreateArcher(
 		mRegistry,
 		{7, 8},
 		UnitFactory::Team::Player,
-		std::array<ItemHandle, 2>{ironBowItemHandle, vulneraryItemHandle});
+		std::array<ItemHandle, 2>{IronBowItemHandle, VulneraryItemHandle});
 	UnitFactory::CreateSoldier(
 		mRegistry,
 		{0, 0},
 		UnitFactory::Team::Player,
-		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+		std::array<ItemHandle, 2>{IronLanceItemHandle, VulneraryItemHandle});
 	UnitFactory::CreateKnight(
 		mRegistry,
 		{12, 12},
 		UnitFactory::Team::Player,
-		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+		std::array<ItemHandle, 2>{IronLanceItemHandle, VulneraryItemHandle});
 	UnitFactory::CreateCavalier(
 		mRegistry,
 		{5, 5},
 		UnitFactory::Team::Player,
-		std::array<ItemHandle, 2>{ironLanceItemHandle, vulneraryItemHandle});
+		std::array<ItemHandle, 2>{IronLanceItemHandle, VulneraryItemHandle});
 
 	UnitFactory::CreateArcher(
 		mRegistry,
 		{20, 8},
 		UnitFactory::Team::Enemy,
-		std::array<ItemHandle, 1>{ironBowItemHandle});
+		std::array<ItemHandle, 1>{IronBowItemHandle});
 	UnitFactory::CreateSoldier(
 		mRegistry,
 		{22, 0},
 		UnitFactory::Team::Enemy,
-		std::array<ItemHandle, 1>{ironLanceItemHandle});
+		std::array<ItemHandle, 1>{IronLanceItemHandle});
 	UnitFactory::CreateKnight(
 		mRegistry,
 		{22, 22},
 		UnitFactory::Team::Enemy,
-		std::array<ItemHandle, 1>{ironLanceItemHandle});
+		std::array<ItemHandle, 1>{IronLanceItemHandle});
 	UnitFactory::CreateCavalier(
 		mRegistry,
 		{25, 5},
 		UnitFactory::Team::Enemy,
-		std::array<ItemHandle, 1>{ironLanceItemHandle});
+		std::array<ItemHandle, 1>{IronLanceItemHandle});
 
 	mState = State::SelectCharacter;
 	mSelectedCharacter = entt::null;
 	mCursorPos = {0, 0};
 
-	if (!Localization::Load("res/strings/en.strbin")) {
+	if (!Localization::Load(StringBinPath)) {
 		LOG_ERROR("Failed to initialize localization");
 		return false;
 	}
 
-	constexpr TextureHandle fontTexture = static_cast<TextureHandle>(Res::Textures::Id::MyFont);
-	constexpr const char* fontJsonPath = "res/fonts/MyFont.json";
-
-	mFontHandle = FontSystem::Load(fontJsonPath, fontTexture);
+	mFontHandle = FontSystem::Load(FontJsonPath, FontTexture);
 	if (mFontHandle == InvalidFontHandle) {
-		LOG_ERROR("Failed to load font: {}", fontJsonPath);
+		LOG_ERROR("Failed to load font: {}", FontJsonPath);
 		return false;
 	}
 
@@ -278,6 +288,10 @@ void Game::Update(const float elapsedTime) {
 
 	case State::ActionSelectMenu:
 		UpdateActionSelectMenuState(elapsedTime);
+		break;
+
+	case State::ActionAttackSelectMenu:
+		UpdateActionAttackSelectMenuState(elapsedTime);
 		break;
 
 	case State::ActionItemSelectMenu:
@@ -385,10 +399,8 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 	if (mActionMap.IsPressed(Action::Select)) {
 		switch (static_cast<ActionMenuOption>(mCurSelection)) {
 		case ActionMenuOption::Attack:
-			// TODO: Implement attack action
-			LOG_INFO("Attack action selected");
-			mState = State::SelectCharacter;
-			mSelectedCharacter = entt::null;
+			mState = State::ActionAttackSelectMenu;
+			mCurSelection = 0;
 			break;
 
 		case ActionMenuOption::Item:
@@ -411,6 +423,36 @@ void Game::UpdateActionSelectMenuState(const float elapsedTime) {
 		auto& selectedCharPos = mRegistry.get<GridPosition>(mSelectedCharacter);
 		selectedCharPos.cell = mPrevSelectedCharacterCell;
 		mState = State::MovementZone;
+	}
+}
+
+void Game::UpdateActionAttackSelectMenuState(const float elapsedTime) {
+	UpdateCursor(elapsedTime);
+	FocusCamera(mCursorPos);
+
+	// TODO: Implement action attack select menu state functionality.
+	const auto& attackerPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+	const auto& attackerStats = mRegistry.get<Stats>(mSelectedCharacter);
+	auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+	ItemInstance& equippedWeapon = inventory.items[inventory.equippedWeaponSlot];
+	const ItemDef* const equippedWeaponDef = ItemDatabase::GetItemDef(equippedWeapon.id);
+
+	const WeaponData* const equippedWeaponData = std::get_if<WeaponData>(&equippedWeaponDef->data);
+	if (!equippedWeaponData) {
+		LOG_ERROR("Equipped weapon id ({}) is not a valid weapon", equippedWeapon.id);
+		return;
+	}
+
+	const auto attackZone = mTilePathing.FindAttackZone(
+		attackerPos.cell.y,
+		attackerPos.cell.x,
+		equippedWeaponData->minRange,
+		equippedWeaponData->maxRange
+	);
+
+	if (mActionMap.IsPressed(Action::Cancel)) {
+		mState = State::ActionSelectMenu;
+		mCurSelection = static_cast<uint8_t>(ActionMenuOption::Attack);
 	}
 }
 
@@ -462,17 +504,14 @@ void Game::Render() {
 
 	Renderer2D::BeginScene(mCamera);
 
-	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	constexpr TileSetHandle tileSetHandle = static_cast<TileSetHandle>(Res::Tiles::Sets::Id::Toen);
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
 
 	Renderer2D::DrawTexturedQuad(
 		{ mCursorPos.x * tileMap->tileWidth, mCursorPos.y * tileMap->tileHeight, 0.6f },
 		{ tileMap->tileWidth, tileMap->tileHeight },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
-		selectionRingTextureHandle);
-	Renderer2D::DrawTileMap(mCamera, tileMapHandle);
+		SelectionRingTextureHandle);
+	Renderer2D::DrawTileMap(mCamera, ToenTileMapHandle);
 
 	mRegistry.view<GridPosition, Sprite>().each([tileMap](const auto& gridPosition, const auto& sprite) {
 		Renderer2D::DrawTile(
@@ -521,6 +560,8 @@ void Game::Render() {
 			RenderStatsMenu();
 		} else if (mState == State::ActionSelectMenu) {
 			RenderActionSelectMenu();
+		} else if (mState == State::ActionAttackSelectMenu) {
+			RenderActionAttackSelectMenu();
 		} else if (mState == State::ActionItemSelectMenu) {
 			RenderActionItemSelectMenu();
 		}
@@ -612,9 +653,7 @@ void Game::RenderStatsMenu() {
 }
 
 void Game::RenderActionSelectMenu() {
-	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(true);
@@ -653,17 +692,50 @@ void Game::RenderActionSelectMenu() {
 		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
 		{ 64.0f, 25.0f },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
-		selectionRingTextureHandle);
+		SelectionRingTextureHandle);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(false);
+}
+
+void Game::RenderActionAttackSelectMenu() {
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
+
+	const auto& attackerPos = mRegistry.get<GridPosition>(mSelectedCharacter);
+	const auto& inventory = mRegistry.get<Inventory>(mSelectedCharacter);
+	const ItemInstance equippedWeapon = inventory.items[inventory.equippedWeaponSlot];
+	const ItemDef* const equippedWeaponDef = ItemDatabase::GetItemDef(equippedWeapon.id);
+
+	const WeaponData* const equippedWeaponData = std::get_if<WeaponData>(&equippedWeaponDef->data);
+	if (!equippedWeaponData) {
+		LOG_ERROR("Equipped weapon id ({}) is not a valid weapon", equippedWeapon.id);
+		return;
+	}
+
+	const auto attackZone = mTilePathing.FindAttackZone(
+		attackerPos.cell.y,
+		attackerPos.cell.x,
+		equippedWeaponData->minRange,
+		equippedWeaponData->maxRange
+	);
+
+	Renderer2D::Flush();
+	mPlatform.renderDevice->EnableBlending(true);
+
+	for (const TilePathing::Cell& cell : attackZone) {
+		Renderer2D::DrawQuad(
+			{ cell.col * tileMap->tileWidth, cell.row * tileMap->tileHeight, 0.3f },
+			{ tileMap->tileWidth, tileMap->tileHeight },
+			{ 1.0f, 0.0f, 0.0f, 0.5f });
+	}
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(false);
 }
 
 void Game::RenderActionItemSelectMenu() {
-	constexpr TextureHandle selectionRingTextureHandle = static_cast<TextureHandle>(Res::Textures::Id::SelectionRing);
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
 	constexpr float BoxWidth = 150.0f;
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(true);
@@ -709,7 +781,7 @@ void Game::RenderActionItemSelectMenu() {
 		{ actionMenuPos.x, actionMenuPos.y + mCurSelection * 25.0f, 0.9f },
 		{ BoxWidth, 25.0f },
 		{ 1.0f, 0.0f, 1.0f, 1.0f },
-		selectionRingTextureHandle);
+		SelectionRingTextureHandle);
 
 	Renderer2D::Flush();
 	mPlatform.renderDevice->EnableBlending(false);
@@ -720,19 +792,17 @@ void Game::OnResize(uint16_t width, uint16_t height) {
 }
 
 void Game::Close() {
-	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath("rcdavis", "2d-tactics-game");
-	mActionMap.SaveBindings(prefPath / "bindings.json");
+	const std::filesystem::path prefPath = mPlatform.GetPreferencesPath(PrefPathOrgName, PrefPathAppName);
+	mActionMap.SaveBindings(prefPath / InputBindingsFile);
 	mIsRunning = false;
 }
 
 void Game::UpdateCursor(const float elapsedTime) {
-	constexpr float KeyPressInterval = 0.1f;
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
 
 	mTimeSinceKeyPressed += elapsedTime;
 
-	if (mTimeSinceKeyPressed > KeyPressInterval) {
+	if (mTimeSinceKeyPressed > KeyDownInterval) {
 		if (mActionMap.IsDown(Action::MoveUp)) {
 			if (mCursorPos.y > 0)
 				mCursorPos.y--;
@@ -754,8 +824,7 @@ void Game::UpdateCursor(const float elapsedTime) {
 }
 
 void Game::FocusCamera(const glm::ivec2& cell) {
-	constexpr TileMapHandle tileMapHandle = static_cast<TileMapHandle>(Res::Tiles::Maps::Id::Toen);
-	const TileMap* const tileMap = TileSystem::GetTileMap(tileMapHandle);
+	const TileMap* const tileMap = TileSystem::GetTileMap(ToenTileMapHandle);
 
 	const glm::vec2 worldEndPos = {
 		tileMap->tileColumnCount * tileMap->tileWidth,
